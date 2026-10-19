@@ -3,11 +3,13 @@
  *
  * - `preloadGo()` — Worker を起動して wasm を読み込む。初回のロード時間を返す
  * - `runGo(code, options)` — 実行し、出力イベントを `onEvent` に流す。完了まで待つ
+ * - `formatGo(code)` — gofmt で整形する。実行中は Worker が塞がっているので `busy` を返す
  * - タイムアウト・AbortSignal・Worker クラッシュでは Worker を terminate して作り直す
  */
 import { isGoWorkerEvent, type GoWorkerRequest } from './goProtocol';
 
 export const DEFAULT_GO_TIMEOUT_MS = 10_000;
+export const DEFAULT_GO_FORMAT_TIMEOUT_MS = 5_000;
 
 export type GoRunEvent =
   | { type: 'stdout'; data: string }
@@ -34,6 +36,16 @@ export interface GoPreloadResult {
   loadMs: number;
 }
 
+export type GoFormatStatus = 'ok' | 'error' | 'busy' | 'crashed';
+
+export interface GoFormatResult {
+  status: GoFormatStatus;
+  /** status が 'ok' のときだけ入る整形後のコード */
+  code?: string;
+  /** status が 'error' / 'busy' / 'crashed' のときの理由（行番号付きの構文エラーなど） */
+  error?: string;
+}
+
 interface ActiveRun {
   runId: string;
   onEvent: ((event: GoRunEvent) => void) | undefined;
@@ -49,6 +61,13 @@ interface ReadyState {
   resolve: (result: GoPreloadResult) => void;
   reject: (error: Error) => void;
   startedAt: number;
+}
+
+interface PendingFormat {
+  reqId: string;
+  resolve: (result: GoFormatResult) => void;
+  timer: ReturnType<typeof setTimeout> | null;
+  settled: boolean;
 }
 
 function createReadyDeferred(): {
@@ -79,6 +98,7 @@ class GoRunner {
   private ready: ReadyState | null = null;
   private loaded: GoPreloadResult | null = null;
   private active: ActiveRun | null = null;
+  private pendingFormat: PendingFormat | null = null;
 
   preload(): Promise<GoPreloadResult> {
     if (this.loaded !== null) return Promise.resolve(this.loaded);
@@ -162,9 +182,51 @@ class GoRunner {
     });
   }
 
+  /**
+   * gofmt でコードを整形する。実行と同じ Worker を使うため、実行中は `busy` を
+   * 返して何もしない（Worker は実行中ブロックされていてメッセージを処理できない）。
+   */
+  async format(code: string, timeoutMs = DEFAULT_GO_FORMAT_TIMEOUT_MS): Promise<GoFormatResult> {
+    if (this.active !== null) {
+      return { status: 'busy', error: '実行中はフォーマットできません' };
+    }
+    try {
+      await this.preload();
+    } catch (error) {
+      return { status: 'crashed', error: describeError(error) };
+    }
+    if (this.active !== null) {
+      return { status: 'busy', error: '実行中はフォーマットできません' };
+    }
+    const worker = this.worker;
+    if (worker === null) {
+      return { status: 'crashed', error: 'Worker が初期化されていません' };
+    }
+
+    return new Promise<GoFormatResult>((resolve) => {
+      const pending: PendingFormat = {
+        reqId: crypto.randomUUID(),
+        resolve,
+        timer: null,
+        settled: false,
+      };
+      this.pendingFormat = pending;
+      pending.timer = setTimeout(() => {
+        this.failFormat(pending, 'crashed', `フォーマットが ${timeoutMs} ms を超えました`);
+        this.resetWorker();
+      }, timeoutMs);
+      const message: GoWorkerRequest = { type: 'format', reqId: pending.reqId, code };
+      // Dedicated Worker の postMessage は第 2 引数が transfer list なので origin は渡さない
+      // oxlint-disable-next-line unicorn/require-post-message-target-origin
+      worker.postMessage(message);
+    });
+  }
+
   dispose(): void {
     const active = this.active;
     if (active !== null) this.finish(active, 'cancelled', '実行を停止しました');
+    const pending = this.pendingFormat;
+    if (pending !== null) this.failFormat(pending, 'crashed', 'フォーマットを中断しました');
     this.resetWorker();
   }
 
@@ -201,6 +263,19 @@ class GoRunner {
         }
         return;
       }
+      case 'formatted': {
+        const pending = this.pendingFormat;
+        if (pending === null || pending.reqId !== value.reqId) return;
+        if (value.ok) {
+          this.resolveFormat(pending, { status: 'ok', code: value.code });
+        } else {
+          this.resolveFormat(pending, {
+            status: 'error',
+            error: value.error ?? 'フォーマットに失敗しました',
+          });
+        }
+        return;
+      }
     }
   }
 
@@ -216,11 +291,27 @@ class GoRunner {
   private handleCrash(message: string): void {
     const ready = this.ready;
     const active = this.active;
+    const pending = this.pendingFormat;
     if (active !== null) {
       this.finish(active, 'crashed', message);
     }
+    if (pending !== null) {
+      this.failFormat(pending, 'crashed', message);
+    }
     this.resetWorker();
     if (ready !== null) ready.reject(new Error(message));
+  }
+
+  private resolveFormat(pending: PendingFormat, result: GoFormatResult): void {
+    if (pending.settled) return;
+    pending.settled = true;
+    if (pending.timer !== null) clearTimeout(pending.timer);
+    if (this.pendingFormat === pending) this.pendingFormat = null;
+    pending.resolve(result);
+  }
+
+  private failFormat(pending: PendingFormat, status: GoFormatStatus, error: string): void {
+    this.resolveFormat(pending, { status, error });
   }
 
   private finish(active: ActiveRun, status: GoRunStatus, error?: string): void {
@@ -267,6 +358,10 @@ export function preloadGo(): Promise<GoPreloadResult> {
 
 export function runGo(code: string, options?: GoRunOptions): Promise<GoRunResult> {
   return goRunner.run(code, options);
+}
+
+export function formatGo(code: string): Promise<GoFormatResult> {
+  return goRunner.format(code);
 }
 
 export function disposeGo(): void {

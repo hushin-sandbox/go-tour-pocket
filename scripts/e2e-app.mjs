@@ -6,7 +6,8 @@
  * iPhone 13 エミュレーション）で次を確認する。
  *
  *   1. 一覧 → basics/1 を開く → 対訳が出る → 表示モードを切り替える → 次へで 2 ページ目
- *   2. コードを実行して出力が出る
+ *   2. コードを実行して出力が出る。実 wasm で Ctrl + Enter の整形（gofmt 済みになる）と
+ *      Shift + Enter の実行も確認する
  *   3. 一覧の「続きから」が最後に開いたページを指す。一覧下部の /licenses リンクが
  *      フルリロードなしで /licenses を開く
  *   4. Service Worker の制御下でオフラインにし、未読の concurrency/1 を開いて
@@ -25,6 +26,10 @@ import { chromium, devices } from 'playwright';
 const PORT = process.env.APP_E2E_PORT ?? '4174';
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const RUN_TIMEOUT_MS = 120_000;
+
+/** インデントと空行を崩した Go のコード。gofmt で下の形に整形される。 */
+const MANGLED_CODE = 'package main\nimport "fmt"\nfunc main(){fmt.Println("formatted")}';
+const FORMATTED_CODE = 'package main\n\nimport "fmt"\n\nfunc main() { fmt.Println("formatted") }\n';
 
 const log = (step, message) => {
   console.log(`[e2e-app] ${step}: ${message}`);
@@ -77,6 +82,34 @@ const runCode = async (page) => {
     .waitFor({ timeout: RUN_TIMEOUT_MS });
   await waitForEnabled(runButton, 30_000);
   return output;
+};
+
+/** CodeMirror の本文を行単位で取り出す（textContent は改行を保たないため）。 */
+const readEditorLines = (editor) =>
+  editor.evaluate((element) =>
+    Array.from(element.querySelectorAll('.cm-line'), (line) => line.textContent ?? ''),
+  );
+
+/** 末尾の空行（文書末の改行）は挿入経路で揺れるので無視して比べる。 */
+const normalizeLines = (lines) => {
+  const copy = [...lines];
+  while (copy.length > 0 && copy.at(-1) === '') copy.pop();
+  return copy;
+};
+
+/** エディタの本文が期待どおりの行になるまで待つ。 */
+const waitForEditorLines = async (editor, expected, timeoutMs) => {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    const lines = await readEditorLines(editor);
+    if (JSON.stringify(normalizeLines(lines)) === JSON.stringify(normalizeLines(expected))) {
+      return;
+    }
+    if (Date.now() > deadline) {
+      throw new Error(`エディタの本文が一致しない: ${JSON.stringify(lines)}`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
 };
 
 const main = async () => {
@@ -158,6 +191,27 @@ const main = async () => {
       .first()
       .waitFor({ timeout: RUN_TIMEOUT_MS });
     log('run', 'basics/2 のコードが実行できた');
+
+    // 2b. 実 wasm の整形（Ctrl + Enter）と、Shift + Enter のショートカット実行
+    const editor = page.getByRole('textbox', { name: /imports.go のコード/ });
+    await clickCentered(page, editor);
+    await page.keyboard.press('Control+a');
+    await page.keyboard.insertText(MANGLED_CODE);
+    await waitForEditorLines(editor, MANGLED_CODE.split('\n'), 10_000);
+
+    await page.keyboard.press('Control+Enter');
+    await waitForEditorLines(editor, FORMATTED_CODE.split('\n'), 30_000);
+    log('format', 'Ctrl + Enter で実 wasm の gofmt 整形ができた');
+
+    await page.keyboard.press('Shift+Enter');
+    const formatOutput = page.getByRole('log');
+    await formatOutput.getByText('formatted').first().waitFor({ timeout: RUN_TIMEOUT_MS });
+    await formatOutput
+      .getByText(/終了（\d+ ms）/)
+      .first()
+      .waitFor({ timeout: RUN_TIMEOUT_MS });
+    await waitForEnabled(page.getByRole('button', { name: '実行', exact: true }), 30_000);
+    log('shortcut-run', 'Shift + Enter で編集したコードを実行できた');
 
     // 3. 「続きから」が最後に開いたページ（basics/2）を指す
     await page.getByRole('link', { name: 'Go Tour Pocket' }).click();

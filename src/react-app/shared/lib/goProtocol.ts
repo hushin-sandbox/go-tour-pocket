@@ -28,11 +28,22 @@ export interface GoWorkerExitMessage {
   ms: number;
 }
 
+export interface GoWorkerFormattedMessage {
+  type: 'formatted';
+  reqId: string;
+  ok: boolean;
+  /** ok のときだけ入る整形後のコード */
+  code?: string;
+  /** 構文エラーなどで整形できなかったときだけ入る（`行:列: 内容`） */
+  error?: string;
+}
+
 export type GoWorkerEvent =
   | GoWorkerReadyMessage
   | GoWorkerOutputMessage
   | GoWorkerImageMessage
-  | GoWorkerExitMessage;
+  | GoWorkerExitMessage
+  | GoWorkerFormattedMessage;
 
 export interface GoWorkerRunMessage {
   type: 'run';
@@ -40,12 +51,28 @@ export interface GoWorkerRunMessage {
   code: string;
 }
 
-export type GoWorkerRequest = GoWorkerRunMessage;
+export interface GoWorkerFormatMessage {
+  type: 'format';
+  reqId: string;
+  code: string;
+}
+
+export type GoWorkerRequest = GoWorkerRunMessage | GoWorkerFormatMessage;
 
 export function isGoWorkerEvent(value: unknown): value is GoWorkerEvent {
   if (value === null || typeof value !== 'object' || !('type' in value)) return false;
   const type = value.type;
   if (type === 'ready') return true;
+  if (type === 'formatted') {
+    return (
+      'reqId' in value &&
+      typeof value.reqId === 'string' &&
+      'ok' in value &&
+      typeof value.ok === 'boolean' &&
+      (!('code' in value) || typeof value.code === 'string') &&
+      (!('error' in value) || typeof value.error === 'string')
+    );
+  }
   if (!('runId' in value) || typeof value.runId !== 'string') return false;
   if (type === 'stdout' || type === 'stderr') {
     return 'data' in value && typeof value.data === 'string';
@@ -68,5 +95,12 @@ export function isGoWorkerRunMessage(value: unknown): value is GoWorkerRunMessag
   if (value === null || typeof value !== 'object') return false;
   if (!('type' in value) || value.type !== 'run') return false;
   if (!('runId' in value) || typeof value.runId !== 'string') return false;
+  return 'code' in value && typeof value.code === 'string';
+}
+
+export function isGoWorkerFormatMessage(value: unknown): value is GoWorkerFormatMessage {
+  if (value === null || typeof value !== 'object') return false;
+  if (!('type' in value) || value.type !== 'format') return false;
+  if (!('reqId' in value) || typeof value.reqId !== 'string') return false;
   return 'code' in value && typeof value.code === 'string';
 }

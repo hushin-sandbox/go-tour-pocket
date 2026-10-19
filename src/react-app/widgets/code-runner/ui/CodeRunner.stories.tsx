@@ -5,12 +5,18 @@ import { CodeRunner } from './CodeRunner';
 import {
   CODE_HASH,
   EDITED_CODE,
+  FORMAT_ERROR,
+  FORMATTED_CODE,
   SAMPLE_CODE,
   STORAGE_KEY,
   createMockEngine,
   createPreparingEngine,
   createStopEngine,
 } from './CodeRunner.mock';
+
+/** CodeMirror の本文を行単位で取り出す（textContent は改行を保たないため）。 */
+const readEditorLines = (editor: HTMLElement): string[] =>
+  Array.from(editor.querySelectorAll('.cm-line'), (line) => line.textContent ?? '');
 
 const meta = {
   component: CodeRunner,
@@ -210,6 +216,104 @@ export const ChangeFontSize: Story = {
       'true',
     );
     await expect(window.localStorage.getItem('go-tour-pocket:code-font-size')).toBe('lg');
+  },
+};
+
+export const FormatCode: Story = {
+  name: 'フォーマットで本文が変わる',
+  play: async ({ canvas, userEvent }) => {
+    const editor = await canvas.findByRole('textbox', { name: /packages.go のコード/ });
+    await expect(readEditorLines(editor)).toEqual(SAMPLE_CODE.split('\n'));
+
+    const button = await canvas.findByRole('button', { name: 'フォーマット' });
+    await expect(button).toHaveAttribute('aria-keyshortcuts', 'Control+Enter Meta+Enter');
+    await userEvent.click(button);
+
+    await waitFor(() => expect(readEditorLines(editor)).toEqual(FORMATTED_CODE.split('\n')));
+    // 通常の編集と同じく下書き保存の対象になる（JSON 文字列なので引用符は含めない）
+    await waitFor(() =>
+      expect(window.localStorage.getItem(draftStorageKey(STORAGE_KEY))).toContain(
+        'func main() { fmt.Println(',
+      ),
+    );
+
+    // 置き換えは 1 トランザクションなので undo で元に戻せる
+    await userEvent.click(editor);
+    await userEvent.keyboard('{Control>}z{/Control}');
+    await waitFor(() => expect(readEditorLines(editor)).toEqual(SAMPLE_CODE.split('\n')));
+  },
+};
+
+export const FormatSyntaxError: Story = {
+  name: '構文エラーでは本文を変えない',
+  args: {
+    engine: createMockEngine({
+      format: () => Promise.resolve({ status: 'error', error: FORMAT_ERROR }),
+    }),
+  },
+  play: async ({ canvas, userEvent }) => {
+    const editor = await canvas.findByRole('textbox', { name: /packages.go のコード/ });
+    await userEvent.click(await canvas.findByRole('button', { name: 'フォーマット' }));
+
+    await expect(
+      await canvas.findByText(`フォーマットできませんでした: ${FORMAT_ERROR}`),
+    ).toBeVisible();
+    await expect(readEditorLines(editor)).toEqual(SAMPLE_CODE.split('\n'));
+    await expect(window.localStorage.getItem(draftStorageKey(STORAGE_KEY))).toBeNull();
+  },
+};
+
+export const RunWithShiftEnter: Story = {
+  name: 'エディタで Shift + Enter 実行',
+  args: {
+    engine: createMockEngine({ events: [{ type: 'stdout', data: 'Hello, 世界\n' }] }),
+  },
+  play: async ({ canvas, userEvent }) => {
+    const editor = await canvas.findByRole('textbox', { name: /packages.go のコード/ });
+    await expect(await canvas.findByRole('button', { name: '実行' })).toHaveAttribute(
+      'aria-keyshortcuts',
+      'Shift+Enter',
+    );
+
+    await userEvent.click(editor);
+    await userEvent.keyboard('{Shift>}{Enter}{/Shift}');
+
+    const output = await canvas.findByRole('log');
+    await expect(await within(output).findByText(/Hello, 世界/)).toBeVisible();
+    await expect(await within(output).findByText('終了（7 ms）')).toBeVisible();
+    // 実行キーは本文に改行を入れない
+    await expect(readEditorLines(editor)).toEqual(SAMPLE_CODE.split('\n'));
+  },
+};
+
+export const RunWithShiftEnterOutsideEditor: Story = {
+  name: 'エディタ外の Shift + Enter 実行',
+  args: {
+    engine: createMockEngine({ events: [{ type: 'stdout', data: 'outside\n' }] }),
+  },
+  play: async ({ canvas, userEvent }) => {
+    // ファイル名のラベル（フォーカス可能な要素ではない）を押して、本文にフォーカスを移す
+    await userEvent.click(await canvas.findByText('packages.go'));
+    await userEvent.keyboard('{Shift>}{Enter}{/Shift}');
+
+    const output = await canvas.findByRole('log');
+    await expect(await within(output).findByText('outside')).toBeVisible();
+  },
+};
+
+export const FormatWithControlEnter: Story = {
+  name: 'エディタで Ctrl + Enter フォーマット',
+  play: async ({ canvas, userEvent }) => {
+    const editor = await canvas.findByRole('textbox', { name: /packages.go のコード/ });
+    await userEvent.click(editor);
+    await userEvent.keyboard('{Control>}{Enter}{/Control}');
+
+    await waitFor(() => expect(readEditorLines(editor)).toEqual(FORMATTED_CODE.split('\n')));
+    await waitFor(() =>
+      expect(window.localStorage.getItem(draftStorageKey(STORAGE_KEY))).toContain(
+        'func main() { fmt.Println(',
+      ),
+    );
   },
 };
 

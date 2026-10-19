@@ -6,7 +6,12 @@
  * 以外に止められないため、main 側はタイムアウト・停止時に Worker ごと作り直す。
  */
 import { GoOutputSplitter } from './goOutput';
-import { isGoWorkerRunMessage, type GoWorkerEvent } from './goProtocol';
+import {
+  isGoWorkerFormatMessage,
+  isGoWorkerRunMessage,
+  type GoWorkerEvent,
+  type GoWorkerFormatMessage,
+} from './goProtocol';
 
 const splitter = new GoOutputSplitter();
 const decoder = new TextDecoder();
@@ -115,8 +120,47 @@ function parseRunResult(value: unknown): { error?: string; ms: number } {
   return error === undefined ? { ms } : { error, ms };
 }
 
+function parseFormatResult(value: unknown): { ok: boolean; code?: string; error?: string } {
+  if (value === null || typeof value !== 'object') return { ok: false };
+  if (!('ok' in value) || typeof value.ok !== 'boolean') return { ok: false };
+  if (!value.ok) {
+    if ('error' in value && typeof value.error === 'string' && value.error.length > 0) {
+      return { ok: false, error: value.error };
+    }
+    return { ok: false, error: 'フォーマットに失敗しました' };
+  }
+  if (!('code' in value) || typeof value.code !== 'string') {
+    return { ok: false, error: 'フォーマット結果が不正です' };
+  }
+  return { ok: true, code: value.code };
+}
+
+/**
+ * 整形は Go の関数を同期的に呼ぶだけで、実行中の run と違って出力を伴わない。
+ * Worker 自体は実行中ブロックされるため、実行中に届いた format は run の終了後に
+ * 処理される（UI 側は実行中に整形ボタンを無効にするので通常は起きない）。
+ */
+function handleFormat(message: GoWorkerFormatMessage): void {
+  const respond = (result: { ok: boolean; code?: string; error?: string }) => {
+    post({ type: 'formatted', reqId: message.reqId, ...result });
+  };
+  if (formatGo === undefined) {
+    respond({ ok: false, error: 'Go ランタイムが初期化されていません' });
+    return;
+  }
+  try {
+    respond(parseFormatResult(JSON.parse(formatGo(message.code))));
+  } catch (error) {
+    respond({ ok: false, error: describeError(error) });
+  }
+}
+
 self.addEventListener('message', (event: MessageEvent<unknown>) => {
   const message: unknown = event.data;
+  if (isGoWorkerFormatMessage(message)) {
+    handleFormat(message);
+    return;
+  }
   if (!isGoWorkerRunMessage(message) || activeRunId !== null) return;
   if (runGo === undefined) {
     post({

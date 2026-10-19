@@ -96,6 +96,9 @@ type LessonJa = {
 - Go モジュール。Yaegi は固定バージョンを使う。標準ライブラリのシンボルは Tour が使うものに絞る
   （fmt, math, math/cmplx, math/rand, strings, time, io, os, sync, image, image/color, errors, runtime, log など）
 - `golang.org/x/tour` v0.1.0 の pic / wc / tree / reader をシンボルとして組み込む
+- 実行の `runGo(source, emit)` に加えて、整形の `formatGo(source)` を公開する。
+  `go/format.Source`（gofmt と同じ）で整形し、`{ ok, code?, error? }` を JSON 文字列で返す。
+  Yaegi が go/parser を含むため、バイナリの増分は小さい（raw 約 +0.38MB、brotli 約 +0.06MB）
 - 出力は `GOOS=js GOARCH=wasm go build -trimpath -ldflags="-s -w"`。生成物はコミットせず、ビルド時に作る
 - Go のバージョンは mise で固定する
 
@@ -104,17 +107,30 @@ type LessonJa = {
 ```ts
 // main → worker
 { type: "run"; runId: string; code: string }
+{ type: "format"; reqId: string; code: string }
 // worker → main
 { type: "ready" }
 { type: "stdout" | "stderr"; runId: string; data: string }
 { type: "image"; runId: string; dataUrl: string }   // pic の "IMAGE:" 行を変換したもの
 { type: "exit"; runId: string; ok: boolean; error?: string; ms: number }
+{ type: "formatted"; reqId: string; ok: boolean; code?: string; error?: string }
 ```
 
 - 1 回の実行ごとに出力を順に流す。`IMAGE:` は行単位でバッファしてから画像に変換する
 - タイムアウト（既定 10 秒）か停止ボタンで `worker.terminate()` を呼び、Worker を作り直す
 - 事前ビルド済みのパッケージ（x/tour）が書く os.Stdout は、同期的に回収する
   （PoC で Node.js の非同期 fs が deadlock することを確認済み）
+- 整形は実行と同じ Worker で行う。Worker は実行中ブロックされるため、実行中の整形リクエストは
+  処理されない。`formatGo` は実行中に `busy` を返し、UI 側もフォーマットボタンを無効にする
+- 構文エラーのときは `code` を返さず、`error` に go/parser の `行:列: 内容` を入れる。
+  UI はエディタを変えず、行番号付きのエラーを控えめなメッセージとして出す
+
+### ショートカット（welcome レッスンの説明に合わせる）
+
+- エディタにフォーカスがあるとき: `Shift` + `Enter` で実行、`Ctrl` + `Enter`（macOS は `Cmd` + `Enter`）でフォーマット
+- エディタの外（レッスン画面の本文など）でも `Shift` + `Enter` で実行できる。
+  入力欄・ボタン・リンク・ダイアログの上では働かせない
+- 実行・フォーマットのボタンには `aria-keyshortcuts` と title でショートカットを表示する
 
 ### 既知の差異（UI で注記する）
 
@@ -168,7 +184,7 @@ type LessonJa = {
   - インライン記法は `src/shared/inline.ts` のパーサで描画する。英日とも同じものを使う
 - コード（`code` があるページ）: 本文の下に置く
   - エディタは CodeMirror 6（Go のシンタックスハイライト、行番号、文字サイズの調整）
-  - 実行・停止・元に戻すのボタン。実行結果（stdout、stderr、画像、終了状態、所要時間）をエディタの下に出す
+  - 実行・フォーマット・停止・元に戻すのボタン。実行結果（stdout、stderr、画像、終了状態、所要時間）をエディタの下に出す
   - 既知の差異（時刻、`runtime.GOOS`、`%T`、不正なコードを受理する場合がある）を、折りたたんだ注記で出す
 - 下部: 前へ・次へを親指で押せる位置に固定する。レッスンの最後のページでは次のレッスンへ進む
 
