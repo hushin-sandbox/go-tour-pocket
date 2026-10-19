@@ -18,7 +18,7 @@ import {
   useDisplaySettings,
 } from '@/react-app/features/display-mode';
 import { cn } from '@/react-app/shared/lib';
-import { CodeSlot } from './CodeSlot';
+import { CodeRunner } from '@/react-app/widgets/code-runner';
 import { PageBlocks } from './PageBlocks';
 import { TableOfContents } from './TableOfContentsSheet';
 
@@ -159,10 +159,12 @@ export function TourPageView({ lesson, pageIndex, catalog }: TourPageViewProps) 
         <PageBlocks page={page} mode={settings.mode} />
 
         {page.code && (
-          <CodeSlot
+          <CodeRunner
             code={page.code.content}
+            fileName={page.code.name}
             storageKey={`${lesson.id}/${pageIndex}`}
             codeHash={codeHash(page.code.content)}
+            className="border-t border-border pt-6"
           />
         )}
       </article>

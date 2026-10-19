@@ -1,0 +1,112 @@
+/*
+ * CodeMirror 6 の見た目。テーマ変数は index.css のデザイントークンに合わせ、
+ * ダークモードは既存どおり html の `.dark` クラスで切り替える。
+ * エディタ本体は CSS で、シンタックスハイライトは CodeEditor.tsx の
+ * HighlightStyle から同じ変数を参照する。
+ */
+.code-runner {
+  --code-runner-font-size: 16px;
+  --code-runner-line-height: 1.6;
+  --code-runner-min-height: 8rem;
+  --code-runner-max-height: 60dvh;
+
+  --code-runner-editor-bg: var(--card);
+  --code-runner-editor-fg: var(--card-foreground);
+  --code-runner-gutter-bg: var(--muted);
+  --code-runner-gutter-fg: var(--muted-foreground);
+  --code-runner-selection: color-mix(in oklch, var(--primary) 25%, transparent);
+  --code-runner-matching-bracket: color-mix(in oklch, var(--primary) 18%, transparent);
+
+  --code-runner-syntax-keyword: oklch(0.45 0.16 300);
+  --code-runner-syntax-string: oklch(0.45 0.12 155);
+  --code-runner-syntax-number: oklch(0.48 0.13 60);
+  --code-runner-syntax-comment: oklch(0.5 0.02 220);
+  --code-runner-syntax-type: oklch(0.45 0.13 240);
+  --code-runner-syntax-function: oklch(0.45 0.1 200);
+  --code-runner-syntax-property: oklch(0.45 0.08 285);
+  --code-runner-syntax-operator: var(--muted-foreground);
+  --code-runner-syntax-invalid: var(--destructive);
+}
+
+.code-runner[data-font-size='sm'] {
+  --code-runner-font-size: 14px;
+}
+
+.code-runner[data-font-size='md'] {
+  --code-runner-font-size: 16px;
+}
+
+.code-runner[data-font-size='lg'] {
+  --code-runner-font-size: 18px;
+}
+
+.dark .code-runner {
+  --code-runner-syntax-keyword: oklch(0.8 0.12 300);
+  --code-runner-syntax-string: oklch(0.82 0.1 155);
+  --code-runner-syntax-number: oklch(0.84 0.11 75);
+  --code-runner-syntax-comment: oklch(0.68 0.02 220);
+  --code-runner-syntax-type: oklch(0.8 0.1 240);
+  --code-runner-syntax-function: oklch(0.82 0.08 200);
+  --code-runner-syntax-property: oklch(0.78 0.08 285);
+  --code-runner-syntax-operator: var(--muted-foreground);
+}
+
+.code-runner .cm-editor {
+  min-height: var(--code-runner-min-height);
+  max-height: var(--code-runner-max-height);
+  background-color: var(--code-runner-editor-bg);
+  color: var(--code-runner-editor-fg);
+}
+
+.code-runner .cm-editor.cm-focused {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
+.code-runner .cm-scroller {
+  max-height: var(--code-runner-max-height);
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+  font-size: var(--code-runner-font-size);
+  line-height: var(--code-runner-line-height);
+}
+
+.code-runner .cm-editor .cm-content {
+  min-height: var(--code-runner-min-height);
+  caret-color: var(--foreground);
+}
+
+.code-runner .cm-editor .cm-line {
+  padding: 0 0.75rem;
+}
+
+.code-runner .cm-editor .cm-gutters {
+  background-color: var(--code-runner-gutter-bg);
+  color: var(--code-runner-gutter-fg);
+  border-right: 1px solid var(--border);
+  font-size: var(--code-runner-font-size);
+  line-height: var(--code-runner-line-height);
+}
+
+.code-runner .cm-editor .cm-lineNumbers .cm-gutterElement {
+  min-width: 2.5rem;
+  padding: 0 0.5rem;
+}
+
+.code-runner .cm-editor .cm-selectionBackground,
+.code-runner .cm-editor.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground,
+.code-runner .cm-editor .cm-content ::selection {
+  background: var(--code-runner-selection);
+}
+
+.code-runner .cm-editor .cm-cursor {
+  border-left-color: var(--foreground);
+}
+
+.code-runner .cm-editor .cm-matchingBracket {
+  background: var(--code-runner-matching-bracket);
+  outline: 1px solid var(--ring);
+}

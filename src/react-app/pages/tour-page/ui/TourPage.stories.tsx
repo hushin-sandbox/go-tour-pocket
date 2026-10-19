@@ -175,7 +175,7 @@ export const Bilingual: Story = {
     await expect(canvas.getByText('Go のプログラムはパッケージで構成されます。')).toBeVisible();
     await expect(canvas.getByText('1 つ目の項目です。')).toBeVisible();
     await expect(canvas.getByText('type Point struct {')).toBeVisible();
-    await expect(canvas.getByRole('heading', { name: 'コード' })).toBeVisible();
+    await expect(canvas.getByRole('region', { name: /のコード例$/ })).toBeVisible();
   },
 };
 
