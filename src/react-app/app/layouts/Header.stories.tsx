@@ -11,8 +11,12 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   play: async ({ canvas }) => {
-    await expect(canvas.getByRole('link', { name: 'Go Tour Pocket' })).toBeVisible();
-    await expect(canvas.getByRole('link', { name: 'ホーム' })).toHaveAttribute('href', '/');
-    await expect(canvas.getByRole('link', { name: 'スパイク' })).toHaveAttribute('href', '/spike');
+    await expect(canvas.getByRole('link', { name: 'Go Tour Pocket' })).toHaveAttribute('href', '/');
+    await expect(canvas.getByRole('link', { name: 'このアプリについて' })).toHaveAttribute(
+      'href',
+      '/about',
+    );
+    // ブラウザはオンラインなので、オフライン表示は出ない
+    await expect(canvas.queryByText('オフライン')).not.toBeInTheDocument();
   },
 };

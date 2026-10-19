@@ -3,10 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0f172a" />
+    <!-- ステータスバーの色をテーマに合わせる（ライト / ダーク） -->
+    <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
     <link rel="icon" type="image/png" href="/icons/icon-192.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Go Tour Pocket</title>
+    <script>
+      // ダークモードは index.css の .dark クラスで切り替える。
+      // 初回描画でちらつかないよう、React がマウントする前にシステム設定を反映する。
+      (() => {
+        const query = window.matchMedia('(prefers-color-scheme: dark)');
+        const apply = (dark) => document.documentElement.classList.toggle('dark', dark);
+        apply(query.matches);
+        query.addEventListener('change', (event) => apply(event.matches));
+      })();
+    </script>
   </head>
 
   <body>

@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as SpikeRouteImport } from './routes/spike'
 import { Route as TourLessonPageRouteImport } from './routes/tour.$lesson.$page'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SpikeRoute = SpikeRouteImport.update({
@@ -31,30 +37,34 @@ const TourLessonPageRoute = TourLessonPageRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/spike': typeof SpikeRoute
   '/tour/$lesson/$page': typeof TourLessonPageRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/spike': typeof SpikeRoute
   '/tour/$lesson/$page': typeof TourLessonPageRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/spike': typeof SpikeRoute
   '/tour/$lesson/$page': typeof TourLessonPageRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/spike' | '/tour/$lesson/$page'
+  fullPaths: '/' | '/about' | '/spike' | '/tour/$lesson/$page'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/spike' | '/tour/$lesson/$page'
-  id: '__root__' | '/' | '/spike' | '/tour/$lesson/$page'
+  to: '/' | '/about' | '/spike' | '/tour/$lesson/$page'
+  id: '__root__' | '/' | '/about' | '/spike' | '/tour/$lesson/$page'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   SpikeRoute: typeof SpikeRoute
   TourLessonPageRoute: typeof TourLessonPageRoute
 }
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/spike': {
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   SpikeRoute: SpikeRoute,
   TourLessonPageRoute: TourLessonPageRoute,
 }

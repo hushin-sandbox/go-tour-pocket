@@ -15,6 +15,7 @@ import {
   useProgress,
   type Progress,
 } from '@/react-app/entities/progress';
+import { InstallPrompt } from '@/react-app/features/install-prompt';
 import { cn } from '@/react-app/shared/lib';
 import { Button } from '@/react-app/shared/ui';
 
@@ -81,6 +82,8 @@ export function HomePageView({ catalog, progress }: HomePageViewProps) {
           を英日対訳で読めるレッスン一覧です。上から順に読み進めても、気になるレッスンから開いてもかまいません。
         </p>
       </header>
+
+      <InstallPrompt />
 
       {lastLesson && lastPageTitle && progress.lastPage ? (
         <section
@@ -162,9 +165,6 @@ export function HomePageView({ catalog, progress }: HomePageViewProps) {
           </section>
         );
       })}
-
-      {/* PWA のインストール導線カード（別担当）の差し込み口。ここにカードを置く。 */}
-      <div data-slot="install-prompt" />
 
       <footer className="flex flex-col gap-4 border-t border-border pt-6">
         <nav aria-label="アプリの情報" className="flex flex-wrap gap-x-5 gap-y-2">
