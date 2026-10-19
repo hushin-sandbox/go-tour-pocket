@@ -7,6 +7,7 @@
     "build": "tsc -b && vite build",
     "prebuild": "pnpm build:wasm",
     "build:wasm": "mise run build:wasm",
+    "e2e": "node scripts/e2e-app.mjs",
     "e2e:spike": "pnpm build && node scripts/e2e-spike.mjs",
     "cf-typegen": "wrangler types",
     "check": "pnpm lint && pnpm fmt:check && pnpm build && wrangler deploy --dry-run",
