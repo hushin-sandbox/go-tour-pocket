@@ -8,6 +8,7 @@ import type {
   LessonJaBlock,
   LessonJaPage,
 } from '../../src/shared/content.ts';
+import { inlineCodeValues, inlineUrlValues } from '../../src/shared/inline.ts';
 import { contentHash, listHash } from './hash.ts';
 import { CONTENT_EN_DIR, CONTENT_JA_DIR } from './paths.ts';
 
@@ -26,45 +27,30 @@ export type ValidationResult = {
   missingLessons: string[];
 };
 
-/** `` `code` `` で囲まれた部分を出現順に取り出す。閉じていないものは無視する。 */
-export function inlineCodeSpans(text: string): string[] {
-  const spans: string[] = [];
-  let offset = 0;
-  for (;;) {
-    const start = text.indexOf('`', offset);
-    if (start < 0) {
-      break;
-    }
-    const end = text.indexOf('`', start + 1);
-    if (end < 0) {
-      break;
-    }
-    spans.push(text.slice(start + 1, end));
-    offset = end + 1;
-  }
-  return spans;
-}
-
-/** `[[url][label]]` の url 部分を出現順に取り出す。 */
-export function inlineUrls(text: string): string[] {
-  const urls: string[] = [];
-  const pattern = /\[\[([^\]]*)\]\[[^\]]*\]\]/g;
-  for (const match of text.matchAll(pattern)) {
-    urls.push(match[1]);
-  }
-  return urls;
-}
-
-function setDifference(
+/**
+ * 多重集合の差を返す。同じコードが複数回現れる場合も数える。
+ * 返る配列は値ごとに不足・余剰の個数だけ要素を持つ。
+ */
+function multisetDifference(
   expected: string[],
   actual: string[],
 ): { missing: string[]; extra: string[] } {
-  const expectedSet = new Set(expected);
-  const actualSet = new Set(actual);
-  return {
-    missing: [...expectedSet].filter((value) => !actualSet.has(value)).toSorted(),
-    extra: [...actualSet].filter((value) => !expectedSet.has(value)).toSorted(),
-  };
+  const counts = new Map<string, number>();
+  for (const value of expected) {
+    counts.set(value, (counts.get(value) ?? 0) + 1);
+  }
+  for (const value of actual) {
+    counts.set(value, (counts.get(value) ?? 0) - 1);
+  }
+
+  const missing: string[] = [];
+  const extra: string[] = [];
+  for (const [value, count] of counts) {
+    for (let index = 0; index < Math.abs(count); index++) {
+      (count > 0 ? missing : extra).push(value);
+    }
+  }
+  return { missing: missing.toSorted(), extra: extra.toSorted() };
 }
 
 function compareInline(
@@ -73,7 +59,7 @@ function compareInline(
   blockId: string,
   issues: ValidationIssue[],
 ): void {
-  const code = setDifference(inlineCodeSpans(english), inlineCodeSpans(japanese));
+  const code = multisetDifference(inlineCodeValues(english), inlineCodeValues(japanese));
   if (code.missing.length > 0 || code.extra.length > 0) {
     issues.push({
       level: 'error',
@@ -86,7 +72,7 @@ function compareInline(
     });
   }
 
-  const urls = setDifference(inlineUrls(english), inlineUrls(japanese));
+  const urls = multisetDifference(inlineUrlValues(english), inlineUrlValues(japanese));
   if (urls.missing.length > 0 || urls.extra.length > 0) {
     issues.push({
       level: 'error',

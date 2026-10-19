@@ -5,12 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { ListBlock, Lesson, LessonJa, ParagraphBlock } from '../../src/shared/content.ts';
 import { contentHash, listHash } from './hash.ts';
 import { CONTENT_EN_DIR } from './paths.ts';
-import {
-  inlineCodeSpans,
-  inlineUrls,
-  validateContent,
-  validateLesson,
-} from './validate-content.ts';
+import { validateContent, validateLesson } from './validate-content.ts';
 
 const tempDirs: string[] = [];
 
@@ -83,14 +78,6 @@ function errorsOf(lesson: Lesson, ja: LessonJa | null): string[] {
     .map((issue) => issue.message);
 }
 
-describe('inline extractors', () => {
-  it('extracts code spans and URLs', () => {
-    expect(inlineCodeSpans('a `b` c `d`')).toEqual(['b', 'd']);
-    expect(inlineCodeSpans('`unclosed')).toEqual([]);
-    expect(inlineUrls('[[/a][A]] and [[https://x][X]]')).toEqual(['/a', 'https://x']);
-  });
-});
-
 describe('validateLesson', () => {
   it('accepts a complete translation', () => {
     const lesson = makeLesson();
@@ -134,6 +121,32 @@ describe('validateLesson', () => {
     const ja = makeJa(lesson);
     ja.pages[0].blocks['basics/0/0'].text = 'fmt と [[/doc/][ドキュメント]] を使います。';
     expect(errorsOf(lesson, ja).join('\n')).toMatch(/inline code does not match/);
+  });
+
+  it('counts duplicate inline code occurrences as a multiset', () => {
+    const lesson = makeLesson();
+    const block = lesson.pages[0].blocks[0];
+    if (block.kind !== 'p') {
+      throw new Error('fixture is not a paragraph');
+    }
+    block.text = 'Use `fmt` and `fmt`.';
+    block.hash = contentHash(block.text);
+    const ja = makeJa(lesson);
+    ja.pages[0].blocks['basics/0/0'] = { hash: block.hash, text: '`fmt` を使います。' };
+    expect(errorsOf(lesson, ja).join('\n')).toMatch(/missing: fmt/);
+  });
+
+  it('detects extra duplicate inline code occurrences', () => {
+    const lesson = makeLesson();
+    const block = lesson.pages[0].blocks[0];
+    if (block.kind !== 'p') {
+      throw new Error('fixture is not a paragraph');
+    }
+    block.text = 'Use `fmt`.';
+    block.hash = contentHash(block.text);
+    const ja = makeJa(lesson);
+    ja.pages[0].blocks['basics/0/0'] = { hash: block.hash, text: '`fmt` と `fmt` を使います。' };
+    expect(errorsOf(lesson, ja).join('\n')).toMatch(/extra: fmt/);
   });
 
   it('detects URL differences', () => {
