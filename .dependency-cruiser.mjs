@@ -60,6 +60,16 @@ export default {
       from: { path: '^src/worker/repositories' },
       to: { path: '^src/worker/routes' },
     },
+    {
+      name: 'msw-helper-is-only-for-stories',
+      comment:
+        'shared/lib/msw-hono.ts は msw 本体（interceptors / tldts / tough-cookie など）を ' +
+        '値として import する。story / mock 以外（barrel の re-export を含む）から読むと ' +
+        '本番バンドルに msw 一式が入るため、直接 import できるのはテストだけにする。',
+      severity: 'error',
+      from: { path: '^src/react-app', pathNot: '\\.(stories|mock)\\.tsx?$' },
+      to: { path: 'shared/lib/msw-hono\\.ts$' },
+    },
   ],
   options: {
     // 依存の解決に path alias（@/*）が必要。paths を持つのはルートの tsconfig

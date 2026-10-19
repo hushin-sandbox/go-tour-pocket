@@ -1,6 +1,12 @@
 /**
  * Hono RPC の型定義から MSW ハンドラを型安全に生成するヘルパー。
  *
+ * **このファイルは barrel（`shared/lib/index.ts`）から re-export しない。**
+ * ここは msw 本体（@mswjs/interceptors、tldts、tough-cookie など）を値として
+ * import するので、barrel 経由にすると `cn` を読むだけの画面にも msw 一式が
+ * 入って本番バンドルが raw で 300 kB 以上（gzip で 120 kB 以上）増える。
+ * story / mock からは `@/react-app/shared/lib/msw-hono` を直接 import する。
+ *
  * - パス（'/api/example-todo' など）とメソッド（'$get' など）は AppType に
  *   実在するものだけが渡せる
  * - handler が受け取る input（param / query / json）と、返す status / output は

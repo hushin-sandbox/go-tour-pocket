@@ -217,7 +217,7 @@ pnpm dev   # localhost:5173 でサインイン → ユーザー名表示 → サ
 ## story でのセッションのモック
 
 better-auth のセッション取得は Hono の route ではなく `auth.handler` が処理するため、
-`AppType` から型を引けない。`shared/lib` の `createHandler` は使えないので、
+`AppType` から型を引けない。`shared/lib/msw-hono` の `createHandler` は使えないので、
 `Header.mock.ts` のように msw の `http` をそのまま使う。
 
 ```ts

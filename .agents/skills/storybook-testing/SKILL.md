@@ -153,8 +153,11 @@ story 側の `beforeEach` はその後に追加実行される。`use()` はハ�
 同じパス・メソッドなら story 側のハンドラが優先される（meta の他メソッドのハンドラは
 残る。ハンドラ自体は story 間で自動リセットされる）。
 
-ハンドラは **`createHandler`（`@/react-app/shared/lib`）で定義する**。パス・メソッド・
-input（param/query/json）・status・output がすべて Hono の `AppType` から型付けされるため、
+ハンドラは **`createHandler`（`@/react-app/shared/lib/msw-hono`）で定義する**。msw 一式を
+引き込むため barrel（`@/react-app/shared/lib`）からは export していない（本番バンドルに
+入れないため。`.dependency-cruiser.mjs` が story / mock 以外からの import を禁じている）。
+パス・メソッド・input（param/query/json）・status・output がすべて Hono の `AppType` から
+型付けされるため、
 API を変えるとモックが型エラーになる。route の型に存在しない status（500 など）を返したいときだけ
 msw の `http` を直接使う。手本は `src/react-app/pages/example-todo/ui/ExampleTodoPage.mock.ts`。
 

@@ -70,7 +70,7 @@ pnpm e2e:spike       # build 後、Playwright で /spike の実行・停止・�
 │   │   ├── app/           # provider / router 初期化、layouts
 │   │   ├── routes/        # TanStack Router file-based routes（薄い route 定義）
 │   │   ├── pages/         # 画面本体（URL セグメント単位のスライス）
-│   │   └── shared/        # ui（shadcn/ui）, lib（cn, msw-hono, Go runner）, api（hc クライアント）
+│   │   └── shared/        # ui（shadcn/ui）, lib（cn, Go runner, msw-hono=story 専用）, api（hc クライアント）
 │   └── shared/            # worker / react-app 共通コード
 │       └── schemas/       # zod スキーマ
 ├── public/                # 静的アセット（wasm は build:wasm の生成物で gitignore）
@@ -144,7 +144,9 @@ npx wrangler tail     # Workers のリアルタイムログ
 - **UI（コンポーネント・ページ）** — 専用のテストファイルを作らず、**story の `play` 関数がそのまま
   interaction test** になる（[Storybook: Interaction testing](https://storybook.js.org/docs/writing-tests/interaction-testing)）。
   API は MSW でモックし、ハンドラは `src/react-app/shared/lib/msw-hono.ts` の `createHandler` で
-  Hono の `AppType` から型付けして書く
+  Hono の `AppType` から型付けして書く。このヘルパーは msw 一式を引き込むため barrel
+  （`@/react-app/shared/lib`）からは export しておらず、story / mock から
+  `@/react-app/shared/lib/msw-hono` を直接 import する（本番バンドルに入れない）
 - **util 関数・複雑な計算ロジック** — 対象の隣に `*.test.ts` を置いて直接テストする。
   ただし react-app 配下でも worker プロジェクト（Workers runtime）で実行されるため、
   `document` / `window` は使えない（DOM が要るものは story にする）

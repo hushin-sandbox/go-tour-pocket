@@ -64,8 +64,8 @@ src/react-app/
     ├── ui/                       # shadcn/ui コンポーネント
     │   ├── button.tsx, card.tsx, ...
     │   └── index.ts
-    ├── lib/                      # cn, msw-hono などの共通ユーティリティ
-    │   ├── utils.ts, msw-hono.ts
+    ├── lib/                      # cn, Go runner などの共通ユーティリティ
+    │   ├── utils.ts, goRunner.ts（msw-hono.ts は story 専用で barrel から出さない）
     │   └── index.ts
     └── api/                      # Hono RPC クライアント
         ├── client.ts
