@@ -191,6 +191,11 @@ dist
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,node,git
 
+### wasm ビルド生成物 ###
+# mise run build:wasm が public/wasm/ に出力する（wasm_exec.js も含む）
+/public/wasm/
+/wasm/.go-version
+
 ### Wrangler ###
 .wrangler/
 .env*

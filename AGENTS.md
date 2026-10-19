@@ -21,11 +21,13 @@ shadcn/ui（base UI）+ Tailwind v4 / zod / Vitest + Storybook 10 / oxlint + oxf
 ```bash
 pnpm check       # 検証: lint（型チェック込み）+ fmt:check + build + deploy --dry-run
 pnpm test        # 検証: vitest run（worker + storybook）
+pnpm e2e:spike   # 検証: /spike を Playwright でスモークテスト（要 build）
 pnpm lint        # lint だけ（oxlint + steiger + dependency-cruiser）
 pnpm fmt         # 整形（oxfmt）。lint の自動修正は pnpm lint:fix
 pnpm dev         # 開発サーバー（localhost:5173）
 pnpm storybook   # Storybook（localhost:6006）
 pnpm cf-typegen  # worker-configuration.d.ts を再生成
+mise run build:wasm  # Yaegi wasm を public/wasm/ にビルド（pnpm build の prebuild でも走る）
 ```
 
 ## 構造
@@ -38,8 +40,10 @@ src/
 │   ├── app/           # provider / router の初期化、layouts
 │   ├── routes/        # TanStack Router の file-based route（薄い定義だけ）
 │   ├── pages/         # 画面本体（URL セグメント単位のスライス）
-│   └── shared/        # ui（shadcn/ui）/ lib / api（hc クライアント）
+│   └── shared/        # ui（shadcn/ui）/ lib（Go runner 含む）/ api（hc クライアント）
 └── shared/            # worker と react-app の共通コード（zod スキーマなど）
+wasm/                  # ブラウザ内 Go インタプリタ（Yaegi）。main.go と抽出済みシンボル
+public/wasm/           # build:wasm の生成物（gitignore）。wasm_exec.js もここにコピーされる
 ```
 
 - 新規 API route → `src/worker/routes/` に追加し、`src/worker/index.ts` に `.route()` でマウントする
@@ -58,12 +62,16 @@ src/
 
 - UI（描画・操作・状態分岐）は `*.stories.tsx` の `play` で書く。UI のために `render()` する専用テストは作らない
 - DOM に触らないロジックは対象の隣に `*.test.ts`、Hono route は `src/worker/**/*.test.ts`（詳細は `testing` / `storybook-testing` skill）
+- wasm / Worker / Service Worker の実機相当の確認は `pnpm e2e:spike`（`scripts/e2e-spike.mjs`）。vitest とは別系統
 
 ## ハマりどころ
 
 - Hono の method chain を切ると RPC の型が失われる。route 定義も `.route()` でのマウントも繋げたまま書く
 - `src/react-app` 配下の `*.test.ts` も Workers runtime で動く（`document` / `window` なし）。DOM が要るものは story にする
 - `routeTree.gen.ts` は自動生成だがコミット対象。手で編集しない
+- Go の実行は Dedicated Worker（`src/react-app/shared/lib/goRunner.worker.ts`）。無限ループは Yaegi 側で止められないため、タイムアウト・停止は `worker.terminate()` で行い Worker を作り直す
+- wasm は約 13MB あり Service Worker の precache 対象。`maximumFileSizeToCacheInBytes` を超えるファイルを増やすときは `vite.config.ts` も見る
+- `wasm_exec.js` は Go のバージョンと一致必須。`mise run build:wasm` が `go env GOROOT` からコピーする
 
 ## DB・認証（add-on）
 
@@ -84,4 +92,5 @@ main は DB なし・認証なしの最小構成。必要になったら手で�
 
 - Hono RPC の型付け（`InferResponseType` / `zValidator`）→ `docs/hono-rpc-types.md`
 - 設計方針（コンテンツ、コード実行、オフライン）→ `docs/design.md`
+- wasm のビルド・シンボル再生成・既知の制約 → `wasm/README.md`
 - skill（`fsd` / `testing` / `storybook-testing` / `shadcn-ui` / `add-*` / `cloudflare` など）は description を見て、必要になったら読む

@@ -1,3 +1,6 @@
+import { Link } from '@tanstack/react-router';
+import { Button } from '@/react-app/shared/ui';
+
 const features = [
   {
     name: '英日対訳',
@@ -41,10 +44,18 @@ export function HomePage() {
         </dl>
       </section>
 
-      <section className="rounded-xl border border-border bg-card px-5 py-4 text-sm leading-6 text-muted-foreground shadow-sm">
-        レッスン一覧・対訳表示・コード実行はこれから実装します。実行エンジンの検証状況は
-        <code className="mx-1 rounded bg-muted px-1.5 py-0.5 text-xs">docs/design.md</code>
-        を参照してください。
+      <section className="flex flex-col gap-4 rounded-xl border border-border bg-card px-5 py-4 shadow-sm">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-sm font-medium">実行エンジンの検証</h2>
+          <p className="text-sm leading-6 text-muted-foreground">
+            Yaegi を wasm 化した Go
+            インタプリタのスパイクを試せます。レッスン一覧・対訳表示・エディタは
+            これから実装します。
+          </p>
+        </div>
+        <div className="flex justify-end">
+          <Button render={<Link to="/spike" />}>スパイクを開く</Button>
+        </div>
       </section>
     </div>
   );

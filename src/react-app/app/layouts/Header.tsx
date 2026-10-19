@@ -14,6 +14,9 @@ export function Header() {
           <Link to="/" className={navLinkClass}>
             ホーム
           </Link>
+          <Link to="/spike" className={navLinkClass}>
+            スパイク
+          </Link>
         </nav>
       </div>
     </header>

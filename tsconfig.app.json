@@ -28,5 +28,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/react-app", "src/shared"]
+  "include": ["src/react-app", "src/shared"],
+  "exclude": ["node_modules", "**/*.test.ts"]
 }

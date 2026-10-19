@@ -1,0 +1,4 @@
+github.com/traefik/yaegi v0.16.2-0.20260209085605-fcb76d1ece0c h1:htRmijmYfl6o44qr+narOX1invzz9J9FnAqCqH7ARio=
+github.com/traefik/yaegi v0.16.2-0.20260209085605-fcb76d1ece0c/go.mod h1:4eVhbPb3LnD2VigQjhYbEJ69vDRFdT2HQNrXx8eEwUY=
+golang.org/x/tour v0.1.0 h1:OWzbINRoGf1wwBhKdFDpYwM88NM0d1SL/Nj6PagS6YE=
+golang.org/x/tour v0.1.0/go.mod h1:DUZC6G8mR1AXgXy73r8qt/G5RsefKIlSj6jBMc8b9Wc=

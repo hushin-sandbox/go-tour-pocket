@@ -38,6 +38,22 @@ Tour の英語原文と日本語訳を段落ごとに対訳表示し、コード
 | Cloudflare D1 + Drizzle ORM | `add-d1-drizzle`  | なし                    |
 | Better Auth（GitHub OAuth） | `add-better-auth` | `add-d1-drizzle` 適用済 |
 
+## コード実行（スパイク）
+
+`/spike` に、Yaegi を wasm 化した Go インタプリタを Web Worker で動かす検証ページがある。
+
+- `wasm/` — Go モジュール。`mise run build:wasm` で `public/wasm/{yaegi.wasm,wasm_exec.js}` を生成（どちらも gitignore）
+- `src/react-app/shared/lib/goRunner.ts` — main 側の API（`preloadGo` / `runGo` / `disposeGo`）。タイムアウト・停止は Worker を terminate して作り直す
+- `src/react-app/shared/lib/goRunner.worker.ts` — Worker。stdout / stderr を逐次送り、`IMAGE:` 行を data URL に変換する
+- `vite-plugin-pwa` が app shell・wasm・wasm_exec.js を precache する。起動時に `navigator.storage.persist()` を要求する
+
+```bash
+mise run build:wasm  # wasm だけ再ビルド（pnpm build / pnpm dev の前に自動実行される）
+pnpm e2e:spike       # build 後、Playwright で /spike の実行・停止・オフラインを確認
+```
+
+詳細と制約は [`wasm/README.md`](wasm/README.md) を参照。
+
 ## ディレクトリ構造
 
 ```
@@ -58,6 +74,7 @@ Tour の英語原文と日本語訳を段落ごとに対訳表示し、コード
 │   └── shared/            # worker / react-app 共通コード
 │       └── schemas/       # zod スキーマ
 ├── public/                # 静的アセット（wasm は build:wasm の生成物で gitignore）
+├── wasm/                  # Go モジュール（Yaegi + 抽出済みシンボル）
 ├── dist/                  # ビルド出力
 ├── docs/                  # ドキュメント
 ├── wrangler.json          # Wrangler 設定
@@ -87,7 +104,8 @@ mise run setup        # pnpm install + 外部スキル復元 + Playwright + left
 pnpm dev              # 開発サーバー起動（localhost:5173）
 
 # ビルド & デプロイ
-pnpm build            # プロダクションビルド
+mise run build:wasm   # Yaegi の wasm を public/wasm/ にビルド
+pnpm build            # プロダクションビルド（prebuild で build:wasm が走る）
 pnpm preview          # ビルドしたものをローカルプレビュー
 pnpm run deploy       # Cloudflare Workers にデプロイ (run が必要)
 pnpm check            # lint + 整形チェック + ビルド + dry-run
@@ -103,6 +121,7 @@ pnpm fmt:check        # フォーマットチェック
 # テスト / Storybook
 pnpm test             # vitest run（worker テスト + storybook interaction test）
 pnpm test:watch       # vitest watch
+pnpm e2e:spike        # build + Playwright で /spike のスモークテスト
 pnpm storybook        # Storybook UI（localhost:6006）
 pnpm build-storybook  # Storybook の静的ビルド
 

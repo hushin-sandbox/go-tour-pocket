@@ -12,3 +12,7 @@ run = [
   "pnpm exec playwright install chromium --with-deps",
   "lefthook install",
 ]
+
+[tasks."build:wasm"]
+description = "Build the Yaegi wasm runtime and wasm_exec.js into public/wasm (gitignored)"
+run = "bash wasm/build.sh"

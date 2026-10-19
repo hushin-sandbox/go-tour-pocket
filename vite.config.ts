@@ -3,11 +3,12 @@ import react from '@vitejs/plugin-react';
 import { cloudflare } from '@cloudflare/vite-plugin';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import tailwindcss from '@tailwindcss/vite';
+import { VitePWA } from 'vite-plugin-pwa';
 import { resolve } from 'node:path';
 
 // Storybook はこの設定ファイルを取り込んで自身の preview ビルドにも使うが、
 // cloudflare() は preview を workerd ランタイム上で動かそうとして壊れるため、
-// vitest / storybook からの実行時は含めない。
+// vitest / storybook からの実行時は含めない。VitePWA も同様に外す。
 const isStorybookOrVitest = Boolean(process.env.VITEST || process.env.STORYBOOK);
 
 export default defineConfig({
@@ -28,6 +29,52 @@ export default defineConfig({
     }),
     react(),
     tailwindcss(),
-    ...(isStorybookOrVitest ? [] : [cloudflare()]),
+    ...(isStorybookOrVitest
+      ? []
+      : [
+          cloudflare(),
+          VitePWA({
+            // スパイク中は自動更新。更新通知とユーザー操作での切り替えは本体 UI で入れる
+            registerType: 'autoUpdate',
+            injectRegister: 'auto',
+            manifest: {
+              name: 'Go Tour Pocket',
+              short_name: 'Go Tour',
+              description: 'A Tour of Go を英日対訳・オフラインで学べるスマホ向け PWA',
+              lang: 'ja',
+              start_url: '/',
+              scope: '/',
+              display: 'standalone',
+              background_color: '#f8fafc',
+              theme_color: '#0f172a',
+              icons: [
+                {
+                  src: '/icons/icon-192.png',
+                  sizes: '192x192',
+                  type: 'image/png',
+                },
+                {
+                  src: '/icons/icon-512.png',
+                  sizes: '512x512',
+                  type: 'image/png',
+                },
+                {
+                  src: '/icons/maskable-512.png',
+                  sizes: '512x512',
+                  type: 'image/png',
+                  purpose: 'maskable',
+                },
+              ],
+            },
+            workbox: {
+              // wasm（約 13MB）を含めるため上限を引き上げる
+              globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest,woff2,wasm}'],
+              maximumFileSizeToCacheInBytes: 30 * 1024 * 1024,
+              navigateFallback: '/index.html',
+              navigateFallbackDenylist: [/^\/api\//],
+              cleanupOutdatedCaches: true,
+            },
+          }),
+        ]),
   ],
 });
