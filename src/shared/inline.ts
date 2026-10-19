@@ -1,3 +1,7 @@
+// Portions of this file are ported from golang.org/x/tools/present.
+// Copyright The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be found in LICENSES/BSD-3-Clause-Go.txt.
+
 /**
  * present のインライン記法（`style.go` の `font` / `split` / `parseInlineLink`）を
  * トークン列に変換する。
