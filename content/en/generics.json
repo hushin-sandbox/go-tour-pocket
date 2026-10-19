@@ -1,0 +1,83 @@
+{
+  "id": "generics",
+  "title": "Generics",
+  "description": "Go supports generic programming using type parameters. This lesson shows some examples for employing generics in your code.",
+  "pages": [
+    {
+      "title": "Type parameters",
+      "blocks": [
+        {
+          "id": "generics/0/0",
+          "hash": "faf1120df165",
+          "kind": "p",
+          "text": "Go functions can be written to work on multiple types using type parameters. The type parameters of a function appear between brackets, before the function's arguments."
+        },
+        {
+          "id": "generics/0/1",
+          "kind": "pre",
+          "text": "func Index[T comparable](s []T, x T) int"
+        },
+        {
+          "id": "generics/0/2",
+          "hash": "ac687f7fc887",
+          "kind": "p",
+          "text": "This declaration means that `s` is a slice of any type `T` that fulfills the built-in constraint `comparable`. `x` is also a value of the same type."
+        },
+        {
+          "id": "generics/0/3",
+          "hash": "96c10ba52f3c",
+          "kind": "p",
+          "text": "`comparable` is a useful constraint that makes it possible to use the `==` and `!=` operators on values of the type. In this example, we use it to compare a value to all slice elements until a match is found. This `Index` function works for any type that supports comparison."
+        }
+      ],
+      "code": {
+        "name": "index.go",
+        "content": "package main\n\nimport \"fmt\"\n\n// Index returns the index of x in s, or -1 if not found.\nfunc Index[T comparable](s []T, x T) int {\n\tfor i, v := range s {\n\t\t// v and x are type T, which has the comparable\n\t\t// constraint, so we can use == here.\n\t\tif v == x {\n\t\t\treturn i\n\t\t}\n\t}\n\treturn -1\n}\n\nfunc main() {\n\t// Index works on a slice of ints\n\tsi := []int{10, 20, 15, -10}\n\tfmt.Println(Index(si, 15))\n\n\t// Index also works on a slice of strings\n\tss := []string{\"foo\", \"bar\", \"baz\"}\n\tfmt.Println(Index(ss, \"hello\"))\n}\n"
+      }
+    },
+    {
+      "title": "Generic types",
+      "blocks": [
+        {
+          "id": "generics/1/0",
+          "hash": "5862e69fc993",
+          "kind": "p",
+          "text": "In addition to generic functions, Go also supports generic types. A type can be parameterized with a type parameter, which could be useful for implementing generic data structures."
+        },
+        {
+          "id": "generics/1/1",
+          "hash": "b0b66527e7d3",
+          "kind": "p",
+          "text": "This example demonstrates a simple type declaration for a singly-linked list holding any type of value."
+        },
+        {
+          "id": "generics/1/2",
+          "hash": "d0c238732fb5",
+          "kind": "p",
+          "text": "As an exercise, add some functionality to this list implementation."
+        }
+      ],
+      "code": {
+        "name": "list.go",
+        "content": "package main\n\n// List represents a singly-linked list that holds\n// values of any type.\ntype List[T any] struct {\n\tnext *List[T]\n\tval  T\n}\n\nfunc main() {\n}\n"
+      }
+    },
+    {
+      "title": "Congratulations!",
+      "blocks": [
+        {
+          "id": "generics/2/0",
+          "hash": "4cdec07338fa",
+          "kind": "p",
+          "text": "You finished this lesson!"
+        },
+        {
+          "id": "generics/2/1",
+          "hash": "8fc7766a6fc4",
+          "kind": "p",
+          "text": "You can go back to the list of [[/tour/list][modules]] to find what to learn next, or continue with the [[javascript:click('.next-page')][next lesson]]."
+        }
+      ]
+    }
+  ]
+}

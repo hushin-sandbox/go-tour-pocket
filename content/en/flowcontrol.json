@@ -1,0 +1,358 @@
+{
+  "id": "flowcontrol",
+  "title": "Flow control statements: for, if, else, switch and defer",
+  "description": "Learn how to control the flow of your code with conditionals, loops, switches and defers.",
+  "pages": [
+    {
+      "title": "For",
+      "blocks": [
+        {
+          "id": "flowcontrol/0/0",
+          "hash": "e0b05f6aa9b6",
+          "kind": "p",
+          "text": "Go has only one looping construct, the `for` loop."
+        },
+        {
+          "id": "flowcontrol/0/1",
+          "hash": "14b5c9d47d9b",
+          "kind": "p",
+          "text": "The basic `for` loop has three components separated by semicolons:"
+        },
+        {
+          "id": "flowcontrol/0/2",
+          "hash": "14de88492efa",
+          "kind": "list",
+          "items": [
+            "the init statement: executed before the first iteration",
+            "the condition expression: evaluated before every iteration",
+            "the post statement: executed at the end of every iteration"
+          ]
+        },
+        {
+          "id": "flowcontrol/0/3",
+          "hash": "ac1dcc408a95",
+          "kind": "p",
+          "text": "The init statement will often be a variable declaration, and the variables declared there are visible only in the scope of the `for` statement."
+        },
+        {
+          "id": "flowcontrol/0/4",
+          "hash": "3a725c119cf1",
+          "kind": "p",
+          "text": "The loop will stop iterating once the boolean condition evaluates to `false`."
+        },
+        {
+          "id": "flowcontrol/0/5",
+          "hash": "c4236ba36725",
+          "kind": "p",
+          "text": "*Note:* Unlike other languages like C, Java, or JavaScript there are no parentheses surrounding the three components of the `for` statement and the braces `{`}` are always required."
+        }
+      ],
+      "code": {
+        "name": "for.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tsum := 0\n\tfor i := 0; i < 10; i++ {\n\t\tsum += i\n\t}\n\tfmt.Println(sum)\n}\n"
+      }
+    },
+    {
+      "title": "For continued",
+      "blocks": [
+        {
+          "id": "flowcontrol/1/0",
+          "hash": "8b5046252339",
+          "kind": "p",
+          "text": "The init and post statements are optional."
+        }
+      ],
+      "code": {
+        "name": "for-continued.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tsum := 1\n\tfor ; sum < 1000; {\n\t\tsum += sum\n\t}\n\tfmt.Println(sum)\n}\n"
+      }
+    },
+    {
+      "title": "For is Go's \"while\"",
+      "blocks": [
+        {
+          "id": "flowcontrol/2/0",
+          "hash": "4378fc051029",
+          "kind": "p",
+          "text": "At that point you can drop the semicolons: C's `while` is spelled `for` in Go."
+        }
+      ],
+      "code": {
+        "name": "for-is-gos-while.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tsum := 1\n\tfor sum < 1000 {\n\t\tsum += sum\n\t}\n\tfmt.Println(sum)\n}\n"
+      }
+    },
+    {
+      "title": "Forever",
+      "blocks": [
+        {
+          "id": "flowcontrol/3/0",
+          "hash": "a1b41514fc09",
+          "kind": "p",
+          "text": "If you omit the loop condition it loops forever, so an infinite loop is compactly expressed."
+        }
+      ],
+      "code": {
+        "name": "forever.go",
+        "content": "package main\n\nfunc main() {\n\tfor {\n\t}\n}\n"
+      }
+    },
+    {
+      "title": "If",
+      "blocks": [
+        {
+          "id": "flowcontrol/4/0",
+          "hash": "74206340cba3",
+          "kind": "p",
+          "text": "Go's `if` statements are like its `for` loops; the expression need not be surrounded by parentheses `(`)` but the braces `{`}` are required."
+        }
+      ],
+      "code": {
+        "name": "if.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\nfunc sqrt(x float64) string {\n\tif x < 0 {\n\t\treturn sqrt(-x) + \"i\"\n\t}\n\treturn fmt.Sprint(math.Sqrt(x))\n}\n\nfunc main() {\n\tfmt.Println(sqrt(2), sqrt(-4))\n}\n"
+      }
+    },
+    {
+      "title": "If with a short statement",
+      "blocks": [
+        {
+          "id": "flowcontrol/5/0",
+          "hash": "4169be6fc20a",
+          "kind": "p",
+          "text": "Like `for`, the `if` statement can start with a short statement to execute before the condition."
+        },
+        {
+          "id": "flowcontrol/5/1",
+          "hash": "4fcc55332e70",
+          "kind": "p",
+          "text": "Variables declared by the statement are only in scope until the end of the `if`."
+        },
+        {
+          "id": "flowcontrol/5/2",
+          "hash": "0ca9edf35ea3",
+          "kind": "p",
+          "text": "(Try using `v` in the last `return` statement.)"
+        }
+      ],
+      "code": {
+        "name": "if-with-a-short-statement.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\nfunc pow(x, n, lim float64) float64 {\n\tif v := math.Pow(x, n); v < lim {\n\t\treturn v\n\t}\n\treturn lim\n}\n\nfunc main() {\n\tfmt.Println(\n\t\tpow(3, 2, 10),\n\t\tpow(3, 3, 20),\n\t)\n}\n"
+      }
+    },
+    {
+      "title": "If and else",
+      "blocks": [
+        {
+          "id": "flowcontrol/6/0",
+          "hash": "61d9e207bdda",
+          "kind": "p",
+          "text": "Variables declared inside an `if` short statement are also available inside any of the `else` blocks."
+        },
+        {
+          "id": "flowcontrol/6/1",
+          "hash": "10de0010d279",
+          "kind": "p",
+          "text": "(Both calls to `pow` return their results before the call to `fmt.Println` in `main` begins.)"
+        }
+      ],
+      "code": {
+        "name": "if-and-else.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\nfunc pow(x, n, lim float64) float64 {\n\tif v := math.Pow(x, n); v < lim {\n\t\treturn v\n\t} else {\n\t\tfmt.Printf(\"%g >= %g\\n\", v, lim)\n\t}\n\t// can't use v here, though\n\treturn lim\n}\n\nfunc main() {\n\tfmt.Println(\n\t\tpow(3, 2, 10),\n\t\tpow(3, 3, 20),\n\t)\n}\n"
+      }
+    },
+    {
+      "title": "Exercise: Loops and Functions",
+      "blocks": [
+        {
+          "id": "flowcontrol/7/0",
+          "hash": "967f3544b006",
+          "kind": "p",
+          "text": "As a way to play with functions and loops, let's implement a square root function: given a number x, we want to find the number z for which z² is most nearly x."
+        },
+        {
+          "id": "flowcontrol/7/1",
+          "hash": "06ee5a8d7238",
+          "kind": "p",
+          "text": "Computers typically compute the square root of x using a loop. Starting with some guess z, we can adjust z based on how close z² is to x, producing a better guess:"
+        },
+        {
+          "id": "flowcontrol/7/2",
+          "kind": "pre",
+          "text": "z -= (z*z - x) / (2*z)"
+        },
+        {
+          "id": "flowcontrol/7/3",
+          "hash": "28a85339041b",
+          "kind": "p",
+          "text": "Repeating this adjustment makes the guess better and better until we reach an answer that is as close to the actual square root as can be."
+        },
+        {
+          "id": "flowcontrol/7/4",
+          "hash": "fb1540ffef5a",
+          "kind": "p",
+          "text": "Implement this in the `func`Sqrt` provided. A decent starting guess for z is 1, no matter what the input. To begin with, repeat the calculation 10 times and print each z along the way. See how close you get to the answer for various values of x (1, 2, 3, ...) and how quickly the guess improves."
+        },
+        {
+          "id": "flowcontrol/7/5",
+          "hash": "44859f575a1a",
+          "kind": "p",
+          "text": "Hint: To declare and initialize a floating point value, give it floating point syntax or use a conversion:"
+        },
+        {
+          "id": "flowcontrol/7/6",
+          "kind": "pre",
+          "text": "z := 1.0\nz := float64(1)"
+        },
+        {
+          "id": "flowcontrol/7/7",
+          "hash": "9632f01fcb6b",
+          "kind": "p",
+          "text": "Next, change the loop condition to stop once the value has stopped changing (or only changes by a very small amount). See if that's more or fewer than 10 iterations. Try other initial guesses for z, like x, or x/2. How close are your function's results to the [[/pkg/math/#Sqrt][math.Sqrt]] in the standard library?"
+        },
+        {
+          "id": "flowcontrol/7/8",
+          "hash": "0b3a70ed9f00",
+          "kind": "p",
+          "text": "(*Note:* If you are interested in the details of the algorithm, the z² − x above is how far away z² is from where it needs to be (x), and the division by 2z is the derivative of z², to scale how much we adjust z by how quickly z² is changing. This general approach is called [[https://en.wikipedia.org/wiki/Newton%27s_method][Newton's method]]. It works well for many functions but especially well for square root.)"
+        }
+      ],
+      "code": {
+        "name": "exercise-loops-and-functions.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n)\n\nfunc Sqrt(x float64) float64 {\n}\n\nfunc main() {\n\tfmt.Println(Sqrt(2))\n}\n"
+      }
+    },
+    {
+      "title": "Switch",
+      "blocks": [
+        {
+          "id": "flowcontrol/8/0",
+          "hash": "4f6ddc634923",
+          "kind": "p",
+          "text": "A `switch` statement is a shorter way to write a sequence of `if`-`else` statements. It runs the first case whose value is equal to the condition expression."
+        },
+        {
+          "id": "flowcontrol/8/1",
+          "hash": "eaf7381a8b65",
+          "kind": "p",
+          "text": "Go's switch is like the one in C, C++, Java, JavaScript, and PHP, except that Go only runs the selected case, not all the cases that follow. In effect, the `break` statement that is needed at the end of each case in those languages is provided automatically in Go. Another important difference is that Go's switch cases need not be constants, and the values involved need not be integers."
+        }
+      ],
+      "code": {
+        "name": "switch.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"runtime\"\n)\n\nfunc main() {\n\tfmt.Print(\"Go runs on \")\n\tswitch os := runtime.GOOS; os {\n\tcase \"darwin\":\n\t\tfmt.Println(\"macOS.\")\n\tcase \"linux\":\n\t\tfmt.Println(\"Linux.\")\n\tdefault:\n\t\t// freebsd, openbsd,\n\t\t// plan9, windows...\n\t\tfmt.Printf(\"%s.\\n\", os)\n\t}\n}\n"
+      }
+    },
+    {
+      "title": "Switch evaluation order",
+      "blocks": [
+        {
+          "id": "flowcontrol/9/0",
+          "hash": "3c543c31b171",
+          "kind": "p",
+          "text": "Switch cases evaluate cases from top to bottom, stopping when a case succeeds."
+        },
+        {
+          "id": "flowcontrol/9/1",
+          "hash": "b8b0dea776b9",
+          "kind": "p",
+          "text": "(For example,"
+        },
+        {
+          "id": "flowcontrol/9/2",
+          "kind": "pre",
+          "text": "switch i {\ncase 0:\ncase f():\n}"
+        },
+        {
+          "id": "flowcontrol/9/3",
+          "hash": "da3ec226e2c3",
+          "kind": "p",
+          "text": "does not call `f` if `i==0`.)"
+        }
+      ],
+      "code": {
+        "name": "switch-evaluation-order.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n)\n\nfunc main() {\n\tfmt.Println(\"When's Saturday?\")\n\ttoday := time.Now().Weekday()\n\tswitch time.Saturday {\n\tcase today + 0:\n\t\tfmt.Println(\"Today.\")\n\tcase today + 1:\n\t\tfmt.Println(\"Tomorrow.\")\n\tcase today + 2:\n\t\tfmt.Println(\"In two days.\")\n\tdefault:\n\t\tfmt.Println(\"Too far away.\")\n\t}\n}\n"
+      }
+    },
+    {
+      "title": "Switch with no condition",
+      "blocks": [
+        {
+          "id": "flowcontrol/10/0",
+          "hash": "cc1404cbe234",
+          "kind": "p",
+          "text": "Switch without a condition is the same as `switch`true`."
+        },
+        {
+          "id": "flowcontrol/10/1",
+          "hash": "adb8375e6448",
+          "kind": "p",
+          "text": "This construct can be a clean way to write long if-then-else chains."
+        }
+      ],
+      "code": {
+        "name": "switch-with-no-condition.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n)\n\nfunc main() {\n\tt := time.Now()\n\tswitch {\n\tcase t.Hour() < 12:\n\t\tfmt.Println(\"Good morning!\")\n\tcase t.Hour() < 17:\n\t\tfmt.Println(\"Good afternoon.\")\n\tdefault:\n\t\tfmt.Println(\"Good evening.\")\n\t}\n}\n"
+      }
+    },
+    {
+      "title": "Defer",
+      "blocks": [
+        {
+          "id": "flowcontrol/11/0",
+          "hash": "a02c1270db45",
+          "kind": "p",
+          "text": "A defer statement defers the execution of a function until the surrounding function returns."
+        },
+        {
+          "id": "flowcontrol/11/1",
+          "hash": "7866b00d45af",
+          "kind": "p",
+          "text": "The deferred call's arguments are evaluated immediately, but the function call is not executed until the surrounding function returns."
+        }
+      ],
+      "code": {
+        "name": "defer.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdefer fmt.Println(\"world\")\n\n\tfmt.Println(\"hello\")\n}\n"
+      }
+    },
+    {
+      "title": "Stacking defers",
+      "blocks": [
+        {
+          "id": "flowcontrol/12/0",
+          "hash": "46e12251f58f",
+          "kind": "p",
+          "text": "Deferred function calls are pushed onto a stack. When a function returns, its deferred calls are executed in last-in-first-out order."
+        },
+        {
+          "id": "flowcontrol/12/1",
+          "hash": "5bbe5d62bc27",
+          "kind": "p",
+          "text": "To learn more about defer statements read this [[/blog/defer-panic-and-recover][blog post]]."
+        }
+      ],
+      "code": {
+        "name": "defer-multi.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"counting\")\n\n\tfor i := 0; i < 10; i++ {\n\t\tdefer fmt.Println(i)\n\t}\n\n\tfmt.Println(\"done\")\n}\n"
+      }
+    },
+    {
+      "title": "Congratulations!",
+      "blocks": [
+        {
+          "id": "flowcontrol/13/0",
+          "hash": "4cdec07338fa",
+          "kind": "p",
+          "text": "You finished this lesson!"
+        },
+        {
+          "id": "flowcontrol/13/1",
+          "hash": "8fc7766a6fc4",
+          "kind": "p",
+          "text": "You can go back to the list of [[/tour/list][modules]] to find what to learn next, or continue with the [[javascript:click('.next-page')][next lesson]]."
+        }
+      ]
+    }
+  ]
+}

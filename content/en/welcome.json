@@ -1,0 +1,146 @@
+{
+  "id": "welcome",
+  "title": "Welcome!",
+  "description": "Learn how to use this tour: including how to navigate the different lessons and how to run code.",
+  "pages": [
+    {
+      "title": "Hello, 世界",
+      "blocks": [
+        {
+          "id": "welcome/0/0",
+          "hash": "8646050f2823",
+          "kind": "p",
+          "text": "Welcome to a tour of the [[/][Go programming language]]."
+        },
+        {
+          "id": "welcome/0/1",
+          "hash": "61fc1e42af92",
+          "kind": "p",
+          "text": "The tour is divided into a list of modules that you can access by clicking on [[javascript:highlight(\".logo\")][A Tour of Go]] on the top left of the page."
+        },
+        {
+          "id": "welcome/0/2",
+          "hash": "46a67b7bd3a6",
+          "kind": "p",
+          "text": "You can also view the table of contents at any time by clicking on the [[javascript:highlightAndClick(\".nav\")][menu]] on the top right of the page."
+        },
+        {
+          "id": "welcome/0/3",
+          "hash": "571e1b9fa4c4",
+          "kind": "p",
+          "text": "Throughout the tour you will find a series of slides and exercises for you to complete."
+        },
+        {
+          "id": "welcome/0/4",
+          "hash": "e1ed5b2738dd",
+          "kind": "p",
+          "text": "You can navigate through them using"
+        },
+        {
+          "id": "welcome/0/5",
+          "hash": "a44cbd0d17a2",
+          "kind": "list",
+          "items": [
+            "[[javascript:highlight(\".prev-page\")][\"previous\"]] or `PageUp` to go to the previous page,"
+          ]
+        },
+        {
+          "id": "welcome/0/6",
+          "hash": "8868f165122f",
+          "kind": "list",
+          "items": [
+            "[[javascript:highlight(\".next-page\")][\"next\"]] or `PageDown` to go to the next page."
+          ]
+        },
+        {
+          "id": "welcome/0/7",
+          "hash": "a8756bac2263",
+          "kind": "p",
+          "text": "The tour is interactive. Click the [[javascript:highlightAndClick(\"#run\")][Run]] button now (or press `Shift` + `Enter`) to compile and run the program on your computer. The result is displayed below the code."
+        },
+        {
+          "id": "welcome/0/8",
+          "hash": "bdf11cb6c513",
+          "kind": "p",
+          "text": "These example programs demonstrate different aspects of Go. The programs in the tour are meant to be starting points for your own experimentation."
+        },
+        {
+          "id": "welcome/0/9",
+          "hash": "fcbb6a7aac9d",
+          "kind": "p",
+          "text": "Edit the program and run it again."
+        },
+        {
+          "id": "welcome/0/10",
+          "hash": "81db7e081ffc",
+          "kind": "p",
+          "text": "When you click on [[javascript:highlightAndClick(\"#format\")][Format]] (shortcut: `Ctrl` + `Enter`), the text in the editor is formatted using the [[/cmd/gofmt/][gofmt]] tool. You can switch syntax highlighting on and off by clicking on the [[javascript:highlightAndClick(\".syntax-checkbox\")][syntax]] button."
+        },
+        {
+          "id": "welcome/0/11",
+          "hash": "4ffe1d386274",
+          "kind": "p",
+          "text": "When you're ready to move on, click the [[javascript:highlightAndClick(\".next-page\")][right arrow]] below or type the `PageDown` key."
+        }
+      ],
+      "code": {
+        "name": "hello.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"Hello, 世界\")\n}\n"
+      }
+    },
+    {
+      "title": "Go local",
+      "blocks": [
+        {
+          "id": "welcome/1/0",
+          "hash": "0c7968bc417e",
+          "kind": "p",
+          "text": "The tour is available in other languages:"
+        },
+        {
+          "id": "welcome/1/1",
+          "hash": "b8d1b229d03b",
+          "kind": "list",
+          "items": [
+            "[[https://go-tour-br.appspot.com/][Brazilian Portuguese — Português do Brasil]]",
+            "[[https://go-tour-ca.appspot.com/][Catalan — Català]]",
+            "[[https://go-tour-cz.appspot.com/][Czech — Česky]]",
+            "[[https://fr-go-dev.shuijingwanwq.com/tour][French — Français]]",
+            "[[https://de-go-dev.shuijingwanwq.com/tour][German — Deutsch]]",
+            "[[https://go-tour-id2.appspot.com/][Indonesian — Bahasa Indonesia]]",
+            "[[https://go-tour-jp.appspot.com/][Japanese — 日本語]]",
+            "[[https://ko-go-dev.shuijingwanwq.com/tour][Korean — 한국어]]",
+            "[[https://go-tour-pl1.appspot.com/][Polish — Polski]]",
+            "[[https://go-dev.shuijingwanwq.com/tour][Simplified Chinese — 简体中文]]",
+            "[[https://go-tour-lat.appspot.com/][Spanish — Español]]",
+            "[[https://go-tour-th.appspot.com/][Thai — ภาษาไทย]]",
+            "[[https://go-tour-ua-translation.lm.r.appspot.com/][Ukrainian — Українською]]"
+          ]
+        },
+        {
+          "id": "welcome/1/2",
+          "hash": "634f2f9ab81f",
+          "kind": "p",
+          "text": "Click the [[javascript:highlightAndClick(\".next-page\")][\"next\"]] button or type `PageDown` to continue."
+        }
+      ]
+    },
+    {
+      "title": "Congratulations",
+      "blocks": [
+        {
+          "id": "welcome/2/0",
+          "hash": "3ecc21a0d94e",
+          "kind": "p",
+          "text": "You've finished the first module of the tour!"
+        },
+        {
+          "id": "welcome/2/1",
+          "hash": "38a96354e975",
+          "kind": "p",
+          "text": "Now click on [[javascript:highlightAndClick(\".logo\")][A Tour of Go]] to find out what else you can learn about Go, or go directly to the [[javascript:click('.next-page')][next lesson]]."
+        }
+      ]
+    }
+  ]
+}

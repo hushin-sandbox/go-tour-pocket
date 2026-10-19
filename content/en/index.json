@@ -1,0 +1,157 @@
+{
+  "source": {
+    "repository": "golang/website",
+    "commit": "d1edce5b8ec957935895f507f3253d6e02447a6c"
+  },
+  "lessons": [
+    {
+      "id": "welcome",
+      "title": "Welcome!",
+      "description": "Learn how to use this tour: including how to navigate the different lessons and how to run code.",
+      "pageCount": 3,
+      "pageTitles": ["Hello, 世界", "Go local", "Congratulations"]
+    },
+    {
+      "id": "basics",
+      "title": "Packages, variables, and functions.",
+      "description": "Learn the basic components of any Go program.",
+      "pageCount": 17,
+      "pageTitles": [
+        "Packages",
+        "Imports",
+        "Exported names",
+        "Functions",
+        "Functions continued",
+        "Multiple results",
+        "Named return values",
+        "Variables",
+        "Variables with initializers",
+        "Short variable declarations",
+        "Basic types",
+        "Zero values",
+        "Type conversions",
+        "Type inference",
+        "Constants",
+        "Numeric Constants",
+        "Congratulations!"
+      ]
+    },
+    {
+      "id": "flowcontrol",
+      "title": "Flow control statements: for, if, else, switch and defer",
+      "description": "Learn how to control the flow of your code with conditionals, loops, switches and defers.",
+      "pageCount": 14,
+      "pageTitles": [
+        "For",
+        "For continued",
+        "For is Go's \"while\"",
+        "Forever",
+        "If",
+        "If with a short statement",
+        "If and else",
+        "Exercise: Loops and Functions",
+        "Switch",
+        "Switch evaluation order",
+        "Switch with no condition",
+        "Defer",
+        "Stacking defers",
+        "Congratulations!"
+      ]
+    },
+    {
+      "id": "moretypes",
+      "title": "More types: structs, slices, and maps.",
+      "description": "Learn how to define types based on existing ones: this lesson covers structs, arrays, slices, and maps.",
+      "pageCount": 27,
+      "pageTitles": [
+        "Pointers",
+        "Structs",
+        "Struct Fields",
+        "Pointers to structs",
+        "Struct Literals",
+        "Arrays",
+        "Slices",
+        "Slices are like references to arrays",
+        "Slice literals",
+        "Slice defaults",
+        "Slice length and capacity",
+        "Nil slices",
+        "Creating a slice with make",
+        "Slices of slices",
+        "Appending to a slice",
+        "Range",
+        "Range continued",
+        "Exercise: Slices",
+        "Maps",
+        "Map literals",
+        "Map literals continued",
+        "Mutating Maps",
+        "Exercise: Maps",
+        "Function values",
+        "Function closures",
+        "Exercise: Fibonacci closure",
+        "Congratulations!"
+      ]
+    },
+    {
+      "id": "methods",
+      "title": "Methods and interfaces",
+      "description": "This lesson covers methods and interfaces, the constructs that define objects and their behavior.",
+      "pageCount": 26,
+      "pageTitles": [
+        "Methods",
+        "Methods are functions",
+        "Methods continued",
+        "Pointer receivers",
+        "Pointers and functions",
+        "Methods and pointer indirection",
+        "Methods and pointer indirection (2)",
+        "Choosing a value or pointer receiver",
+        "Interfaces",
+        "Interfaces are implemented implicitly",
+        "Interface values",
+        "Interface values with nil underlying values",
+        "Nil interface values",
+        "The empty interface",
+        "Type assertions",
+        "Type switches",
+        "Stringers",
+        "Exercise: Stringers",
+        "Errors",
+        "Exercise: Errors",
+        "Readers",
+        "Exercise: Readers",
+        "Exercise: rot13Reader",
+        "Images",
+        "Exercise: Images",
+        "Congratulations!"
+      ]
+    },
+    {
+      "id": "generics",
+      "title": "Generics",
+      "description": "Go supports generic programming using type parameters. This lesson shows some examples for employing generics in your code.",
+      "pageCount": 3,
+      "pageTitles": ["Type parameters", "Generic types", "Congratulations!"]
+    },
+    {
+      "id": "concurrency",
+      "title": "Concurrency",
+      "description": "Go provides concurrency constructions as part of the core language. This lesson presents them and gives some examples on how they can be used.",
+      "pageCount": 11,
+      "pageTitles": [
+        "Goroutines",
+        "Channels",
+        "Buffered Channels",
+        "Range and Close",
+        "Select",
+        "Default Selection",
+        "Exercise: Equivalent Binary Trees",
+        "Exercise: Equivalent Binary Trees",
+        "sync.Mutex",
+        "Exercise: Web Crawler",
+        "Where to Go from here..."
+      ]
+    }
+  ]
+}

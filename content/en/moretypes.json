@@ -1,0 +1,814 @@
+{
+  "id": "moretypes",
+  "title": "More types: structs, slices, and maps.",
+  "description": "Learn how to define types based on existing ones: this lesson covers structs, arrays, slices, and maps.",
+  "pages": [
+    {
+      "title": "Pointers",
+      "blocks": [
+        {
+          "id": "moretypes/0/0",
+          "hash": "ff272e18fcd9",
+          "kind": "p",
+          "text": "Go has pointers. A pointer holds the memory address of a value."
+        },
+        {
+          "id": "moretypes/0/1",
+          "hash": "8b0238209cb1",
+          "kind": "p",
+          "text": "The type `*T` is a pointer to a `T` value. Its zero value is `nil`."
+        },
+        {
+          "id": "moretypes/0/2",
+          "kind": "pre",
+          "text": "var p *int"
+        },
+        {
+          "id": "moretypes/0/3",
+          "hash": "6a7b9bac78e7",
+          "kind": "p",
+          "text": "The `&` operator generates a pointer to its operand."
+        },
+        {
+          "id": "moretypes/0/4",
+          "kind": "pre",
+          "text": "i := 42\np = &i"
+        },
+        {
+          "id": "moretypes/0/5",
+          "hash": "056d94884881",
+          "kind": "p",
+          "text": "The `*` operator denotes the pointer's underlying value."
+        },
+        {
+          "id": "moretypes/0/6",
+          "kind": "pre",
+          "text": "fmt.Println(*p) // read i through the pointer p\n*p = 21         // set i through the pointer p"
+        },
+        {
+          "id": "moretypes/0/7",
+          "hash": "e87be9625b01",
+          "kind": "p",
+          "text": "This is known as \"dereferencing\" or \"indirecting\"."
+        },
+        {
+          "id": "moretypes/0/8",
+          "hash": "a7a4553c6869",
+          "kind": "p",
+          "text": "Unlike C, Go has no pointer arithmetic."
+        }
+      ],
+      "code": {
+        "name": "pointers.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\ti, j := 42, 2701\n\n\tp := &i         // point to i\n\tfmt.Println(*p) // read i through the pointer\n\t*p = 21         // set i through the pointer\n\tfmt.Println(i)  // see the new value of i\n\n\tp = &j         // point to j\n\t*p = *p / 37   // divide j through the pointer\n\tfmt.Println(j) // see the new value of j\n}\n"
+      }
+    },
+    {
+      "title": "Structs",
+      "blocks": [
+        {
+          "id": "moretypes/1/0",
+          "hash": "c1f7ac22a904",
+          "kind": "p",
+          "text": "A `struct` is a collection of fields."
+        }
+      ],
+      "code": {
+        "name": "structs.go",
+        "content": "package main\n\nimport \"fmt\"\n\ntype Vertex struct {\n\tX int\n\tY int\n}\n\nfunc main() {\n\tfmt.Println(Vertex{1, 2})\n}\n"
+      }
+    },
+    {
+      "title": "Struct Fields",
+      "blocks": [
+        {
+          "id": "moretypes/2/0",
+          "hash": "6e6f150bfb0f",
+          "kind": "p",
+          "text": "Struct fields are accessed using a dot."
+        }
+      ],
+      "code": {
+        "name": "struct-fields.go",
+        "content": "package main\n\nimport \"fmt\"\n\ntype Vertex struct {\n\tX int\n\tY int\n}\n\nfunc main() {\n\tv := Vertex{1, 2}\n\tv.X = 4\n\tfmt.Println(v.X)\n}\n"
+      }
+    },
+    {
+      "title": "Pointers to structs",
+      "blocks": [
+        {
+          "id": "moretypes/3/0",
+          "hash": "b9d9bfb55bd3",
+          "kind": "p",
+          "text": "Struct fields can be accessed through a struct pointer."
+        },
+        {
+          "id": "moretypes/3/1",
+          "hash": "75dcb9ad5a70",
+          "kind": "p",
+          "text": "To access the field `X` of a struct when we have the struct pointer `p` we could write `(*p).X`. However, that notation is cumbersome, so the language permits us instead to write just `p.X`, without the explicit dereference."
+        }
+      ],
+      "code": {
+        "name": "struct-pointers.go",
+        "content": "package main\n\nimport \"fmt\"\n\ntype Vertex struct {\n\tX int\n\tY int\n}\n\nfunc main() {\n\tv := Vertex{1, 2}\n\tp := &v\n\tp.X = 1e9\n\tfmt.Println(v)\n}\n"
+      }
+    },
+    {
+      "title": "Struct Literals",
+      "blocks": [
+        {
+          "id": "moretypes/4/0",
+          "hash": "88e05f210e78",
+          "kind": "p",
+          "text": "A struct literal denotes a newly allocated struct value by listing the values of its fields."
+        },
+        {
+          "id": "moretypes/4/1",
+          "hash": "4755099dc4fb",
+          "kind": "p",
+          "text": "You can list just a subset of fields by using the `Name:` syntax. (And the order of named fields is irrelevant.)"
+        },
+        {
+          "id": "moretypes/4/2",
+          "hash": "047b022f9d69",
+          "kind": "p",
+          "text": "The special prefix `&` returns a pointer to the struct value."
+        }
+      ],
+      "code": {
+        "name": "struct-literals.go",
+        "content": "package main\n\nimport \"fmt\"\n\ntype Vertex struct {\n\tX, Y int\n}\n\nvar (\n\tv1 = Vertex{1, 2}  // has type Vertex\n\tv2 = Vertex{X: 1}  // Y:0 is implicit\n\tv3 = Vertex{}      // X:0 and Y:0\n\tp  = &Vertex{1, 2} // has type *Vertex\n)\n\nfunc main() {\n\tfmt.Println(v1, p, v2, v3)\n}\n"
+      }
+    },
+    {
+      "title": "Arrays",
+      "blocks": [
+        {
+          "id": "moretypes/5/0",
+          "hash": "c8fdd5061cee",
+          "kind": "p",
+          "text": "The type `[n]T` is an array of `n` values of type `T`."
+        },
+        {
+          "id": "moretypes/5/1",
+          "hash": "682f2afe18d2",
+          "kind": "p",
+          "text": "The expression"
+        },
+        {
+          "id": "moretypes/5/2",
+          "kind": "pre",
+          "text": "var a [10]int"
+        },
+        {
+          "id": "moretypes/5/3",
+          "hash": "ec69edf1bb23",
+          "kind": "p",
+          "text": "declares a variable `a` as an array of ten integers."
+        },
+        {
+          "id": "moretypes/5/4",
+          "hash": "3c87999ea9ea",
+          "kind": "p",
+          "text": "An array's length is part of its type, so arrays cannot be resized. This seems limiting, but don't worry; Go provides a convenient way of working with arrays."
+        }
+      ],
+      "code": {
+        "name": "array.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar a [2]string\n\ta[0] = \"Hello\"\n\ta[1] = \"World\"\n\tfmt.Println(a[0], a[1])\n\tfmt.Println(a)\n\n\tprimes := [6]int{2, 3, 5, 7, 11, 13}\n\tfmt.Println(primes)\n}\n"
+      }
+    },
+    {
+      "title": "Slices",
+      "blocks": [
+        {
+          "id": "moretypes/6/0",
+          "hash": "1380bb583ded",
+          "kind": "p",
+          "text": "An array has a fixed size. A slice, on the other hand, is a dynamically-sized, flexible view into the elements of an array. In practice, slices are much more common than arrays."
+        },
+        {
+          "id": "moretypes/6/1",
+          "hash": "cc3d9b3094eb",
+          "kind": "p",
+          "text": "The type `[]T` is a slice with elements of type `T`."
+        },
+        {
+          "id": "moretypes/6/2",
+          "hash": "be22add80e2e",
+          "kind": "p",
+          "text": "A slice is formed by specifying two indices, a low and high bound, separated by a colon:"
+        },
+        {
+          "id": "moretypes/6/3",
+          "kind": "pre",
+          "text": "a[low : high]"
+        },
+        {
+          "id": "moretypes/6/4",
+          "hash": "adca5c2adb15",
+          "kind": "p",
+          "text": "This selects a half-open range which includes the first element, but excludes the last one."
+        },
+        {
+          "id": "moretypes/6/5",
+          "hash": "7b3c46a86264",
+          "kind": "p",
+          "text": "The following expression creates a slice which includes elements 1 through 3 of `a`:"
+        },
+        {
+          "id": "moretypes/6/6",
+          "kind": "pre",
+          "text": "a[1:4]"
+        }
+      ],
+      "code": {
+        "name": "slices.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tprimes := [6]int{2, 3, 5, 7, 11, 13}\n\n\tvar s []int = primes[1:4]\n\tfmt.Println(s)\n}\n"
+      }
+    },
+    {
+      "title": "Slices are like references to arrays",
+      "blocks": [
+        {
+          "id": "moretypes/7/0",
+          "hash": "bc447ae47bf4",
+          "kind": "p",
+          "text": "A slice does not store any data, it just describes a section of an underlying array."
+        },
+        {
+          "id": "moretypes/7/1",
+          "hash": "e03274daaff6",
+          "kind": "p",
+          "text": "Changing the elements of a slice modifies the corresponding elements of its underlying array."
+        },
+        {
+          "id": "moretypes/7/2",
+          "hash": "bdb0f0fe7ef6",
+          "kind": "p",
+          "text": "Other slices that share the same underlying array will see those changes."
+        }
+      ],
+      "code": {
+        "name": "slices-pointers.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tnames := [4]string{\n\t\t\"John\",\n\t\t\"Paul\",\n\t\t\"George\",\n\t\t\"Ringo\",\n\t}\n\tfmt.Println(names)\n\n\ta := names[0:2]\n\tb := names[1:3]\n\tfmt.Println(a, b)\n\n\tb[0] = \"XXX\"\n\tfmt.Println(a, b)\n\tfmt.Println(names)\n}\n"
+      }
+    },
+    {
+      "title": "Slice literals",
+      "blocks": [
+        {
+          "id": "moretypes/8/0",
+          "hash": "df994707f301",
+          "kind": "p",
+          "text": "A slice literal is like an array literal without the length."
+        },
+        {
+          "id": "moretypes/8/1",
+          "hash": "457cfd1c37ca",
+          "kind": "p",
+          "text": "This is an array literal:"
+        },
+        {
+          "id": "moretypes/8/2",
+          "kind": "pre",
+          "text": "[3]bool{true, true, false}"
+        },
+        {
+          "id": "moretypes/8/3",
+          "hash": "cb8115a14ad7",
+          "kind": "p",
+          "text": "And this creates the same array as above, then builds a slice that references it:"
+        },
+        {
+          "id": "moretypes/8/4",
+          "kind": "pre",
+          "text": "[]bool{true, true, false}"
+        }
+      ],
+      "code": {
+        "name": "slice-literals.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tq := []int{2, 3, 5, 7, 11, 13}\n\tfmt.Println(q)\n\n\tr := []bool{true, false, true, true, false, true}\n\tfmt.Println(r)\n\n\ts := []struct {\n\t\ti int\n\t\tb bool\n\t}{\n\t\t{2, true},\n\t\t{3, false},\n\t\t{5, true},\n\t\t{7, true},\n\t\t{11, false},\n\t\t{13, true},\n\t}\n\tfmt.Println(s)\n}\n"
+      }
+    },
+    {
+      "title": "Slice defaults",
+      "blocks": [
+        {
+          "id": "moretypes/9/0",
+          "hash": "8f28f0588d54",
+          "kind": "p",
+          "text": "When slicing, you may omit the high or low bounds to use their defaults instead."
+        },
+        {
+          "id": "moretypes/9/1",
+          "hash": "6a48cbe722fe",
+          "kind": "p",
+          "text": "The default is zero for the low bound and the length of the underlying slice or array for the high bound."
+        },
+        {
+          "id": "moretypes/9/2",
+          "hash": "8c9f7d6177ee",
+          "kind": "p",
+          "text": "For the array"
+        },
+        {
+          "id": "moretypes/9/3",
+          "kind": "pre",
+          "text": "var a [10]int"
+        },
+        {
+          "id": "moretypes/9/4",
+          "hash": "8aa394e17e5f",
+          "kind": "p",
+          "text": "these slice expressions are equivalent:"
+        },
+        {
+          "id": "moretypes/9/5",
+          "kind": "pre",
+          "text": "a[0:10]\na[:10]\na[0:]\na[:]"
+        }
+      ],
+      "code": {
+        "name": "slice-bounds.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\ts := []int{2, 3, 5, 7, 11, 13}\n\n\ts = s[1:4]\n\tfmt.Println(s)\n\n\ts = s[:2]\n\tfmt.Println(s)\n\n\ts = s[1:]\n\tfmt.Println(s)\n}\n"
+      }
+    },
+    {
+      "title": "Slice length and capacity",
+      "blocks": [
+        {
+          "id": "moretypes/10/0",
+          "hash": "e7045b350b3e",
+          "kind": "p",
+          "text": "A slice has both a _length_ and a _capacity_."
+        },
+        {
+          "id": "moretypes/10/1",
+          "hash": "3e079cd20fe6",
+          "kind": "p",
+          "text": "The length of a slice is the number of elements it contains."
+        },
+        {
+          "id": "moretypes/10/2",
+          "hash": "fc79387bc0a9",
+          "kind": "p",
+          "text": "The capacity of a slice is the number of elements in the underlying array, counting from the first element in the slice."
+        },
+        {
+          "id": "moretypes/10/3",
+          "hash": "a1beef297d41",
+          "kind": "p",
+          "text": "The length and capacity of a slice `s` can be obtained using the expressions `len(s)` and `cap(s)`."
+        },
+        {
+          "id": "moretypes/10/4",
+          "hash": "39e1a16ea208",
+          "kind": "p",
+          "text": "You can extend a slice's length by re-slicing it, provided it has sufficient capacity. Try changing one of the slice operations in the example program to extend it beyond its capacity and see what happens."
+        }
+      ],
+      "code": {
+        "name": "slice-len-cap.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\ts := []int{2, 3, 5, 7, 11, 13}\n\tprintSlice(s)\n\n\t// Slice the slice to give it zero length.\n\ts = s[:0]\n\tprintSlice(s)\n\n\t// Extend its length.\n\ts = s[:4]\n\tprintSlice(s)\n\n\t// Drop its first two values.\n\ts = s[2:]\n\tprintSlice(s)\n}\n\nfunc printSlice(s []int) {\n\tfmt.Printf(\"len=%d cap=%d %v\\n\", len(s), cap(s), s)\n}\n"
+      }
+    },
+    {
+      "title": "Nil slices",
+      "blocks": [
+        {
+          "id": "moretypes/11/0",
+          "hash": "2830dd3a5cfc",
+          "kind": "p",
+          "text": "The zero value of a slice is `nil`."
+        },
+        {
+          "id": "moretypes/11/1",
+          "hash": "88c43e319ff5",
+          "kind": "p",
+          "text": "A nil slice has a length and capacity of 0 and has no underlying array."
+        }
+      ],
+      "code": {
+        "name": "nil-slices.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar s []int\n\tfmt.Println(s, len(s), cap(s))\n\tif s == nil {\n\t\tfmt.Println(\"nil!\")\n\t}\n}\n"
+      }
+    },
+    {
+      "title": "Creating a slice with make",
+      "blocks": [
+        {
+          "id": "moretypes/12/0",
+          "hash": "7da0a1ee1010",
+          "kind": "p",
+          "text": "Slices can be created with the built-in `make` function; this is how you create dynamically-sized arrays."
+        },
+        {
+          "id": "moretypes/12/1",
+          "hash": "44600fa5c1eb",
+          "kind": "p",
+          "text": "The `make` function allocates a zeroed array and returns a slice that refers to that array:"
+        },
+        {
+          "id": "moretypes/12/2",
+          "kind": "pre",
+          "text": "a := make([]int, 5)  // len(a)=5"
+        },
+        {
+          "id": "moretypes/12/3",
+          "hash": "4afa764bdc91",
+          "kind": "p",
+          "text": "To specify a capacity, pass a third argument to `make`:"
+        },
+        {
+          "id": "moretypes/12/4",
+          "kind": "pre",
+          "text": "b := make([]int, 0, 5) // len(b)=0, cap(b)=5\n\nb = b[:cap(b)] // len(b)=5, cap(b)=5\nb = b[1:]      // len(b)=4, cap(b)=4"
+        }
+      ],
+      "code": {
+        "name": "making-slices.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\ta := make([]int, 5)\n\tprintSlice(\"a\", a)\n\n\tb := make([]int, 0, 5)\n\tprintSlice(\"b\", b)\n\n\tc := b[:2]\n\tprintSlice(\"c\", c)\n\n\td := c[2:5]\n\tprintSlice(\"d\", d)\n}\n\nfunc printSlice(s string, x []int) {\n\tfmt.Printf(\"%s len=%d cap=%d %v\\n\",\n\t\ts, len(x), cap(x), x)\n}\n"
+      }
+    },
+    {
+      "title": "Slices of slices",
+      "blocks": [
+        {
+          "id": "moretypes/13/0",
+          "hash": "dab451c3f0cf",
+          "kind": "p",
+          "text": "Slices can contain any type, including other slices."
+        }
+      ],
+      "code": {
+        "name": "slices-of-slice.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\t// Create a tic-tac-toe board.\n\tboard := [][]string{\n\t\t[]string{\"_\", \"_\", \"_\"},\n\t\t[]string{\"_\", \"_\", \"_\"},\n\t\t[]string{\"_\", \"_\", \"_\"},\n\t}\n\n\t// The players take turns.\n\tboard[0][0] = \"X\"\n\tboard[2][2] = \"O\"\n\tboard[1][2] = \"X\"\n\tboard[1][0] = \"O\"\n\tboard[0][2] = \"X\"\n\n\tfor i := 0; i < len(board); i++ {\n\t\tfmt.Printf(\"%s\\n\", strings.Join(board[i], \" \"))\n\t}\n}\n"
+      }
+    },
+    {
+      "title": "Appending to a slice",
+      "blocks": [
+        {
+          "id": "moretypes/14/0",
+          "hash": "9322bb481c93",
+          "kind": "p",
+          "text": "It is common to append new elements to a slice, and so Go provides a built-in `append` function. The [[/pkg/builtin/#append][documentation]] of the built-in package describes `append`."
+        },
+        {
+          "id": "moretypes/14/1",
+          "kind": "pre",
+          "text": "func append(s []T, vs ...T) []T"
+        },
+        {
+          "id": "moretypes/14/2",
+          "hash": "40479d2a7feb",
+          "kind": "p",
+          "text": "The first parameter `s` of `append` is a slice of type `T`, and the rest are `T` values to append to the slice."
+        },
+        {
+          "id": "moretypes/14/3",
+          "hash": "314bf537c1ab",
+          "kind": "p",
+          "text": "The resulting value of `append` is a slice containing all the elements of the original slice plus the provided values."
+        },
+        {
+          "id": "moretypes/14/4",
+          "hash": "8406b3270fdd",
+          "kind": "p",
+          "text": "If the backing array of `s` is too small to fit all the given values a bigger array will be allocated. The returned slice will point to the newly allocated array."
+        },
+        {
+          "id": "moretypes/14/5",
+          "hash": "af1abfc635c7",
+          "kind": "p",
+          "text": "(To learn more about slices, read the [[/blog/go-slices-usage-and-internals][Slices: usage and internals]] article.)"
+        }
+      ],
+      "code": {
+        "name": "append.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar s []int\n\tprintSlice(s)\n\n\t// append works on nil slices.\n\ts = append(s, 0)\n\tprintSlice(s)\n\n\t// The slice grows as needed.\n\ts = append(s, 1)\n\tprintSlice(s)\n\n\t// We can add more than one element at a time.\n\ts = append(s, 2, 3, 4)\n\tprintSlice(s)\n}\n\nfunc printSlice(s []int) {\n\tfmt.Printf(\"len=%d cap=%d %v\\n\", len(s), cap(s), s)\n}\n"
+      }
+    },
+    {
+      "title": "Range",
+      "blocks": [
+        {
+          "id": "moretypes/15/0",
+          "hash": "230aca5e4d35",
+          "kind": "p",
+          "text": "The `range` form of the `for` loop iterates over a slice or map."
+        },
+        {
+          "id": "moretypes/15/1",
+          "hash": "975a28b6fd5c",
+          "kind": "p",
+          "text": "When ranging over a slice, two values are returned for each iteration. The first is the index, and the second is a copy of the element at that index."
+        }
+      ],
+      "code": {
+        "name": "range.go",
+        "content": "package main\n\nimport \"fmt\"\n\nvar pow = []int{1, 2, 4, 8, 16, 32, 64, 128}\n\nfunc main() {\n\tfor i, v := range pow {\n\t\tfmt.Printf(\"2**%d = %d\\n\", i, v)\n\t}\n}\n"
+      }
+    },
+    {
+      "title": "Range continued",
+      "blocks": [
+        {
+          "id": "moretypes/16/0",
+          "hash": "e71897076850",
+          "kind": "p",
+          "text": "You can skip the index or value by assigning to `_`."
+        },
+        {
+          "id": "moretypes/16/1",
+          "kind": "pre",
+          "text": "for i, _ := range pow\nfor _, value := range pow"
+        },
+        {
+          "id": "moretypes/16/2",
+          "hash": "0816afa8e8e0",
+          "kind": "p",
+          "text": "If you only want the index, you can omit the second variable."
+        },
+        {
+          "id": "moretypes/16/3",
+          "kind": "pre",
+          "text": "for i := range pow"
+        }
+      ],
+      "code": {
+        "name": "range-continued.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tpow := make([]int, 10)\n\tfor i := range pow {\n\t\tpow[i] = 1 << uint(i) // == 2**i\n\t}\n\tfor _, value := range pow {\n\t\tfmt.Printf(\"%d\\n\", value)\n\t}\n}\n"
+      }
+    },
+    {
+      "title": "Exercise: Slices",
+      "blocks": [
+        {
+          "id": "moretypes/17/0",
+          "hash": "401b4c417dcd",
+          "kind": "p",
+          "text": "Implement `Pic`. It should return a slice of length `dy`, each element of which is a slice of `dx` 8-bit unsigned integers. When you run the program, it will display your picture, interpreting the integers as grayscale (well, bluescale) values."
+        },
+        {
+          "id": "moretypes/17/1",
+          "hash": "6cc2144808ce",
+          "kind": "p",
+          "text": "The choice of image is up to you. Interesting functions include `(x+y)/2`, `x*y`, and `x^y`."
+        },
+        {
+          "id": "moretypes/17/2",
+          "hash": "ed99f93317e0",
+          "kind": "p",
+          "text": "(You need to use a loop to allocate each `[]uint8` inside the `[][]uint8`.)"
+        },
+        {
+          "id": "moretypes/17/3",
+          "hash": "f533737490ac",
+          "kind": "p",
+          "text": "(Use `uint8(intValue)` to convert between types.)"
+        }
+      ],
+      "code": {
+        "name": "exercise-slices.go",
+        "content": "package main\n\nimport \"golang.org/x/tour/pic\"\n\nfunc Pic(dx, dy int) [][]uint8 {\n}\n\nfunc main() {\n\tpic.Show(Pic)\n}\n"
+      }
+    },
+    {
+      "title": "Maps",
+      "blocks": [
+        {
+          "id": "moretypes/18/0",
+          "hash": "aecb02e41efb",
+          "kind": "p",
+          "text": "A map maps keys to values."
+        },
+        {
+          "id": "moretypes/18/1",
+          "hash": "d4d7a01a4474",
+          "kind": "p",
+          "text": "The zero value of a map is `nil`. A `nil` map has no keys, nor can keys be added."
+        },
+        {
+          "id": "moretypes/18/2",
+          "hash": "3e3ed82e6e5c",
+          "kind": "p",
+          "text": "The `make` function returns a map of the given type, initialized and ready for use."
+        }
+      ],
+      "code": {
+        "name": "maps.go",
+        "content": "package main\n\nimport \"fmt\"\n\ntype Vertex struct {\n\tLat, Long float64\n}\n\nvar m map[string]Vertex\n\nfunc main() {\n\tm = make(map[string]Vertex)\n\tm[\"Bell Labs\"] = Vertex{\n\t\t40.68433, -74.39967,\n\t}\n\tfmt.Println(m[\"Bell Labs\"])\n}\n"
+      }
+    },
+    {
+      "title": "Map literals",
+      "blocks": [
+        {
+          "id": "moretypes/19/0",
+          "hash": "9bd98617c260",
+          "kind": "p",
+          "text": "Map literals are like struct literals, but the keys are required."
+        }
+      ],
+      "code": {
+        "name": "map-literals.go",
+        "content": "package main\n\nimport \"fmt\"\n\ntype Vertex struct {\n\tLat, Long float64\n}\n\nvar m = map[string]Vertex{\n\t\"Bell Labs\": Vertex{\n\t\t40.68433, -74.39967,\n\t},\n\t\"Google\": Vertex{\n\t\t37.42202, -122.08408,\n\t},\n}\n\nfunc main() {\n\tfmt.Println(m)\n}\n"
+      }
+    },
+    {
+      "title": "Map literals continued",
+      "blocks": [
+        {
+          "id": "moretypes/20/0",
+          "hash": "eb04c1d42a0d",
+          "kind": "p",
+          "text": "If the top-level type is just a type name, you can omit it from the elements of the literal."
+        }
+      ],
+      "code": {
+        "name": "map-literals-continued.go",
+        "content": "package main\n\nimport \"fmt\"\n\ntype Vertex struct {\n\tLat, Long float64\n}\n\nvar m = map[string]Vertex{\n\t\"Bell Labs\": {40.68433, -74.39967},\n\t\"Google\":    {37.42202, -122.08408},\n}\n\nfunc main() {\n\tfmt.Println(m)\n}\n"
+      }
+    },
+    {
+      "title": "Mutating Maps",
+      "blocks": [
+        {
+          "id": "moretypes/21/0",
+          "hash": "2a9ae74e54de",
+          "kind": "p",
+          "text": "Insert or update an element in map `m`:"
+        },
+        {
+          "id": "moretypes/21/1",
+          "kind": "pre",
+          "text": "m[key] = elem"
+        },
+        {
+          "id": "moretypes/21/2",
+          "hash": "494acdbdb574",
+          "kind": "p",
+          "text": "Retrieve an element:"
+        },
+        {
+          "id": "moretypes/21/3",
+          "kind": "pre",
+          "text": "elem = m[key]"
+        },
+        {
+          "id": "moretypes/21/4",
+          "hash": "c7a6e19a904e",
+          "kind": "p",
+          "text": "Delete an element:"
+        },
+        {
+          "id": "moretypes/21/5",
+          "kind": "pre",
+          "text": "delete(m, key)"
+        },
+        {
+          "id": "moretypes/21/6",
+          "hash": "bb4980f364ae",
+          "kind": "p",
+          "text": "Test that a key is present with a two-value assignment:"
+        },
+        {
+          "id": "moretypes/21/7",
+          "kind": "pre",
+          "text": "elem, ok = m[key]"
+        },
+        {
+          "id": "moretypes/21/8",
+          "hash": "dd7964e99b6c",
+          "kind": "p",
+          "text": "If `key` is in `m`, `ok` is `true`. If not, `ok` is `false`."
+        },
+        {
+          "id": "moretypes/21/9",
+          "hash": "265d3e975941",
+          "kind": "p",
+          "text": "If `key` is not in the map, then `elem` is the zero value for the map's element type."
+        },
+        {
+          "id": "moretypes/21/10",
+          "hash": "d487fa149341",
+          "kind": "p",
+          "text": "*Note:* If `elem` or `ok` have not yet been declared you could use a short declaration form:"
+        },
+        {
+          "id": "moretypes/21/11",
+          "kind": "pre",
+          "text": "elem, ok := m[key]"
+        }
+      ],
+      "code": {
+        "name": "mutating-maps.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tm := make(map[string]int)\n\n\tm[\"Answer\"] = 42\n\tfmt.Println(\"The value:\", m[\"Answer\"])\n\n\tm[\"Answer\"] = 48\n\tfmt.Println(\"The value:\", m[\"Answer\"])\n\n\tdelete(m, \"Answer\")\n\tfmt.Println(\"The value:\", m[\"Answer\"])\n\n\tv, ok := m[\"Answer\"]\n\tfmt.Println(\"The value:\", v, \"Present?\", ok)\n}\n"
+      }
+    },
+    {
+      "title": "Exercise: Maps",
+      "blocks": [
+        {
+          "id": "moretypes/22/0",
+          "hash": "438ba5f60f48",
+          "kind": "p",
+          "text": "Implement `WordCount`.  It should return a map of the counts of each “word” in the string `s`. The `wc.Test` function runs a test suite against the provided function and prints success or failure."
+        },
+        {
+          "id": "moretypes/22/1",
+          "hash": "bda59019b439",
+          "kind": "p",
+          "text": "You might find [[/pkg/strings/#Fields][strings.Fields]] helpful."
+        }
+      ],
+      "code": {
+        "name": "exercise-maps.go",
+        "content": "package main\n\nimport (\n\t\"golang.org/x/tour/wc\"\n)\n\nfunc WordCount(s string) map[string]int {\n\treturn map[string]int{\"x\": 1}\n}\n\nfunc main() {\n\twc.Test(WordCount)\n}\n"
+      }
+    },
+    {
+      "title": "Function values",
+      "blocks": [
+        {
+          "id": "moretypes/23/0",
+          "hash": "fb530f703832",
+          "kind": "p",
+          "text": "Functions are values too. They can be passed around just like other values."
+        },
+        {
+          "id": "moretypes/23/1",
+          "hash": "ecc4ebe54dad",
+          "kind": "p",
+          "text": "Function values may be used as function arguments and return values."
+        }
+      ],
+      "code": {
+        "name": "function-values.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\nfunc compute(fn func(float64, float64) float64) float64 {\n\treturn fn(3, 4)\n}\n\nfunc main() {\n\thypot := func(x, y float64) float64 {\n\t\treturn math.Sqrt(x*x + y*y)\n\t}\n\tfmt.Println(hypot(5, 12))\n\n\tfmt.Println(compute(hypot))\n\tfmt.Println(compute(math.Pow))\n}\n"
+      }
+    },
+    {
+      "title": "Function closures",
+      "blocks": [
+        {
+          "id": "moretypes/24/0",
+          "hash": "d63f64194e59",
+          "kind": "p",
+          "text": "Go functions may be closures. A closure is a function value that references variables from outside its body. The function may access and assign to the referenced variables; in this sense the function is \"bound\" to the variables."
+        },
+        {
+          "id": "moretypes/24/1",
+          "hash": "65c05808b283",
+          "kind": "p",
+          "text": "For example, the `adder` function returns a closure. Each closure is bound to its own `sum` variable."
+        }
+      ],
+      "code": {
+        "name": "function-closures.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc adder() func(int) int {\n\tsum := 0\n\treturn func(x int) int {\n\t\tsum += x\n\t\treturn sum\n\t}\n}\n\nfunc main() {\n\tpos, neg := adder(), adder()\n\tfor i := 0; i < 10; i++ {\n\t\tfmt.Println(\n\t\t\tpos(i),\n\t\t\tneg(-2*i),\n\t\t)\n\t}\n}\n"
+      }
+    },
+    {
+      "title": "Exercise: Fibonacci closure",
+      "blocks": [
+        {
+          "id": "moretypes/25/0",
+          "hash": "ab4175bf705c",
+          "kind": "p",
+          "text": "Let's have some fun with functions."
+        },
+        {
+          "id": "moretypes/25/1",
+          "hash": "15a8c5b78935",
+          "kind": "p",
+          "text": "Implement a `fibonacci` function that returns a function (a closure) that returns successive [[https://en.wikipedia.org/wiki/Fibonacci_number][fibonacci numbers]] (0, 1, 1, 2, 3, 5, ...)."
+        }
+      ],
+      "code": {
+        "name": "exercise-fibonacci-closure.go",
+        "content": "package main\n\nimport \"fmt\"\n\n// fibonacci is a function that returns\n// a function that returns an int.\nfunc fibonacci() func() int {\n}\n\nfunc main() {\n\tf := fibonacci()\n\tfor i := 0; i < 10; i++ {\n\t\tfmt.Println(f())\n\t}\n}\n"
+      }
+    },
+    {
+      "title": "Congratulations!",
+      "blocks": [
+        {
+          "id": "moretypes/26/0",
+          "hash": "4cdec07338fa",
+          "kind": "p",
+          "text": "You finished this lesson!"
+        },
+        {
+          "id": "moretypes/26/1",
+          "hash": "8fc7766a6fc4",
+          "kind": "p",
+          "text": "You can go back to the list of [[/tour/list][modules]] to find what to learn next, or continue with the [[javascript:click('.next-page')][next lesson]]."
+        }
+      ]
+    }
+  ]
+}
