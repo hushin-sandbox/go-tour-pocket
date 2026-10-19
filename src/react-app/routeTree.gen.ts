@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as LicensesRouteImport } from './routes/licenses'
 import { Route as SpikeRouteImport } from './routes/spike'
 import { Route as TourLessonPageRouteImport } from './routes/tour.$lesson.$page'
 
@@ -22,6 +23,11 @@ const IndexRoute = IndexRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LicensesRoute = LicensesRouteImport.update({
+  id: '/licenses',
+  path: '/licenses',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SpikeRoute = SpikeRouteImport.update({
@@ -38,12 +44,14 @@ const TourLessonPageRoute = TourLessonPageRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/licenses': typeof LicensesRoute
   '/spike': typeof SpikeRoute
   '/tour/$lesson/$page': typeof TourLessonPageRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/licenses': typeof LicensesRoute
   '/spike': typeof SpikeRoute
   '/tour/$lesson/$page': typeof TourLessonPageRoute
 }
@@ -51,20 +59,23 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/licenses': typeof LicensesRoute
   '/spike': typeof SpikeRoute
   '/tour/$lesson/$page': typeof TourLessonPageRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/spike' | '/tour/$lesson/$page'
+  fullPaths: '/' | '/about' | '/licenses' | '/spike' | '/tour/$lesson/$page'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/spike' | '/tour/$lesson/$page'
-  id: '__root__' | '/' | '/about' | '/spike' | '/tour/$lesson/$page'
+  to: '/' | '/about' | '/licenses' | '/spike' | '/tour/$lesson/$page'
+  id:
+    '__root__' | '/' | '/about' | '/licenses' | '/spike' | '/tour/$lesson/$page'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  LicensesRoute: typeof LicensesRoute
   SpikeRoute: typeof SpikeRoute
   TourLessonPageRoute: typeof TourLessonPageRoute
 }
@@ -83,6 +94,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/licenses': {
+      id: '/licenses'
+      path: '/licenses'
+      fullPath: '/licenses'
+      preLoaderRoute: typeof LicensesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/spike': {
@@ -105,6 +123,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  LicensesRoute: LicensesRoute,
   SpikeRoute: SpikeRoute,
   TourLessonPageRoute: TourLessonPageRoute,
 }
