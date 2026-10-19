@@ -47,9 +47,9 @@ function BlockView({ block, mode }: { block: JoinedBlock; mode: DisplayMode }) {
   }
 }
 
-const bodyTextClass = 'leading-[1.9] break-keep';
+const bodyTextClass = 'leading-[1.9] text-pretty';
 const translationClass =
-  'border-l-2 border-primary/40 pl-3 leading-[1.9] text-muted-foreground break-keep';
+  'border-l-2 border-primary/40 pl-3 leading-[1.9] text-muted-foreground text-pretty';
 
 function ParagraphBlock({
   block,

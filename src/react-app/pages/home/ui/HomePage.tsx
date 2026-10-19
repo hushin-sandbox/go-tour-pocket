@@ -45,7 +45,7 @@ export function HomePage() {
 
   if (failed) {
     return (
-      <p role="alert" className="mx-auto max-w-xl text-sm text-destructive">
+      <p role="alert" className="mx-auto max-w-xl px-4 pt-8 text-sm text-destructive">
         レッスンを読み込めませんでした。ページを再読み込みしてください。
       </p>
     );
@@ -53,7 +53,7 @@ export function HomePage() {
 
   if (catalog === null) {
     return (
-      <p aria-busy="true" className="mx-auto max-w-xl text-sm text-muted-foreground">
+      <p aria-busy="true" className="mx-auto max-w-xl px-4 pt-8 text-sm text-muted-foreground">
         レッスンを読み込み中…
       </p>
     );
@@ -74,16 +74,14 @@ export function HomePageView({ catalog, progress }: HomePageViewProps) {
   const firstPageTitle = firstLesson?.pageTitles[0];
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-10">
+    <div className="mx-auto flex w-full max-w-xl flex-col gap-10 px-4 pt-8 pb-[calc(env(safe-area-inset-bottom)+2rem)]">
       <header className="flex flex-col gap-2">
         <h1 className="text-3xl font-semibold tracking-tight text-balance">Go Tour Pocket</h1>
-        <p className="text-sm leading-6 text-muted-foreground break-keep">
+        <p className="text-sm leading-6 text-muted-foreground text-pretty">
           A Tour of Go
           を英日対訳で読めるレッスン一覧です。上から順に読み進めても、気になるレッスンから開いてもかまいません。
         </p>
       </header>
-
-      <InstallPrompt />
 
       {lastLesson && lastPageTitle && progress.lastPage ? (
         <section
@@ -102,6 +100,7 @@ export function HomePageView({ catalog, progress }: HomePageViewProps) {
           </div>
           <div className="flex justify-end">
             <Button
+              className="h-11 px-4"
               render={
                 <Link
                   to="/tour/$lesson/$page"
@@ -127,6 +126,7 @@ export function HomePageView({ catalog, progress }: HomePageViewProps) {
             </p>
             <div className="flex justify-end">
               <Button
+                className="h-11 px-4"
                 render={
                   <Link
                     to="/tour/$lesson/$page"
@@ -141,6 +141,8 @@ export function HomePageView({ catalog, progress }: HomePageViewProps) {
           </section>
         )
       )}
+
+      <InstallPrompt />
 
       {LESSON_MODULES.map((module) => {
         const lessons = module.lessonIds
@@ -216,7 +218,7 @@ function LessonCard({ lesson, progress }: LessonCardProps) {
             {complete ? <Check className="size-4" /> : `${read}/${total}`}
           </span>
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="text-sm leading-5 font-medium break-keep">
+            <span className="text-sm leading-5 font-medium text-pretty">
               {primaryText(lesson.title)}
             </span>
             {lesson.title.ja !== undefined && (
@@ -266,7 +268,9 @@ function LessonCard({ lesson, progress }: LessonCardProps) {
                       {pageIndex + 1}
                     </span>
                     <span className="flex min-w-0 flex-1 flex-col">
-                      <span className="text-sm leading-5 break-keep">{primaryText(pageTitle)}</span>
+                      <span className="text-sm leading-5 text-pretty">
+                        {primaryText(pageTitle)}
+                      </span>
                       {pageTitle.ja !== undefined && (
                         <span className="text-xs leading-4 text-muted-foreground">
                           {pageTitle.en}

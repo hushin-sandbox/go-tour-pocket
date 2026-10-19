@@ -84,7 +84,7 @@ function ContentsSheet({ open, onOpenChange, lesson, catalog, pageIndex }: Conte
           </button>
         </div>
 
-        <div className="flex flex-col gap-7 overflow-y-auto overscroll-contain px-4 py-4">
+        <div className="flex flex-col gap-7 overflow-y-auto overscroll-contain px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <section className="flex flex-col gap-2" aria-labelledby="toc-current-lesson">
             <div className="flex flex-col gap-0.5">
               <h3 id="toc-current-lesson" className="text-xs font-medium text-muted-foreground">

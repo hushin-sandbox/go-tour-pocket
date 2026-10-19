@@ -8,7 +8,7 @@ import { NetworkStatus } from '@/react-app/features/network-status';
  */
 export function Header() {
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/70 bg-background/85 pt-[env(safe-area-inset-top)] backdrop-blur-md">
+    <header className="sticky top-0 z-40 w-full border-b border-border/70 bg-background pt-[env(safe-area-inset-top)]">
       <div className="flex h-12 items-center gap-2 pr-[max(0.5rem,env(safe-area-inset-right))] pl-[max(1rem,env(safe-area-inset-left))]">
         <Link
           to="/"

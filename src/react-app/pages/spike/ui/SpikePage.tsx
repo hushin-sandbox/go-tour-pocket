@@ -188,12 +188,12 @@ export function SpikePage() {
   ];
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 pt-8 pb-10">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 pt-8 pb-[calc(env(safe-area-inset-bottom)+2.5rem)]">
       <header className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">実行エンジン スパイク</h1>
         <p className="text-sm leading-6 text-muted-foreground">
           Yaegi を wasm 化した Go インタプリタを Web Worker
-          で動かし、オフラインでどこまで動くかを確認する 検証ページです。本番 UI ではありません。
+          で動かし、オフラインでどこまで動くかを確認する検証ページです。本番 UI ではありません。
         </p>
       </header>
 
@@ -208,6 +208,7 @@ export function SpikePage() {
               variant={presetId === preset.id ? 'default' : 'outline'}
               onClick={() => handlePreset(preset.id, preset.code)}
               disabled={running}
+              className="min-h-11"
             >
               {preset.label}
             </Button>
@@ -236,7 +237,7 @@ export function SpikePage() {
             type="button"
             onClick={() => void handleRun()}
             disabled={running}
-            className="min-w-24"
+            className="min-h-11 min-w-24"
           >
             実行
           </Button>
@@ -245,7 +246,7 @@ export function SpikePage() {
             variant="outline"
             onClick={handleStop}
             disabled={!running}
-            className="min-w-24"
+            className="min-h-11 min-w-24"
           >
             停止
           </Button>

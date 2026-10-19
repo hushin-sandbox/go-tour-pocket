@@ -72,7 +72,7 @@ export function TourPage() {
     state.pageNumber === pageNumber
   ) {
     return (
-      <div className="mx-auto flex max-w-xl flex-col gap-3">
+      <div className="mx-auto flex max-w-xl flex-col gap-3 px-4 pt-8">
         <p role="alert" className="text-sm text-destructive">
           ページを読み込めませんでした。
         </p>
@@ -89,7 +89,7 @@ export function TourPage() {
     state.pageNumber !== pageNumber
   ) {
     return (
-      <p aria-busy="true" className="mx-auto max-w-xl text-sm text-muted-foreground">
+      <p aria-busy="true" className="mx-auto max-w-xl px-4 pt-8 text-sm text-muted-foreground">
         ページを読み込み中…
       </p>
     );
@@ -122,8 +122,8 @@ export function TourPageView({ lesson, pageIndex, catalog }: TourPageViewProps) 
   }, [lesson.id, pageIndex]);
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col">
-      <header className="sticky top-14 z-40 -mx-4 mb-6 border-b border-border/70 bg-background/90 px-4 pt-2 pb-2 backdrop-blur-md">
+    <div className="mx-auto flex w-full max-w-xl flex-col px-4 pt-4">
+      <header className="sticky top-[calc(env(safe-area-inset-top)+3rem)] z-40 -mx-4 mb-6 border-b border-border/70 bg-background px-4 pt-2 pb-2">
         <div className="mx-auto flex w-full max-w-xl flex-col gap-1.5">
           <div className="flex items-center gap-2">
             <div className="min-w-0 flex-1">
@@ -144,7 +144,7 @@ export function TourPageView({ lesson, pageIndex, catalog }: TourPageViewProps) 
       </header>
 
       <article
-        className="flex flex-col gap-7 pb-28"
+        className="flex flex-col gap-7 pb-[calc(env(safe-area-inset-bottom)+7rem)]"
         style={{ fontSize: FONT_SIZE_PX[settings.fontSize] }}
       >
         <header className="flex flex-col gap-1">
@@ -178,7 +178,7 @@ function BottomNavigation({ prev, next }: { prev?: PageRef; next?: PageRef }) {
   return (
     <nav
       aria-label="ページ移動"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur-md"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background"
     >
       <div className="mx-auto grid w-full max-w-xl grid-cols-2 gap-2 px-4 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {prev ? <PageLink direction="prev" page={prev} /> : <span aria-hidden="true" />}
