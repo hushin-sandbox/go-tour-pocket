@@ -1,0 +1,524 @@
+{
+  "id": "basics",
+  "title": "Packages, variables, and functions.",
+  "description": "Learn the basic components of any Go program.",
+  "pages": [
+    {
+      "title": "Packages",
+      "blocks": [
+        {
+          "id": "basics/0/0",
+          "hash": "ad99b620e742",
+          "kind": "p",
+          "text": "Every Go program is made up of packages."
+        },
+        {
+          "id": "basics/0/1",
+          "hash": "25c855705854",
+          "kind": "p",
+          "text": "Programs start running in package `main`."
+        },
+        {
+          "id": "basics/0/2",
+          "hash": "04c8d42db1da",
+          "kind": "p",
+          "text": "This program is using the packages with import paths `\"fmt\"` and `\"math/rand\"`."
+        },
+        {
+          "id": "basics/0/3",
+          "hash": "d5827b7e0d05",
+          "kind": "p",
+          "text": "By convention, the package name is the same as the last element of the import path. For instance, the `\"math/rand\"` package comprises files that begin with the statement `package`rand`."
+        }
+      ],
+      "code": {
+        "name": "packages.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"math/rand\"\n)\n\nfunc main() {\n\tfmt.Println(\"My favorite number is\", rand.Intn(10))\n}\n"
+      }
+    },
+    {
+      "title": "Imports",
+      "blocks": [
+        {
+          "id": "basics/1/0",
+          "hash": "40d0a205e49c",
+          "kind": "p",
+          "text": "This code groups the imports into a parenthesized, \"factored\" import statement."
+        },
+        {
+          "id": "basics/1/1",
+          "hash": "2eb5abfd6e76",
+          "kind": "p",
+          "text": "You can also write multiple import statements, like:"
+        },
+        {
+          "id": "basics/1/2",
+          "kind": "pre",
+          "text": "import \"fmt\"\nimport \"math\""
+        },
+        {
+          "id": "basics/1/3",
+          "hash": "6219264b025a",
+          "kind": "p",
+          "text": "But it is good style to use the factored import statement."
+        }
+      ],
+      "code": {
+        "name": "imports.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\nfunc main() {\n\tfmt.Printf(\"Now you have %g problems.\\n\", math.Sqrt(7))\n}\n"
+      }
+    },
+    {
+      "title": "Exported names",
+      "blocks": [
+        {
+          "id": "basics/2/0",
+          "hash": "a7345207c7f2",
+          "kind": "p",
+          "text": "In Go, a name is exported if it begins with a capital letter. For example, `Pizza` is an exported name, as is `Pi`, which is exported from the `math` package."
+        },
+        {
+          "id": "basics/2/1",
+          "hash": "ddf40ed10b12",
+          "kind": "p",
+          "text": "`pizza` and `pi` do not start with a capital letter, so they are not exported."
+        },
+        {
+          "id": "basics/2/2",
+          "hash": "75b3bce82eef",
+          "kind": "p",
+          "text": "When importing a package, you can refer only to its exported names. Any \"unexported\" names are not accessible from outside the package."
+        },
+        {
+          "id": "basics/2/3",
+          "hash": "70fe7df65f7b",
+          "kind": "p",
+          "text": "Run the code. Notice the error message."
+        },
+        {
+          "id": "basics/2/4",
+          "hash": "52f0d583ea57",
+          "kind": "p",
+          "text": "To fix the error, rename `math.pi` to `math.Pi` and try it again."
+        }
+      ],
+      "code": {
+        "name": "exported-names.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\nfunc main() {\n\tfmt.Println(math.pi)\n}\n"
+      }
+    },
+    {
+      "title": "Functions",
+      "blocks": [
+        {
+          "id": "basics/3/0",
+          "hash": "eefabdea1bef",
+          "kind": "p",
+          "text": "A function can take zero or more arguments."
+        },
+        {
+          "id": "basics/3/1",
+          "hash": "02a13bb9d53a",
+          "kind": "p",
+          "text": "In this example, `add` takes two parameters of type `int`."
+        },
+        {
+          "id": "basics/3/2",
+          "hash": "041a3f63d86f",
+          "kind": "p",
+          "text": "Notice that the type comes _after_ the variable name."
+        },
+        {
+          "id": "basics/3/3",
+          "hash": "a1bfc8d4ce79",
+          "kind": "p",
+          "text": "(For more about why types look the way they do, see the [[/blog/gos-declaration-syntax][article on Go's declaration syntax]].)"
+        }
+      ],
+      "code": {
+        "name": "functions.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc add(x int, y int) int {\n\treturn x + y\n}\n\nfunc main() {\n\tfmt.Println(add(42, 13))\n}\n"
+      }
+    },
+    {
+      "title": "Functions continued",
+      "blocks": [
+        {
+          "id": "basics/4/0",
+          "hash": "9dd66e5aaa4c",
+          "kind": "p",
+          "text": "When two or more consecutive named function parameters share a type, you can omit the type from all but the last."
+        },
+        {
+          "id": "basics/4/1",
+          "hash": "27cbc79b2087",
+          "kind": "p",
+          "text": "In this example, we shortened"
+        },
+        {
+          "id": "basics/4/2",
+          "kind": "pre",
+          "text": "x int, y int"
+        },
+        {
+          "id": "basics/4/3",
+          "hash": "4374aaee247f",
+          "kind": "p",
+          "text": "to"
+        },
+        {
+          "id": "basics/4/4",
+          "kind": "pre",
+          "text": "x, y int"
+        }
+      ],
+      "code": {
+        "name": "functions-continued.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc add(x, y int) int {\n\treturn x + y\n}\n\nfunc main() {\n\tfmt.Println(add(42, 13))\n}\n"
+      }
+    },
+    {
+      "title": "Multiple results",
+      "blocks": [
+        {
+          "id": "basics/5/0",
+          "hash": "2ce5a3ea3ebc",
+          "kind": "p",
+          "text": "A function can return any number of results."
+        },
+        {
+          "id": "basics/5/1",
+          "hash": "1cb764cdbcb7",
+          "kind": "p",
+          "text": "The `swap` function returns two strings."
+        }
+      ],
+      "code": {
+        "name": "multiple-results.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc swap(x, y string) (string, string) {\n\treturn y, x\n}\n\nfunc main() {\n\ta, b := swap(\"hello\", \"world\")\n\tfmt.Println(a, b)\n}\n"
+      }
+    },
+    {
+      "title": "Named return values",
+      "blocks": [
+        {
+          "id": "basics/6/0",
+          "hash": "491c5a606cdb",
+          "kind": "p",
+          "text": "Go's return values may be named. If so, they are treated as variables defined at the top of the function."
+        },
+        {
+          "id": "basics/6/1",
+          "hash": "e2447072f0a0",
+          "kind": "p",
+          "text": "These names should be used to document the meaning of the return values."
+        },
+        {
+          "id": "basics/6/2",
+          "hash": "5e3792330687",
+          "kind": "p",
+          "text": "A `return` statement without arguments returns the named return values. This is known as a \"naked\" return."
+        },
+        {
+          "id": "basics/6/3",
+          "hash": "69fc40e12e52",
+          "kind": "p",
+          "text": "Naked return statements should be used only in short functions, as with the example shown here. They can harm readability in longer functions."
+        }
+      ],
+      "code": {
+        "name": "named-results.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc split(sum int) (x, y int) {\n\tx = sum * 4 / 9\n\ty = sum - x\n\treturn\n}\n\nfunc main() {\n\tfmt.Println(split(17))\n}\n"
+      }
+    },
+    {
+      "title": "Variables",
+      "blocks": [
+        {
+          "id": "basics/7/0",
+          "hash": "4567280860de",
+          "kind": "p",
+          "text": "The `var` statement declares a list of variables; as in function argument lists, the type is last."
+        },
+        {
+          "id": "basics/7/1",
+          "hash": "01a3cafc1d1e",
+          "kind": "p",
+          "text": "A `var` statement can be at package or function level. We see both in this example."
+        }
+      ],
+      "code": {
+        "name": "variables.go",
+        "content": "package main\n\nimport \"fmt\"\n\nvar c, python, java bool\n\nfunc main() {\n\tvar i int\n\tfmt.Println(i, c, python, java)\n}\n"
+      }
+    },
+    {
+      "title": "Variables with initializers",
+      "blocks": [
+        {
+          "id": "basics/8/0",
+          "hash": "ee1e367a2c4f",
+          "kind": "p",
+          "text": "A `var` declaration can include initializers, one per variable."
+        },
+        {
+          "id": "basics/8/1",
+          "hash": "0a2899d311c6",
+          "kind": "p",
+          "text": "If an initializer is present, the type can be omitted; the variable will take the type of the initializer."
+        }
+      ],
+      "code": {
+        "name": "variables-with-initializers.go",
+        "content": "package main\n\nimport \"fmt\"\n\nvar i, j int = 1, 2\n\nfunc main() {\n\tvar c, python, java = true, false, \"no!\"\n\tfmt.Println(i, j, c, python, java)\n}\n"
+      }
+    },
+    {
+      "title": "Short variable declarations",
+      "blocks": [
+        {
+          "id": "basics/9/0",
+          "hash": "c4ff220ee71c",
+          "kind": "p",
+          "text": "Inside a function, the `:=` short assignment statement can be used in place of a `var` declaration with implicit type."
+        },
+        {
+          "id": "basics/9/1",
+          "hash": "c177e46927fe",
+          "kind": "p",
+          "text": "Outside a function, every statement begins with a keyword (`var`, `func`, and so on) and so the `:=` construct is not available."
+        }
+      ],
+      "code": {
+        "name": "short-variable-declarations.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar i, j int = 1, 2\n\tk := 3\n\tc, python, java := true, false, \"no!\"\n\n\tfmt.Println(i, j, k, c, python, java)\n}\n"
+      }
+    },
+    {
+      "title": "Basic types",
+      "blocks": [
+        {
+          "id": "basics/10/0",
+          "hash": "a267aebc3893",
+          "kind": "p",
+          "text": "Go's basic types are"
+        },
+        {
+          "id": "basics/10/1",
+          "kind": "pre",
+          "text": "bool\n\nstring\n\nint  int8  int16  int32  int64\nuint uint8 uint16 uint32 uint64 uintptr\n\nbyte // alias for uint8\n\nrune // alias for int32\n     // represents a Unicode code point\n\nfloat32 float64\n\ncomplex64 complex128"
+        },
+        {
+          "id": "basics/10/2",
+          "hash": "d7b3fa3ed361",
+          "kind": "p",
+          "text": "The example shows variables of several types, and also that variable declarations may be \"factored\" into blocks, as with import statements."
+        },
+        {
+          "id": "basics/10/3",
+          "hash": "4851ad0e7d0d",
+          "kind": "p",
+          "text": "The `int`, `uint`, and `uintptr` types are usually 32 bits wide on 32-bit systems and 64 bits wide on 64-bit systems. When you need an integer value you should use `int` unless you have a specific reason to use a sized or unsigned integer type."
+        }
+      ],
+      "code": {
+        "name": "basic-types.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"math/cmplx\"\n)\n\nvar (\n\tToBe   bool       = false\n\tMaxInt uint64     = 1<<64 - 1\n\tz      complex128 = cmplx.Sqrt(-5 + 12i)\n)\n\nfunc main() {\n\tfmt.Printf(\"Type: %T Value: %v\\n\", ToBe, ToBe)\n\tfmt.Printf(\"Type: %T Value: %v\\n\", MaxInt, MaxInt)\n\tfmt.Printf(\"Type: %T Value: %v\\n\", z, z)\n}\n"
+      }
+    },
+    {
+      "title": "Zero values",
+      "blocks": [
+        {
+          "id": "basics/11/0",
+          "hash": "c13b0d4a803a",
+          "kind": "p",
+          "text": "Variables declared without an explicit initial value are given their _zero_value_."
+        },
+        {
+          "id": "basics/11/1",
+          "hash": "6485b457f04c",
+          "kind": "p",
+          "text": "The zero value is:"
+        },
+        {
+          "id": "basics/11/2",
+          "hash": "0bd39cf2ccee",
+          "kind": "list",
+          "items": [
+            "`0` for numeric types,",
+            "`false` for the boolean type, and",
+            "`\"\"` (the empty string) for strings."
+          ]
+        }
+      ],
+      "code": {
+        "name": "zero.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar i int\n\tvar f float64\n\tvar b bool\n\tvar s string\n\tfmt.Printf(\"%v %v %v %q\\n\", i, f, b, s)\n}\n"
+      }
+    },
+    {
+      "title": "Type conversions",
+      "blocks": [
+        {
+          "id": "basics/12/0",
+          "hash": "21d0579bc25f",
+          "kind": "p",
+          "text": "The expression `T(v)` converts the value `v` to the type `T`."
+        },
+        {
+          "id": "basics/12/1",
+          "hash": "017ac9c0c924",
+          "kind": "p",
+          "text": "Some numeric conversions:"
+        },
+        {
+          "id": "basics/12/2",
+          "kind": "pre",
+          "text": "var i int = 42\nvar f float64 = float64(i)\nvar u uint = uint(f)"
+        },
+        {
+          "id": "basics/12/3",
+          "hash": "9c089afe5778",
+          "kind": "p",
+          "text": "Or, put more simply:"
+        },
+        {
+          "id": "basics/12/4",
+          "kind": "pre",
+          "text": "i := 42\nf := float64(i)\nu := uint(f)"
+        },
+        {
+          "id": "basics/12/5",
+          "hash": "ffa2985ec561",
+          "kind": "p",
+          "text": "Unlike in C, in Go assignment between items of different type requires an explicit conversion. Try removing the `float64` or `uint` conversions in the example and see what happens."
+        }
+      ],
+      "code": {
+        "name": "type-conversions.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\nfunc main() {\n\tvar x, y int = 3, 4\n\tvar f float64 = math.Sqrt(float64(x*x + y*y))\n\tvar z uint = uint(f)\n\tfmt.Println(x, y, z)\n}\n"
+      }
+    },
+    {
+      "title": "Type inference",
+      "blocks": [
+        {
+          "id": "basics/13/0",
+          "hash": "385c90a95d12",
+          "kind": "p",
+          "text": "When declaring a variable without specifying an explicit type (either by using the `:=` syntax or `var`=` expression syntax), the variable's type is inferred from the value on the right hand side."
+        },
+        {
+          "id": "basics/13/1",
+          "hash": "387e4aaaaa46",
+          "kind": "p",
+          "text": "When the right hand side of the declaration is typed, the new variable is of that same type:"
+        },
+        {
+          "id": "basics/13/2",
+          "kind": "pre",
+          "text": "var i int\nj := i // j is an int"
+        },
+        {
+          "id": "basics/13/3",
+          "hash": "35b0296e8b3f",
+          "kind": "p",
+          "text": "But when the right hand side contains an untyped numeric constant, the new variable may be an `int`, `float64`, or `complex128` depending on the precision of the constant:"
+        },
+        {
+          "id": "basics/13/4",
+          "kind": "pre",
+          "text": "i := 42           // int\nf := 3.142        // float64\ng := 0.867 + 0.5i // complex128"
+        },
+        {
+          "id": "basics/13/5",
+          "hash": "c3837bfed5ea",
+          "kind": "p",
+          "text": "Try changing the initial value of `v` in the example code and observe how its type is affected."
+        }
+      ],
+      "code": {
+        "name": "type-inference.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tv := 42 // change me!\n\tfmt.Printf(\"v is of type %T\\n\", v)\n}\n"
+      }
+    },
+    {
+      "title": "Constants",
+      "blocks": [
+        {
+          "id": "basics/14/0",
+          "hash": "1964181dcc65",
+          "kind": "p",
+          "text": "Constants are declared like variables, but with the `const` keyword."
+        },
+        {
+          "id": "basics/14/1",
+          "hash": "346d0a6c6d5b",
+          "kind": "p",
+          "text": "Constants can be character, string, boolean, or numeric values."
+        },
+        {
+          "id": "basics/14/2",
+          "hash": "b503db523225",
+          "kind": "p",
+          "text": "Constants cannot be declared using the `:=` syntax."
+        }
+      ],
+      "code": {
+        "name": "constants.go",
+        "content": "package main\n\nimport \"fmt\"\n\nconst Pi = 3.14\n\nfunc main() {\n\tconst World = \"世界\"\n\tfmt.Println(\"Hello\", World)\n\tfmt.Println(\"Happy\", Pi, \"Day\")\n\n\tconst Truth = true\n\tfmt.Println(\"Go rules?\", Truth)\n}\n"
+      }
+    },
+    {
+      "title": "Numeric Constants",
+      "blocks": [
+        {
+          "id": "basics/15/0",
+          "hash": "d033cc7d4ca1",
+          "kind": "p",
+          "text": "Numeric constants are high-precision _values_."
+        },
+        {
+          "id": "basics/15/1",
+          "hash": "21e048df4d60",
+          "kind": "p",
+          "text": "An untyped constant takes the type needed by its context."
+        },
+        {
+          "id": "basics/15/2",
+          "hash": "116b40527ad9",
+          "kind": "p",
+          "text": "Try printing `needInt(Big)` too."
+        },
+        {
+          "id": "basics/15/3",
+          "hash": "513640fc8f44",
+          "kind": "p",
+          "text": "(An `int` can store at maximum a 64-bit integer, and sometimes less.)"
+        }
+      ],
+      "code": {
+        "name": "numeric-constants.go",
+        "content": "package main\n\nimport \"fmt\"\n\nconst (\n\t// Create a huge number by shifting a 1 bit left 100 places.\n\t// In other words, the binary number that is 1 followed by 100 zeroes.\n\tBig = 1 << 100\n\t// Shift it right again 99 places, so we end up with 1<<1, or 2.\n\tSmall = Big >> 99\n)\n\nfunc needInt(x int) int { return x*10 + 1 }\nfunc needFloat(x float64) float64 {\n\treturn x * 0.1\n}\n\nfunc main() {\n\tfmt.Println(needInt(Small))\n\tfmt.Println(needFloat(Small))\n\tfmt.Println(needFloat(Big))\n}\n"
+      }
+    },
+    {
+      "title": "Congratulations!",
+      "blocks": [
+        {
+          "id": "basics/16/0",
+          "hash": "4cdec07338fa",
+          "kind": "p",
+          "text": "You finished this lesson!"
+        },
+        {
+          "id": "basics/16/1",
+          "hash": "8fc7766a6fc4",
+          "kind": "p",
+          "text": "You can go back to the list of [[/tour/list][modules]] to find what to learn next, or continue with the [[javascript:click('.next-page')][next lesson]]."
+        }
+      ]
+    }
+  ]
+}

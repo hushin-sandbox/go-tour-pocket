@@ -1,0 +1,887 @@
+{
+  "id": "methods",
+  "title": "Methods and interfaces",
+  "description": "This lesson covers methods and interfaces, the constructs that define objects and their behavior.",
+  "pages": [
+    {
+      "title": "Methods",
+      "blocks": [
+        {
+          "id": "methods/0/0",
+          "hash": "7f796699256a",
+          "kind": "p",
+          "text": "Go does not have classes. However, you can define methods on types."
+        },
+        {
+          "id": "methods/0/1",
+          "hash": "ee8768e556e1",
+          "kind": "p",
+          "text": "A method is a function with a special _receiver_ argument."
+        },
+        {
+          "id": "methods/0/2",
+          "hash": "f6a87a6856fe",
+          "kind": "p",
+          "text": "The receiver appears in its own argument list between the `func` keyword and the method name."
+        },
+        {
+          "id": "methods/0/3",
+          "hash": "09a0cf4997eb",
+          "kind": "p",
+          "text": "In this example, the `Abs` method has a receiver of type `Vertex` named `v`."
+        }
+      ],
+      "code": {
+        "name": "methods.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\ntype Vertex struct {\n\tX, Y float64\n}\n\nfunc (v Vertex) Abs() float64 {\n\treturn math.Sqrt(v.X*v.X + v.Y*v.Y)\n}\n\nfunc main() {\n\tv := Vertex{3, 4}\n\tfmt.Println(v.Abs())\n}\n"
+      }
+    },
+    {
+      "title": "Methods are functions",
+      "blocks": [
+        {
+          "id": "methods/1/0",
+          "hash": "cc7e478cfcac",
+          "kind": "p",
+          "text": "Remember: a method is just a function with a receiver argument."
+        },
+        {
+          "id": "methods/1/1",
+          "hash": "379dd2612008",
+          "kind": "p",
+          "text": "Here's `Abs` written as a regular function with no change in functionality."
+        }
+      ],
+      "code": {
+        "name": "methods-funcs.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\ntype Vertex struct {\n\tX, Y float64\n}\n\nfunc Abs(v Vertex) float64 {\n\treturn math.Sqrt(v.X*v.X + v.Y*v.Y)\n}\n\nfunc main() {\n\tv := Vertex{3, 4}\n\tfmt.Println(Abs(v))\n}\n"
+      }
+    },
+    {
+      "title": "Methods continued",
+      "blocks": [
+        {
+          "id": "methods/2/0",
+          "hash": "cb45c0101979",
+          "kind": "p",
+          "text": "You can declare a method on non-struct types, too."
+        },
+        {
+          "id": "methods/2/1",
+          "hash": "f9d46549af10",
+          "kind": "p",
+          "text": "In this example we see a numeric type `MyFloat` with an `Abs` method."
+        },
+        {
+          "id": "methods/2/2",
+          "hash": "f3ac5ed1de2f",
+          "kind": "p",
+          "text": "You can only declare a method with a receiver whose type is defined in the same package as the method. You cannot declare a method with a receiver whose type is defined in another package (which includes the built-in types such as `int`)."
+        }
+      ],
+      "code": {
+        "name": "methods-continued.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\ntype MyFloat float64\n\nfunc (f MyFloat) Abs() float64 {\n\tif f < 0 {\n\t\treturn float64(-f)\n\t}\n\treturn float64(f)\n}\n\nfunc main() {\n\tf := MyFloat(-math.Sqrt2)\n\tfmt.Println(f.Abs())\n}\n"
+      }
+    },
+    {
+      "title": "Pointer receivers",
+      "blocks": [
+        {
+          "id": "methods/3/0",
+          "hash": "7d063b6a37d3",
+          "kind": "p",
+          "text": "You can declare methods with pointer receivers."
+        },
+        {
+          "id": "methods/3/1",
+          "hash": "2b99dc1ced91",
+          "kind": "p",
+          "text": "This means the receiver type has the literal syntax `*T` for some type `T`. (Also, `T` cannot itself be a pointer such as `*int`.)"
+        },
+        {
+          "id": "methods/3/2",
+          "hash": "7ba830c29838",
+          "kind": "p",
+          "text": "For example, the `Scale` method here is defined on `*Vertex`."
+        },
+        {
+          "id": "methods/3/3",
+          "hash": "98b4d5998b94",
+          "kind": "p",
+          "text": "Methods with pointer receivers can modify the value to which the receiver points (as `Scale` does here). Since methods often need to modify their receiver, pointer receivers are more common than value receivers."
+        },
+        {
+          "id": "methods/3/4",
+          "hash": "b09fae005813",
+          "kind": "p",
+          "text": "Try removing the `*` from the declaration of the `Scale` function on line 16 and observe how the program's behavior changes."
+        },
+        {
+          "id": "methods/3/5",
+          "hash": "f7f5b33f9142",
+          "kind": "p",
+          "text": "With a value receiver, the `Scale` method operates on a copy of the original `Vertex` value. (This is the same behavior as for any other function argument.) The `Scale` method must have a pointer receiver to change the `Vertex` value declared in the `main` function."
+        }
+      ],
+      "code": {
+        "name": "methods-pointers.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\ntype Vertex struct {\n\tX, Y float64\n}\n\nfunc (v Vertex) Abs() float64 {\n\treturn math.Sqrt(v.X*v.X + v.Y*v.Y)\n}\n\nfunc (v *Vertex) Scale(f float64) {\n\tv.X = v.X * f\n\tv.Y = v.Y * f\n}\n\nfunc main() {\n\tv := Vertex{3, 4}\n\tv.Scale(10)\n\tfmt.Println(v.Abs())\n}\n"
+      }
+    },
+    {
+      "title": "Pointers and functions",
+      "blocks": [
+        {
+          "id": "methods/4/0",
+          "hash": "f147a2e25b2f",
+          "kind": "p",
+          "text": "Here we see the `Abs` and `Scale` methods rewritten as functions."
+        },
+        {
+          "id": "methods/4/1",
+          "hash": "95abdfc25277",
+          "kind": "p",
+          "text": "Again, try removing the `*` from line 16. Can you see why the behavior changes? What else did you need to change for the example to compile?"
+        },
+        {
+          "id": "methods/4/2",
+          "hash": "33888dfa3156",
+          "kind": "p",
+          "text": "(If you're not sure, continue to the next page.)"
+        }
+      ],
+      "code": {
+        "name": "methods-pointers-explained.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\ntype Vertex struct {\n\tX, Y float64\n}\n\nfunc Abs(v Vertex) float64 {\n\treturn math.Sqrt(v.X*v.X + v.Y*v.Y)\n}\n\nfunc Scale(v *Vertex, f float64) {\n\tv.X = v.X * f\n\tv.Y = v.Y * f\n}\n\nfunc main() {\n\tv := Vertex{3, 4}\n\tScale(&v, 10)\n\tfmt.Println(Abs(v))\n}\n"
+      }
+    },
+    {
+      "title": "Methods and pointer indirection",
+      "blocks": [
+        {
+          "id": "methods/5/0",
+          "hash": "5c23aecfa6ab",
+          "kind": "p",
+          "text": "Comparing the previous two programs, you might notice that functions with a pointer argument must take a pointer:"
+        },
+        {
+          "id": "methods/5/1",
+          "kind": "pre",
+          "text": "var v Vertex\nScaleFunc(v, 5)  // Compile error!\nScaleFunc(&v, 5) // OK"
+        },
+        {
+          "id": "methods/5/2",
+          "hash": "16a19d889262",
+          "kind": "p",
+          "text": "while methods with pointer receivers take either a value or a pointer as the receiver when they are called:"
+        },
+        {
+          "id": "methods/5/3",
+          "kind": "pre",
+          "text": "var v Vertex\nv.Scale(5)  // OK\np := &v\np.Scale(10) // OK"
+        },
+        {
+          "id": "methods/5/4",
+          "hash": "0ce0db8b8b49",
+          "kind": "p",
+          "text": "For the statement `v.Scale(5)`, even though `v` is a value and not a pointer, the method with the pointer receiver is called automatically. That is, as a convenience, Go interprets the statement `v.Scale(5)` as `(&v).Scale(5)` since the `Scale` method has a pointer receiver."
+        }
+      ],
+      "code": {
+        "name": "indirection.go",
+        "content": "package main\n\nimport \"fmt\"\n\ntype Vertex struct {\n\tX, Y float64\n}\n\nfunc (v *Vertex) Scale(f float64) {\n\tv.X = v.X * f\n\tv.Y = v.Y * f\n}\n\nfunc ScaleFunc(v *Vertex, f float64) {\n\tv.X = v.X * f\n\tv.Y = v.Y * f\n}\n\nfunc main() {\n\tv := Vertex{3, 4}\n\tv.Scale(2)\n\tScaleFunc(&v, 10)\n\n\tp := &Vertex{4, 3}\n\tp.Scale(3)\n\tScaleFunc(p, 8)\n\n\tfmt.Println(v, p)\n}\n"
+      }
+    },
+    {
+      "title": "Methods and pointer indirection (2)",
+      "blocks": [
+        {
+          "id": "methods/6/0",
+          "hash": "719d0a2dd242",
+          "kind": "p",
+          "text": "The equivalent thing happens in the reverse direction."
+        },
+        {
+          "id": "methods/6/1",
+          "hash": "b4f45e840ea2",
+          "kind": "p",
+          "text": "Functions that take a value argument must take a value of that specific type:"
+        },
+        {
+          "id": "methods/6/2",
+          "kind": "pre",
+          "text": "var v Vertex\nfmt.Println(AbsFunc(v))  // OK\nfmt.Println(AbsFunc(&v)) // Compile error!"
+        },
+        {
+          "id": "methods/6/3",
+          "hash": "127c3503337c",
+          "kind": "p",
+          "text": "while methods with value receivers take either a value or a pointer as the receiver when they are called:"
+        },
+        {
+          "id": "methods/6/4",
+          "kind": "pre",
+          "text": "var v Vertex\nfmt.Println(v.Abs()) // OK\np := &v\nfmt.Println(p.Abs()) // OK"
+        },
+        {
+          "id": "methods/6/5",
+          "hash": "31e0bcf6b197",
+          "kind": "p",
+          "text": "In this case, the method call `p.Abs()` is interpreted as `(*p).Abs()`."
+        }
+      ],
+      "code": {
+        "name": "indirection-values.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\ntype Vertex struct {\n\tX, Y float64\n}\n\nfunc (v Vertex) Abs() float64 {\n\treturn math.Sqrt(v.X*v.X + v.Y*v.Y)\n}\n\nfunc AbsFunc(v Vertex) float64 {\n\treturn math.Sqrt(v.X*v.X + v.Y*v.Y)\n}\n\nfunc main() {\n\tv := Vertex{3, 4}\n\tfmt.Println(v.Abs())\n\tfmt.Println(AbsFunc(v))\n\n\tp := &Vertex{4, 3}\n\tfmt.Println(p.Abs())\n\tfmt.Println(AbsFunc(*p))\n}\n"
+      }
+    },
+    {
+      "title": "Choosing a value or pointer receiver",
+      "blocks": [
+        {
+          "id": "methods/7/0",
+          "hash": "3e551dc4df8f",
+          "kind": "p",
+          "text": "There are two reasons to use a pointer receiver."
+        },
+        {
+          "id": "methods/7/1",
+          "hash": "8f1c4e29ec2a",
+          "kind": "p",
+          "text": "The first is so that the method can modify the value that its receiver points to."
+        },
+        {
+          "id": "methods/7/2",
+          "hash": "2ac6e6bc2501",
+          "kind": "p",
+          "text": "The second is to avoid copying the value on each method call. This can be more efficient if the receiver is a large struct, for example."
+        },
+        {
+          "id": "methods/7/3",
+          "hash": "7b74523e583b",
+          "kind": "p",
+          "text": "In this example, both `Scale` and `Abs` are methods with receiver type `*Vertex`, even though the `Abs` method needn't modify its receiver."
+        },
+        {
+          "id": "methods/7/4",
+          "hash": "8a30d859bc8e",
+          "kind": "p",
+          "text": "In general, all methods on a given type should have either value or pointer receivers, but not a mixture of both. (We'll see why over the next few pages.)"
+        }
+      ],
+      "code": {
+        "name": "methods-with-pointer-receivers.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\ntype Vertex struct {\n\tX, Y float64\n}\n\nfunc (v *Vertex) Scale(f float64) {\n\tv.X = v.X * f\n\tv.Y = v.Y * f\n}\n\nfunc (v *Vertex) Abs() float64 {\n\treturn math.Sqrt(v.X*v.X + v.Y*v.Y)\n}\n\nfunc main() {\n\tv := &Vertex{3, 4}\n\tfmt.Printf(\"Before scaling: %+v, Abs: %v\\n\", v, v.Abs())\n\tv.Scale(5)\n\tfmt.Printf(\"After scaling: %+v, Abs: %v\\n\", v, v.Abs())\n}\n"
+      }
+    },
+    {
+      "title": "Interfaces",
+      "blocks": [
+        {
+          "id": "methods/8/0",
+          "hash": "271bd4d5263f",
+          "kind": "p",
+          "text": "An _interface_type_ is defined as a set of method signatures."
+        },
+        {
+          "id": "methods/8/1",
+          "hash": "a8e0fe499fef",
+          "kind": "p",
+          "text": "A value of interface type can hold any value that implements those methods."
+        },
+        {
+          "id": "methods/8/2",
+          "hash": "3238873c1fc2",
+          "kind": "p",
+          "text": "*Note:* There is an error in the example code on line 22. `Vertex` (the value type) doesn't implement `Abser` because the `Abs` method is defined only on `*Vertex` (the pointer type)."
+        }
+      ],
+      "code": {
+        "name": "interfaces.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\ntype Abser interface {\n\tAbs() float64\n}\n\nfunc main() {\n\tvar a Abser\n\tf := MyFloat(-math.Sqrt2)\n\tv := Vertex{3, 4}\n\n\ta = f  // a MyFloat implements Abser\n\ta = &v // a *Vertex implements Abser\n\n\t// In the following line, v is a Vertex (not *Vertex)\n\t// and does NOT implement Abser.\n\ta = v\n\n\tfmt.Println(a.Abs())\n}\n\ntype MyFloat float64\n\nfunc (f MyFloat) Abs() float64 {\n\tif f < 0 {\n\t\treturn float64(-f)\n\t}\n\treturn float64(f)\n}\n\ntype Vertex struct {\n\tX, Y float64\n}\n\nfunc (v *Vertex) Abs() float64 {\n\treturn math.Sqrt(v.X*v.X + v.Y*v.Y)\n}\n"
+      }
+    },
+    {
+      "title": "Interfaces are implemented implicitly",
+      "blocks": [
+        {
+          "id": "methods/9/0",
+          "hash": "ca94e09e14a5",
+          "kind": "p",
+          "text": "A type implements an interface by implementing its methods. There is no explicit declaration of intent, no \"implements\" keyword."
+        },
+        {
+          "id": "methods/9/1",
+          "hash": "85893844035c",
+          "kind": "p",
+          "text": "Implicit interfaces decouple the definition of an interface from its implementation, which could then appear in any package without prearrangement."
+        }
+      ],
+      "code": {
+        "name": "interfaces-are-satisfied-implicitly.go",
+        "content": "package main\n\nimport \"fmt\"\n\ntype I interface {\n\tM()\n}\n\ntype T struct {\n\tS string\n}\n\n// This method means type T implements the interface I,\n// but we don't need to explicitly declare that it does so.\nfunc (t T) M() {\n\tfmt.Println(t.S)\n}\n\nfunc main() {\n\tvar i I = T{\"hello\"}\n\ti.M()\n}\n"
+      }
+    },
+    {
+      "title": "Interface values",
+      "blocks": [
+        {
+          "id": "methods/10/0",
+          "hash": "e36b9cd74336",
+          "kind": "p",
+          "text": "Under the hood, interface values can be thought of as a tuple of a value and a concrete type:"
+        },
+        {
+          "id": "methods/10/1",
+          "kind": "pre",
+          "text": "(value, type)"
+        },
+        {
+          "id": "methods/10/2",
+          "hash": "def53f98be18",
+          "kind": "p",
+          "text": "An interface value holds a value of a specific underlying concrete type."
+        },
+        {
+          "id": "methods/10/3",
+          "hash": "2c4fc73143eb",
+          "kind": "p",
+          "text": "Calling a method on an interface value executes the method of the same name on its underlying type."
+        }
+      ],
+      "code": {
+        "name": "interface-values.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\ntype I interface {\n\tM()\n}\n\ntype T struct {\n\tS string\n}\n\nfunc (t *T) M() {\n\tfmt.Println(t.S)\n}\n\ntype F float64\n\nfunc (f F) M() {\n\tfmt.Println(f)\n}\n\nfunc main() {\n\tvar i I\n\n\ti = &T{\"Hello\"}\n\tdescribe(i)\n\ti.M()\n\n\ti = F(math.Pi)\n\tdescribe(i)\n\ti.M()\n}\n\nfunc describe(i I) {\n\tfmt.Printf(\"(%v, %T)\\n\", i, i)\n}\n"
+      }
+    },
+    {
+      "title": "Interface values with nil underlying values",
+      "blocks": [
+        {
+          "id": "methods/11/0",
+          "hash": "13df473672cd",
+          "kind": "p",
+          "text": "If the concrete value inside the interface itself is nil, the method will be called with a nil receiver."
+        },
+        {
+          "id": "methods/11/1",
+          "hash": "82394f3bc866",
+          "kind": "p",
+          "text": "In some languages this would trigger a null pointer exception, but in Go it is common to write methods that gracefully handle being called with a nil receiver (as with the method `M` in this example.)"
+        },
+        {
+          "id": "methods/11/2",
+          "hash": "18adf55baa88",
+          "kind": "p",
+          "text": "Note that an interface value that holds a nil concrete value is itself non-nil."
+        }
+      ],
+      "code": {
+        "name": "interface-values-with-nil.go",
+        "content": "package main\n\nimport \"fmt\"\n\ntype I interface {\n\tM()\n}\n\ntype T struct {\n\tS string\n}\n\nfunc (t *T) M() {\n\tif t == nil {\n\t\tfmt.Println(\"<nil>\")\n\t\treturn\n\t}\n\tfmt.Println(t.S)\n}\n\nfunc main() {\n\tvar i I\n\n\tvar t *T\n\ti = t\n\tdescribe(i)\n\ti.M()\n\n\ti = &T{\"hello\"}\n\tdescribe(i)\n\ti.M()\n}\n\nfunc describe(i I) {\n\tfmt.Printf(\"(%v, %T)\\n\", i, i)\n}\n"
+      }
+    },
+    {
+      "title": "Nil interface values",
+      "blocks": [
+        {
+          "id": "methods/12/0",
+          "hash": "60b330595a90",
+          "kind": "p",
+          "text": "A nil interface value holds neither value nor concrete type."
+        },
+        {
+          "id": "methods/12/1",
+          "hash": "0e0583df952b",
+          "kind": "p",
+          "text": "Calling a method on a nil interface is a run-time error because there is no type inside the interface tuple to indicate which _concrete_ method to call."
+        }
+      ],
+      "code": {
+        "name": "nil-interface-values.go",
+        "content": "package main\n\nimport \"fmt\"\n\ntype I interface {\n\tM()\n}\n\nfunc main() {\n\tvar i I\n\tdescribe(i)\n\ti.M()\n}\n\nfunc describe(i I) {\n\tfmt.Printf(\"(%v, %T)\\n\", i, i)\n}\n"
+      }
+    },
+    {
+      "title": "The empty interface",
+      "blocks": [
+        {
+          "id": "methods/13/0",
+          "hash": "4910c1c4c6cb",
+          "kind": "p",
+          "text": "The interface type that specifies zero methods is known as the _empty_interface_:"
+        },
+        {
+          "id": "methods/13/1",
+          "kind": "pre",
+          "text": "interface{}"
+        },
+        {
+          "id": "methods/13/2",
+          "hash": "4c67fa25b0d5",
+          "kind": "p",
+          "text": "An empty interface may hold values of any type. (Every type implements at least zero methods.)"
+        },
+        {
+          "id": "methods/13/3",
+          "hash": "556fa92cb1f3",
+          "kind": "p",
+          "text": "`any` is an alias for `interface{}`, and the two are completely equivalent."
+        },
+        {
+          "id": "methods/13/4",
+          "hash": "4be56f5a239b",
+          "kind": "p",
+          "text": "Empty interfaces are used by code that handles values of unknown type. For example, `fmt.Print` takes any number of arguments of type `any`."
+        }
+      ],
+      "code": {
+        "name": "empty-interface.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar i interface{}\n\tdescribe(i)\n\n\ti = 42\n\tdescribe(i)\n\n\ti = \"hello\"\n\tdescribe(i)\n}\n\nfunc describe(i interface{}) {\n\tfmt.Printf(\"(%v, %T)\\n\", i, i)\n}\n"
+      }
+    },
+    {
+      "title": "Type assertions",
+      "blocks": [
+        {
+          "id": "methods/14/0",
+          "hash": "e5f9696c961c",
+          "kind": "p",
+          "text": "A _type_assertion_ provides access to an interface value's underlying concrete value."
+        },
+        {
+          "id": "methods/14/1",
+          "kind": "pre",
+          "text": "t := i.(T)"
+        },
+        {
+          "id": "methods/14/2",
+          "hash": "a7f67f1d3c58",
+          "kind": "p",
+          "text": "This statement asserts that the interface value `i` holds the concrete type `T` and assigns the underlying `T` value to the variable `t`."
+        },
+        {
+          "id": "methods/14/3",
+          "hash": "c6541a15f840",
+          "kind": "p",
+          "text": "If `i` does not hold a `T`, the statement will trigger a panic."
+        },
+        {
+          "id": "methods/14/4",
+          "hash": "9eaffcceeeed",
+          "kind": "p",
+          "text": "To _test_ whether an interface value holds a specific type, a type assertion can return two values: the underlying value and a boolean value that reports whether the assertion succeeded."
+        },
+        {
+          "id": "methods/14/5",
+          "kind": "pre",
+          "text": "t, ok := i.(T)"
+        },
+        {
+          "id": "methods/14/6",
+          "hash": "1569fa7acccc",
+          "kind": "p",
+          "text": "If `i` holds a `T`, then `t` will be the underlying value and `ok` will be true."
+        },
+        {
+          "id": "methods/14/7",
+          "hash": "c549d61ccb30",
+          "kind": "p",
+          "text": "If not, `ok` will be false and `t` will be the zero value of type `T`, and no panic occurs."
+        },
+        {
+          "id": "methods/14/8",
+          "hash": "d6697578c973",
+          "kind": "p",
+          "text": "Note the similarity between this syntax and that of reading from a map."
+        }
+      ],
+      "code": {
+        "name": "type-assertions.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar i interface{} = \"hello\"\n\n\ts := i.(string)\n\tfmt.Println(s)\n\n\ts, ok := i.(string)\n\tfmt.Println(s, ok)\n\n\tf, ok := i.(float64)\n\tfmt.Println(f, ok)\n\n\tf = i.(float64) // panic\n\tfmt.Println(f)\n}\n"
+      }
+    },
+    {
+      "title": "Type switches",
+      "blocks": [
+        {
+          "id": "methods/15/0",
+          "hash": "fe2408d62328",
+          "kind": "p",
+          "text": "A _type_switch_ is a construct that permits several type assertions in series."
+        },
+        {
+          "id": "methods/15/1",
+          "hash": "cf23dad9ef10",
+          "kind": "p",
+          "text": "A type switch is like a regular switch statement, but the cases in a type switch specify types (not values), and those values are compared against the type of the value held by the given interface value."
+        },
+        {
+          "id": "methods/15/2",
+          "kind": "pre",
+          "text": "switch v := i.(type) {\ncase T:\n    // here v has type T\ncase S:\n    // here v has type S\ndefault:\n    // no match; here v has the same type as i\n}"
+        },
+        {
+          "id": "methods/15/3",
+          "hash": "4185e00f434d",
+          "kind": "p",
+          "text": "The declaration in a type switch has the same syntax as a type assertion `i.(T)`, but the specific type `T` is replaced with the keyword `type`."
+        },
+        {
+          "id": "methods/15/4",
+          "hash": "cd1131862b50",
+          "kind": "p",
+          "text": "This switch statement tests whether the interface value `i` holds a value of type `T` or `S`. In each of the `T` and `S` cases, the variable `v` will be of type `T` or `S` respectively and hold the value held by `i`. In the default case (where there is no match), the variable `v` is of the same interface type and value as `i`."
+        }
+      ],
+      "code": {
+        "name": "type-switches.go",
+        "content": "package main\n\nimport \"fmt\"\n\nfunc do(i interface{}) {\n\tswitch v := i.(type) {\n\tcase int:\n\t\tfmt.Printf(\"Twice %v is %v\\n\", v, v*2)\n\tcase string:\n\t\tfmt.Printf(\"%q is %v bytes long\\n\", v, len(v))\n\tdefault:\n\t\tfmt.Printf(\"I don't know about type %T!\\n\", v)\n\t}\n}\n\nfunc main() {\n\tdo(21)\n\tdo(\"hello\")\n\tdo(true)\n}\n"
+      }
+    },
+    {
+      "title": "Stringers",
+      "blocks": [
+        {
+          "id": "methods/16/0",
+          "hash": "4c5390e36af3",
+          "kind": "p",
+          "text": "One of the most ubiquitous interfaces is [[/pkg/fmt/#Stringer][`Stringer`]] defined by the [[/pkg/fmt/][`fmt`]] package."
+        },
+        {
+          "id": "methods/16/1",
+          "kind": "pre",
+          "text": "type Stringer interface {\n    String() string\n}"
+        },
+        {
+          "id": "methods/16/2",
+          "hash": "035478503782",
+          "kind": "p",
+          "text": "A `Stringer` is a type that can describe itself as a string. The `fmt` package (and many others) look for this interface to print values."
+        }
+      ],
+      "code": {
+        "name": "stringer.go",
+        "content": "package main\n\nimport \"fmt\"\n\ntype Person struct {\n\tName string\n\tAge  int\n}\n\nfunc (p Person) String() string {\n\treturn fmt.Sprintf(\"%v (%v years)\", p.Name, p.Age)\n}\n\nfunc main() {\n\ta := Person{\"Arthur Dent\", 42}\n\tz := Person{\"Zaphod Beeblebrox\", 9001}\n\tfmt.Println(a, z)\n}\n"
+      }
+    },
+    {
+      "title": "Exercise: Stringers",
+      "blocks": [
+        {
+          "id": "methods/17/0",
+          "hash": "3d1a336ebf91",
+          "kind": "p",
+          "text": "Make the `IPAddr` type implement `fmt.Stringer` to print the address as a dotted quad."
+        },
+        {
+          "id": "methods/17/1",
+          "hash": "3a3fa71c77c1",
+          "kind": "p",
+          "text": "For instance, `IPAddr{1,`2,`3,`4}` should print as `\"1.2.3.4\"`."
+        }
+      ],
+      "code": {
+        "name": "exercise-stringer.go",
+        "content": "package main\n\nimport \"fmt\"\n\ntype IPAddr [4]byte\n\n// TODO: Add a \"String() string\" method to IPAddr.\n\nfunc main() {\n\thosts := map[string]IPAddr{\n\t\t\"loopback\":  {127, 0, 0, 1},\n\t\t\"googleDNS\": {8, 8, 8, 8},\n\t}\n\tfor name, ip := range hosts {\n\t\tfmt.Printf(\"%v: %v\\n\", name, ip)\n\t}\n}\n"
+      }
+    },
+    {
+      "title": "Errors",
+      "blocks": [
+        {
+          "id": "methods/18/0",
+          "hash": "5182c7c2302c",
+          "kind": "p",
+          "text": "Go programs express error state with `error` values."
+        },
+        {
+          "id": "methods/18/1",
+          "hash": "f24e398192c9",
+          "kind": "p",
+          "text": "The `error` type is a built-in interface similar to `fmt.Stringer`:"
+        },
+        {
+          "id": "methods/18/2",
+          "kind": "pre",
+          "text": "type error interface {\n    Error() string\n}"
+        },
+        {
+          "id": "methods/18/3",
+          "hash": "e8a9cf80ce2d",
+          "kind": "p",
+          "text": "(As with `fmt.Stringer`, the `fmt` package looks for the `error` interface when printing values.)"
+        },
+        {
+          "id": "methods/18/4",
+          "hash": "b7aa85e548ea",
+          "kind": "p",
+          "text": "Functions often return an `error` value, and calling code should handle errors by testing whether the error equals `nil`."
+        },
+        {
+          "id": "methods/18/5",
+          "kind": "pre",
+          "text": "i, err := strconv.Atoi(\"42\")\nif err != nil {\n    fmt.Printf(\"couldn't convert number: %v\\n\", err)\n    return\n}\nfmt.Println(\"Converted integer:\", i)"
+        },
+        {
+          "id": "methods/18/6",
+          "hash": "fdf9b1076f1e",
+          "kind": "p",
+          "text": "A nil `error` denotes success; a non-nil `error` denotes failure."
+        }
+      ],
+      "code": {
+        "name": "errors.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n)\n\ntype MyError struct {\n\tWhen time.Time\n\tWhat string\n}\n\nfunc (e *MyError) Error() string {\n\treturn fmt.Sprintf(\"at %v, %s\",\n\t\te.When, e.What)\n}\n\nfunc run() error {\n\treturn &MyError{\n\t\ttime.Now(),\n\t\t\"it didn't work\",\n\t}\n}\n\nfunc main() {\n\tif err := run(); err != nil {\n\t\tfmt.Println(err)\n\t}\n}\n"
+      }
+    },
+    {
+      "title": "Exercise: Errors",
+      "blocks": [
+        {
+          "id": "methods/19/0",
+          "hash": "b7fa83206bf8",
+          "kind": "p",
+          "text": "Copy your `Sqrt` function from the [[/tour/flowcontrol/8][earlier exercise]] and modify it to return an `error` value."
+        },
+        {
+          "id": "methods/19/1",
+          "hash": "89f760cacfc0",
+          "kind": "p",
+          "text": "`Sqrt` should return a non-nil error value when given a negative number, as it doesn't support complex numbers."
+        },
+        {
+          "id": "methods/19/2",
+          "hash": "256c8c2f2971",
+          "kind": "p",
+          "text": "Create a new type"
+        },
+        {
+          "id": "methods/19/3",
+          "kind": "pre",
+          "text": "type ErrNegativeSqrt float64"
+        },
+        {
+          "id": "methods/19/4",
+          "hash": "9927d5be2d64",
+          "kind": "p",
+          "text": "and make it an `error` by giving it a"
+        },
+        {
+          "id": "methods/19/5",
+          "kind": "pre",
+          "text": "func (e ErrNegativeSqrt) Error() string"
+        },
+        {
+          "id": "methods/19/6",
+          "hash": "ee314cb0834c",
+          "kind": "p",
+          "text": "method such that `ErrNegativeSqrt(-2).Error()` returns `\"cannot`Sqrt`negative`number:`-2\"`."
+        },
+        {
+          "id": "methods/19/7",
+          "hash": "02541b7b187f",
+          "kind": "p",
+          "text": "*Note:* A call to `fmt.Sprint(e)` inside the `Error` method will send the program into an infinite loop. You can avoid this by converting `e` first: `fmt.Sprint(float64(e))`. Why?"
+        },
+        {
+          "id": "methods/19/8",
+          "hash": "f42ac0ddf0a3",
+          "kind": "p",
+          "text": "Change your `Sqrt` function to return an `ErrNegativeSqrt` value when given a negative number."
+        }
+      ],
+      "code": {
+        "name": "exercise-errors.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n)\n\nfunc Sqrt(x float64) (float64, error) {\n\treturn 0, nil\n}\n\nfunc main() {\n\tfmt.Println(Sqrt(2))\n\tfmt.Println(Sqrt(-2))\n}\n"
+      }
+    },
+    {
+      "title": "Readers",
+      "blocks": [
+        {
+          "id": "methods/20/0",
+          "hash": "e3b02183cd84",
+          "kind": "p",
+          "text": "The `io` package specifies the `io.Reader` interface, which represents the read end of a stream of data."
+        },
+        {
+          "id": "methods/20/1",
+          "hash": "997693efc9dc",
+          "kind": "p",
+          "text": "The Go standard library contains [[https://cs.opensource.google/search?q=Read%5C(%5Cw%2B%5Cs%5C%5B%5C%5Dbyte%5C)&ss=go%2Fgo][many implementations]] of this interface, including files, network connections, compressors, ciphers, and others."
+        },
+        {
+          "id": "methods/20/2",
+          "hash": "2b101d6775e1",
+          "kind": "p",
+          "text": "The `io.Reader` interface has a `Read` method:"
+        },
+        {
+          "id": "methods/20/3",
+          "kind": "pre",
+          "text": "func (T) Read(b []byte) (n int, err error)"
+        },
+        {
+          "id": "methods/20/4",
+          "hash": "4783a6960747",
+          "kind": "p",
+          "text": "`Read` populates the given byte slice with data and returns the number of bytes populated and an error value. It returns an `io.EOF` error when the stream ends."
+        },
+        {
+          "id": "methods/20/5",
+          "hash": "809339256ae8",
+          "kind": "p",
+          "text": "The example code creates a [[/pkg/strings/#Reader][`strings.Reader`]] and consumes its output 8 bytes at a time."
+        }
+      ],
+      "code": {
+        "name": "reader.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"io\"\n\t\"strings\"\n)\n\nfunc main() {\n\tr := strings.NewReader(\"Hello, Reader!\")\n\n\tb := make([]byte, 8)\n\tfor {\n\t\tn, err := r.Read(b)\n\t\tfmt.Printf(\"n = %v err = %v b = %v\\n\", n, err, b)\n\t\tfmt.Printf(\"b[:n] = %q\\n\", b[:n])\n\t\tif err == io.EOF {\n\t\t\tbreak\n\t\t}\n\t}\n}\n"
+      }
+    },
+    {
+      "title": "Exercise: Readers",
+      "blocks": [
+        {
+          "id": "methods/21/0",
+          "hash": "7d6afcbc51ae",
+          "kind": "p",
+          "text": "Implement a `Reader` type that emits an infinite stream of the ASCII character `'A'`."
+        }
+      ],
+      "code": {
+        "name": "exercise-reader.go",
+        "content": "package main\n\nimport \"golang.org/x/tour/reader\"\n\ntype MyReader struct{}\n\n// TODO: Add a Read([]byte) (int, error) method to MyReader.\n\nfunc main() {\n\treader.Validate(MyReader{})\n}\n"
+      }
+    },
+    {
+      "title": "Exercise: rot13Reader",
+      "blocks": [
+        {
+          "id": "methods/22/0",
+          "hash": "2c2a735e90fc",
+          "kind": "p",
+          "text": "A common pattern is an [[/pkg/io/#Reader][io.Reader]] that wraps another `io.Reader`, modifying the stream in some way."
+        },
+        {
+          "id": "methods/22/1",
+          "hash": "f79ee4ea03c7",
+          "kind": "p",
+          "text": "For example, the [[/pkg/compress/gzip/#NewReader][gzip.NewReader]] function takes an `io.Reader` (a stream of compressed data) and returns a `*gzip.Reader` that also implements `io.Reader` (a stream of the decompressed data)."
+        },
+        {
+          "id": "methods/22/2",
+          "hash": "dcc787e905ac",
+          "kind": "p",
+          "text": "Implement a `rot13Reader` that implements `io.Reader` and reads from an `io.Reader`, modifying the stream by applying the [[https://en.wikipedia.org/wiki/ROT13][rot13]] substitution cipher to all alphabetical characters."
+        },
+        {
+          "id": "methods/22/3",
+          "hash": "a3140fb300c9",
+          "kind": "p",
+          "text": "The `rot13Reader` type is provided for you. Make it an `io.Reader` by implementing its `Read` method."
+        }
+      ],
+      "code": {
+        "name": "exercise-rot-reader.go",
+        "content": "package main\n\nimport (\n\t\"io\"\n\t\"os\"\n\t\"strings\"\n)\n\ntype rot13Reader struct {\n\tr io.Reader\n}\n\nfunc main() {\n\ts := strings.NewReader(\"Lbh penpxrq gur pbqr!\")\n\tr := rot13Reader{s}\n\tio.Copy(os.Stdout, &r)\n}\n"
+      }
+    },
+    {
+      "title": "Images",
+      "blocks": [
+        {
+          "id": "methods/23/0",
+          "hash": "719945a05605",
+          "kind": "p",
+          "text": "[[/pkg/image/#Image][Package image]] defines the `Image` interface:"
+        },
+        {
+          "id": "methods/23/1",
+          "kind": "pre",
+          "text": "package image\n\ntype Image interface {\n    ColorModel() color.Model\n    Bounds() Rectangle\n    At(x, y int) color.Color\n}"
+        },
+        {
+          "id": "methods/23/2",
+          "hash": "9195743da7db",
+          "kind": "p",
+          "text": "*Note*: the `Rectangle` return value of the `Bounds` method is actually an [[/pkg/image/#Rectangle][`image.Rectangle`]], as the declaration is inside package `image`."
+        },
+        {
+          "id": "methods/23/3",
+          "hash": "585f8447f3e9",
+          "kind": "p",
+          "text": "(See [[/pkg/image/#Image][the documentation]] for all the details.)"
+        },
+        {
+          "id": "methods/23/4",
+          "hash": "98a90d385cac",
+          "kind": "p",
+          "text": "The `color.Color` and `color.Model` types are also interfaces, but we'll ignore that by using the predefined implementations `color.RGBA` and `color.RGBAModel`. These interfaces and types are specified by the [[/pkg/image/color/][image/color package]]."
+        }
+      ],
+      "code": {
+        "name": "images.go",
+        "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"image\"\n)\n\nfunc main() {\n\tm := image.NewRGBA(image.Rect(0, 0, 100, 100))\n\tfmt.Println(m.Bounds())\n\tfmt.Println(m.At(0, 0).RGBA())\n}\n"
+      }
+    },
+    {
+      "title": "Exercise: Images",
+      "blocks": [
+        {
+          "id": "methods/24/0",
+          "hash": "9c0bd0abba29",
+          "kind": "p",
+          "text": "Remember the [[/tour/moretypes/18][picture generator]] you wrote earlier? Let's write another one, but this time it will return an implementation of `image.Image` instead of a slice of data."
+        },
+        {
+          "id": "methods/24/1",
+          "hash": "c1496ed412a2",
+          "kind": "p",
+          "text": "Define your own `Image` type, implement [[/pkg/image/#Image][the necessary methods]], and call `pic.ShowImage`."
+        },
+        {
+          "id": "methods/24/2",
+          "hash": "ffded17ee698",
+          "kind": "p",
+          "text": "`Bounds` should return a `image.Rectangle`, like `image.Rect(0,`0,`w,`h)`."
+        },
+        {
+          "id": "methods/24/3",
+          "hash": "bc81cc93fde6",
+          "kind": "p",
+          "text": "`ColorModel` should return `color.RGBAModel`."
+        },
+        {
+          "id": "methods/24/4",
+          "hash": "948cd7f81794",
+          "kind": "p",
+          "text": "`At` should return a color; the value `v` in the last picture generator corresponds to `color.RGBA{v,`v,`255,`255}` in this one."
+        }
+      ],
+      "code": {
+        "name": "exercise-images.go",
+        "content": "package main\n\nimport \"golang.org/x/tour/pic\"\n\ntype Image struct{}\n\nfunc main() {\n\tm := Image{}\n\tpic.ShowImage(m)\n}\n"
+      }
+    },
+    {
+      "title": "Congratulations!",
+      "blocks": [
+        {
+          "id": "methods/25/0",
+          "hash": "4cdec07338fa",
+          "kind": "p",
+          "text": "You finished this lesson!"
+        },
+        {
+          "id": "methods/25/1",
+          "hash": "8fc7766a6fc4",
+          "kind": "p",
+          "text": "You can go back to the list of [[/tour/list][modules]] to find what to learn next, or continue with the [[javascript:click('.next-page')][next lesson]]."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "id": "welcome",
+  "title": "ようこそ！",
+  "description": "このツアーの使い方（レッスンの切り替え方やコードの実行方法など）を学びます。",
+  "pages": [
+    {
+      "title": "Hello, 世界",
+      "blocks": {
+        "welcome/0/0": {
+          "hash": "8646050f2823",
+          "text": "[[/][Go プログラミング言語]]のツアーへようこそ。"
+        },
+        "welcome/0/1": {
+          "hash": "61fc1e42af92",
+          "text": "ツアーはいくつかのモジュールに分かれています。ページ左上の [[javascript:highlight(\".logo\")][A Tour of Go]] をクリックすると、各モジュールにアクセスできます。"
+        },
+        "welcome/0/2": {
+          "hash": "46a67b7bd3a6",
+          "text": "ページ右上の [[javascript:highlightAndClick(\".nav\")][メニュー]] をクリックすると、いつでも目次を表示できます。"
+        },
+        "welcome/0/3": {
+          "hash": "571e1b9fa4c4",
+          "text": "ツアー全体を通して、一連のスライドと、取り組むべき演習問題が用意されています。"
+        },
+        "welcome/0/4": {
+          "hash": "e1ed5b2738dd",
+          "text": "ページの移動には、次の方法を使います。"
+        },
+        "welcome/0/5": {
+          "hash": "a44cbd0d17a2",
+          "items": [
+            "前のページへ移動するには、[[javascript:highlight(\".prev-page\")][前へ]] ボタンまたは `PageUp` キーを押します。"
+          ]
+        },
+        "welcome/0/6": {
+          "hash": "8868f165122f",
+          "items": [
+            "次のページへ移動するには、[[javascript:highlight(\".next-page\")][次へ]] ボタンまたは `PageDown` キーを押します。"
+          ]
+        },
+        "welcome/0/7": {
+          "hash": "a8756bac2263",
+          "text": "ツアーはインタラクティブです。[[javascript:highlightAndClick(\"#run\")][実行]] ボタンを今すぐクリックする（または `Shift` + `Enter` を押す）と、プログラムがコンピュータ上でコンパイルされ、実行されます。結果はコードの下に表示されます。"
+        },
+        "welcome/0/8": {
+          "hash": "bdf11cb6c513",
+          "text": "これらのサンプルプログラムは、Go のさまざまな側面を示しています。ツアーにあるプログラムは、自分で試すための出発点として使うことを想定しています。"
+        },
+        "welcome/0/9": {
+          "hash": "fcbb6a7aac9d",
+          "text": "プログラムを編集して、もう一度実行してください。"
+        },
+        "welcome/0/10": {
+          "hash": "81db7e081ffc",
+          "text": "[[javascript:highlightAndClick(\"#format\")][フォーマット]] をクリックすると（ショートカット: `Ctrl` + `Enter`）、エディタ内のテキストが [[/cmd/gofmt/][gofmt]] ツールでフォーマットされます。[[javascript:highlightAndClick(\".syntax-checkbox\")][シンタックス]] ボタンをクリックすると、シンタックスハイライトをオン・オフできます。"
+        },
+        "welcome/0/11": {
+          "hash": "4ffe1d386274",
+          "text": "先に進む準備ができたら、下の [[javascript:highlightAndClick(\".next-page\")][右矢印]] をクリックするか、`PageDown` キーを押します。"
+        }
+      }
+    },
+    {
+      "title": "Go local",
+      "blocks": {
+        "welcome/1/0": {
+          "hash": "0c7968bc417e",
+          "text": "ツアーは次の言語でも利用できます。"
+        },
+        "welcome/1/1": {
+          "hash": "b8d1b229d03b",
+          "items": [
+            "[[https://go-tour-br.appspot.com/][ブラジルポルトガル語 — Português do Brasil]]",
+            "[[https://go-tour-ca.appspot.com/][カタルーニャ語 — Català]]",
+            "[[https://go-tour-cz.appspot.com/][チェコ語 — Česky]]",
+            "[[https://fr-go-dev.shuijingwanwq.com/tour][フランス語 — Français]]",
+            "[[https://de-go-dev.shuijingwanwq.com/tour][ドイツ語 — Deutsch]]",
+            "[[https://go-tour-id2.appspot.com/][インドネシア語 — Bahasa Indonesia]]",
+            "[[https://go-tour-jp.appspot.com/][日本語]]",
+            "[[https://ko-go-dev.shuijingwanwq.com/tour][韓国語 — 한국어]]",
+            "[[https://go-tour-pl1.appspot.com/][ポーランド語 — Polski]]",
+            "[[https://go-dev.shuijingwanwq.com/tour][簡体字中国語 — 简体中文]]",
+            "[[https://go-tour-lat.appspot.com/][スペイン語 — Español]]",
+            "[[https://go-tour-th.appspot.com/][タイ語 — ภาษาไทย]]",
+            "[[https://go-tour-ua-translation.lm.r.appspot.com/][ウクライナ語 — Українською]]"
+          ]
+        },
+        "welcome/1/2": {
+          "hash": "634f2f9ab81f",
+          "text": "続けるには、[[javascript:highlightAndClick(\".next-page\")][次へ]] ボタンをクリックするか、`PageDown` キーを押します。"
+        }
+      }
+    },
+    {
+      "title": "おめでとうございます！",
+      "blocks": {
+        "welcome/2/0": {
+          "hash": "3ecc21a0d94e",
+          "text": "ツアーの最初のモジュールを終了しました！"
+        },
+        "welcome/2/1": {
+          "hash": "38a96354e975",
+          "text": "次は [[javascript:highlightAndClick(\".logo\")][A Tour of Go]] をクリックして、Go について他に何を学べるかを確かめるか、[[javascript:click('.next-page')][次のレッスン]] へ直接進んでください。"
+        }
+      }
+    }
+  ]
+}
