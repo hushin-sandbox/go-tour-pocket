@@ -22,11 +22,23 @@ func main() {
 }
 `;
 
+/** gofmt 済みのコード。モックの format は SAMPLE_CODE をこれに置き換える。 */
+export const FORMATTED_CODE = `package main
+
+import "fmt"
+
+func main() { fmt.Println("Hello, 世界") }
+`;
+
+/** go/parser が返す構文エラーの形（行:列: 内容）。 */
+export const FORMAT_ERROR = "3:12: expected ')', found '{'";
+
 interface MockEngineOptions {
   events?: GoRunEvent[];
   result?: GoRunResult;
   preload?: GoRunnerEngine['preload'];
   run?: GoRunnerEngine['run'];
+  format?: GoRunnerEngine['format'];
 }
 
 /** 実行エンジンを差し替えて、wasm なしで UI の振る舞いを検証する。 */
@@ -49,6 +61,7 @@ export function createMockEngine(options: MockEngineOptions = {}): GoRunnerEngin
         });
         return result;
       }),
+    format: options.format ?? (() => Promise.resolve({ status: 'ok', code: FORMATTED_CODE })),
   };
 }
 
@@ -57,6 +70,7 @@ export function createPreparingEngine(): GoRunnerEngine {
   return {
     preload: () => new Promise<never>(() => {}),
     run: () => new Promise<never>(() => {}),
+    format: () => new Promise<never>(() => {}),
   };
 }
 
@@ -83,5 +97,6 @@ export function createStopEngine(): GoRunnerEngine {
         }
         options?.signal?.addEventListener('abort', onAbort, { once: true });
       }),
+    format: () => Promise.resolve({ status: 'ok', code: FORMATTED_CODE }),
   };
 }

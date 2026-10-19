@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, FileCode2, Play, RotateCcw, Square } from 'lucide-react';
+import { AlignLeft, ChevronDown, FileCode2, Play, RotateCcw, Square } from 'lucide-react';
 import {
   DEFAULT_GO_TIMEOUT_MS,
   cn,
+  formatGo,
   preloadGo,
   runGo,
+  type GoFormatResult,
   type GoRunEvent,
   type GoRunResult,
 } from '@/react-app/shared/lib';
@@ -20,7 +22,7 @@ import {
   type CodeFontSize,
   type KeyValueStorage,
 } from '../lib/storage';
-import { CodeEditor } from './CodeEditor';
+import { CodeEditor, type CodeEditorHandle } from './CodeEditor';
 import { RunOutput, type GoLoadState } from './RunOutput';
 import './codeRunner.css';
 
@@ -31,6 +33,7 @@ const DEFAULT_CONFIRM_MESSAGE = '編集したコードを破棄して、元の�
 export interface GoRunnerEngine {
   preload: typeof preloadGo;
   run: typeof runGo;
+  format: typeof formatGo;
 }
 
 export interface CodeRunnerProps {
@@ -49,7 +52,7 @@ export interface CodeRunnerProps {
   className?: string;
 }
 
-const defaultEngine: GoRunnerEngine = { preload: preloadGo, run: runGo };
+const defaultEngine: GoRunnerEngine = { preload: preloadGo, run: runGo, format: formatGo };
 
 function getBrowserStorage(): KeyValueStorage | null {
   try {
@@ -93,13 +96,17 @@ function CodeRunnerContent({
   const [fontSize, setFontSize] = useState<CodeFontSize>(() => loadCodeFontSize(storage));
   const [items, setItems] = useState<GoRunEvent[]>([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [isFormatting, setIsFormatting] = useState(false);
+  const [formatError, setFormatError] = useState<string | null>(null);
   const [loadState, setLoadState] = useState<GoLoadState>('loading');
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
   const runningRef = useRef(false);
+  const formattingRef = useRef(false);
   const mountedRef = useRef(true);
   const codeRef = useRef(code);
+  const editorRef = useRef<CodeEditorHandle>(null);
   const draftContextRef = useRef({ storage, storageKey, codeHash, originalCode });
 
   useEffect(() => {
@@ -179,10 +186,11 @@ function CodeRunnerContent({
   const updateCode = (next: string) => {
     codeRef.current = next;
     setCode(next);
+    setFormatError(null);
   };
 
   const handleRun = async () => {
-    if (runningRef.current || loadState === 'loading') return;
+    if (runningRef.current || formattingRef.current || loadState === 'loading') return;
     runningRef.current = true;
     const controller = new AbortController();
     abortRef.current = controller;
@@ -233,6 +241,72 @@ function CodeRunnerContent({
     abortRef.current?.abort();
   };
 
+  /**
+   * gofmt で整形してエディタを置き換える。構文エラーのときはエディタに触らず、
+   * go/parser が返した `行:列: 内容` をそのまま控えめに出す。
+   */
+  const handleFormat = async () => {
+    if (runningRef.current || formattingRef.current || loadState === 'loading') return;
+    formattingRef.current = true;
+    setIsFormatting(true);
+    setFormatError(null);
+
+    let result: GoFormatResult;
+    try {
+      result = await engineRef.current.format(codeRef.current);
+    } catch (error) {
+      result = { status: 'crashed', error: describeError(error) };
+    }
+
+    formattingRef.current = false;
+    if (!mountedRef.current) return;
+    setIsFormatting(false);
+    if (result.status === 'ok' && result.code !== undefined) {
+      // エディタの transaction として置き換える（undo 可能・カーソルはできるだけ保持）
+      if (editorRef.current !== null) {
+        editorRef.current.replaceDoc(result.code);
+      } else {
+        updateCode(result.code);
+      }
+      return;
+    }
+    if (result.status !== 'busy') {
+      setFormatError(result.error ?? 'フォーマットできませんでした');
+    }
+  };
+
+  // 最新の handleRun を参照するための入れ物（後述の document レベルのショートカット用）。
+  const handleRunRef = useRef<() => Promise<void>>(async () => {});
+  useEffect(() => {
+    handleRunRef.current = handleRun;
+  });
+
+  /**
+   * エディタの外（レッスン画面のどこか）にフォーカスがあるときの Shift + Enter。
+   * 入力欄・ボタン・リンク・ダイアログの操作とは衝突させない。
+   */
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
+      if (event.key !== 'Enter' || !event.shiftKey) return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        target.closest(
+          'input, textarea, select, button, a, [contenteditable="true"], .cm-editor, [role="dialog"]',
+        ) !== null
+      ) {
+        return;
+      }
+      if (runningRef.current) return;
+      event.preventDefault();
+      void handleRunRef.current();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleReset = () => {
     if (!isDirty || isRunning) return;
     if (!window.confirm(DEFAULT_CONFIRM_MESSAGE)) return;
@@ -278,7 +352,15 @@ function CodeRunnerContent({
       </div>
 
       <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-        <CodeEditor value={code} fileName={fileName} fontSize={fontSize} onChange={updateCode} />
+        <CodeEditor
+          ref={editorRef}
+          value={code}
+          fileName={fileName}
+          fontSize={fontSize}
+          onChange={updateCode}
+          onRun={() => void handleRunRef.current()}
+          onFormat={() => void handleFormat()}
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -295,14 +377,28 @@ function CodeRunnerContent({
         ) : (
           <Button
             type="button"
-            onClick={() => void handleRun()}
-            disabled={loadState === 'loading'}
+            onClick={() => void handleRunRef.current()}
+            disabled={loadState === 'loading' || isFormatting}
+            aria-keyshortcuts="Shift+Enter"
+            title="実行（Shift + Enter）"
             className="min-h-11 px-4"
           >
             <Play aria-hidden />
             実行
           </Button>
         )}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => void handleFormat()}
+          disabled={isRunning || isFormatting || loadState === 'loading'}
+          aria-keyshortcuts="Control+Enter Meta+Enter"
+          title="フォーマット（Ctrl + Enter / Cmd + Enter）"
+          className="min-h-11 px-4"
+        >
+          <AlignLeft aria-hidden />
+          フォーマット
+        </Button>
         {isDirty ? (
           <Button
             type="button"
@@ -316,6 +412,12 @@ function CodeRunnerContent({
           </Button>
         ) : null}
       </div>
+
+      {formatError === null ? null : (
+        <p role="status" className="text-xs leading-5 text-destructive">
+          フォーマットできませんでした: {formatError}
+        </p>
+      )}
 
       <RunOutput items={items} isRunning={isRunning} loadState={loadState} loadError={loadError} />
 

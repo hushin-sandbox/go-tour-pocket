@@ -1,8 +1,9 @@
 //go:build js && wasm
 
-// Command yaegi-wasm exposes runGo(source, emit) to JavaScript. It interprets a
-// complete Go program (package main + func main) with Yaegi, streams the
-// program output through emit, and returns a small JSON result.
+// Command yaegi-wasm exposes runGo(source, emit) and formatGo(source) to
+// JavaScript. runGo interprets a complete Go program (package main + func main)
+// with Yaegi, streams the program output through emit, and returns a small JSON
+// result. formatGo formats Go source with go/format (gofmt).
 package main
 
 import (
@@ -74,6 +75,17 @@ func main() {
 	// Interpreted programs that touch os.Stdout/os.Stderr must use the
 	// interp.Options writers instead of the native file descriptors.
 	_ = os.Setenv("YAEGI_SPECIAL_STDIO", "1")
+
+	js.Global().Set("formatGo", js.FuncOf(func(_ js.Value, args []js.Value) any {
+		if len(args) < 1 {
+			return `{"ok":false,"error":"formatGo: missing source argument"}`
+		}
+		encoded, err := json.Marshal(formatSource(args[0].String()))
+		if err != nil {
+			return `{"ok":false,"error":"formatGo: marshal failure"}`
+		}
+		return string(encoded)
+	}))
 
 	js.Global().Set("runGo", js.FuncOf(func(_ js.Value, args []js.Value) any {
 		if len(args) < 1 {

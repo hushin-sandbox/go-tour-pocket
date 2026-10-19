@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useImperativeHandle, useRef, type Ref } from 'react';
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { go } from '@codemirror/lang-go';
 import {
@@ -7,7 +7,7 @@ import {
   indentUnit,
   syntaxHighlighting,
 } from '@codemirror/language';
-import { EditorState } from '@codemirror/state';
+import { EditorState, Text } from '@codemirror/state';
 import { EditorView, keymap, lineNumbers } from '@codemirror/view';
 import { tags } from '@lezer/highlight';
 import type { CodeFontSize } from '../lib/storage';
@@ -66,27 +66,83 @@ const mobileInputAttributes = {
   spellcheck: 'false',
 } as const;
 
+export interface CodeEditorHandle {
+  /**
+   * フォーマット結果などで本文を丸ごと差し替える。undo できる 1 トランザクションで
+   * 置き換え、行番号と桁を手がかりにカーソル位置をできるだけ保つ。
+   */
+  replaceDoc(value: string): void;
+}
+
 export interface CodeEditorProps {
   value: string;
   fileName: string;
   fontSize: CodeFontSize;
   onChange: (value: string) => void;
+  /** エディタにフォーカスがあるときの実行（Shift + Enter） */
+  onRun?: () => void;
+  /** エディタにフォーカスがあるときのフォーマット（Ctrl / Cmd + Enter） */
+  onFormat?: () => void;
+  ref?: Ref<CodeEditorHandle>;
 }
 
 /**
  * CodeMirror 6 の薄いラッパー。エディタ本体はマウント時に 1 回だけ作り、
  * 親から渡された値の変化だけを dispatch で反映する。
  */
-export function CodeEditor({ value, fileName, fontSize, onChange }: CodeEditorProps) {
+export function CodeEditor({
+  value,
+  fileName,
+  fontSize,
+  onChange,
+  onRun,
+  onFormat,
+  ref,
+}: CodeEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const onChangeRef = useRef(onChange);
+  const onRunRef = useRef(onRun);
+  const onFormatRef = useRef(onFormat);
   const initialValueRef = useRef(value);
   const fontSizeRef = useRef(fontSize);
 
   useEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
+
+  useEffect(() => {
+    onRunRef.current = onRun;
+    onFormatRef.current = onFormat;
+  }, [onRun, onFormat]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      replaceDoc: (next: string) => {
+        const view = viewRef.current;
+        if (view === null) return;
+        const current = view.state.doc.toString();
+        if (current === next) return;
+
+        // 行番号と桁で位置を写す。行数が減ったときは末尾行に、桁が縮んだ行では行末に寄せる。
+        const head = view.state.selection.main.head;
+        const currentLine = view.state.doc.lineAt(head);
+        const lineNumber = currentLine.number;
+        const column = head - currentLine.from;
+        const nextDoc = Text.of(next.split('\n'));
+        const nextLine = nextDoc.line(Math.min(lineNumber, nextDoc.lines));
+        const anchor = nextLine.from + Math.min(column, nextLine.length);
+
+        view.dispatch({
+          changes: { from: 0, to: current.length, insert: next },
+          selection: { anchor },
+          scrollIntoView: true,
+        });
+      },
+    }),
+    [],
+  );
 
   useEffect(() => {
     const host = hostRef.current;
@@ -103,7 +159,29 @@ export function CodeEditor({ value, fileName, fontSize, onChange }: CodeEditorPr
           syntaxHighlighting(highlightStyle),
           indentUnit.of('\t'),
           EditorState.tabSize.of(4),
-          keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
+          // Shift + Enter / Ctrl (Cmd) + Enter は defaultKeymap の割り当てより先に
+          // 見てほしいので、この 2 つを先頭に置く。
+          keymap.of([
+            {
+              key: 'Shift-Enter',
+              run: () => {
+                if (onRunRef.current === undefined) return false;
+                onRunRef.current();
+                return true;
+              },
+            },
+            {
+              key: 'Mod-Enter',
+              run: () => {
+                if (onFormatRef.current === undefined) return false;
+                onFormatRef.current();
+                return true;
+              },
+            },
+            ...defaultKeymap,
+            ...historyKeymap,
+            indentWithTab,
+          ]),
           EditorView.contentAttributes.of(mobileInputAttributes),
           EditorView.updateListener.of((update) => {
             if (update.docChanged) onChangeRef.current(update.state.doc.toString());
