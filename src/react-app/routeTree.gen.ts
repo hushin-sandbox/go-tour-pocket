@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SpikeRouteImport } from './routes/spike'
+import { Route as TourLessonPageRouteImport } from './routes/tour.$lesson.$page'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const SpikeRoute = SpikeRouteImport.update({
   path: '/spike',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TourLessonPageRoute = TourLessonPageRouteImport.update({
+  id: '/tour/$lesson/$page',
+  path: '/tour/$lesson/$page',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/spike': typeof SpikeRoute
+  '/tour/$lesson/$page': typeof TourLessonPageRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/spike': typeof SpikeRoute
+  '/tour/$lesson/$page': typeof TourLessonPageRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/spike': typeof SpikeRoute
+  '/tour/$lesson/$page': typeof TourLessonPageRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/spike'
+  fullPaths: '/' | '/spike' | '/tour/$lesson/$page'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/spike'
-  id: '__root__' | '/' | '/spike'
+  to: '/' | '/spike' | '/tour/$lesson/$page'
+  id: '__root__' | '/' | '/spike' | '/tour/$lesson/$page'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SpikeRoute: typeof SpikeRoute
+  TourLessonPageRoute: typeof TourLessonPageRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SpikeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tour/$lesson/$page': {
+      id: '/tour/$lesson/$page'
+      path: '/tour/$lesson/$page'
+      fullPath: '/tour/$lesson/$page'
+      preLoaderRoute: typeof TourLessonPageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SpikeRoute: SpikeRoute,
+  TourLessonPageRoute: TourLessonPageRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
