@@ -10,4 +10,5 @@ export {
   CardContent,
 } from './card';
 export { Input } from './input';
+export { InlineText } from './inline-text';
 export { Separator } from './separator';
