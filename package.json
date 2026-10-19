@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc -b && vite build",
     "prebuild": "pnpm build:wasm",
-    "build:wasm": "mise run build:wasm",
+    "build:wasm": "bash wasm/build.sh",
     "e2e": "node scripts/e2e-app.mjs && node scripts/e2e-update.mjs",
     "e2e:update": "node scripts/e2e-update.mjs",
     "e2e:spike": "pnpm build && node scripts/e2e-spike.mjs",

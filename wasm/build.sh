@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build the Yaegi wasm runtime and copy the matching wasm_exec.js into public/wasm.
-# Run through `mise run build:wasm` (also invoked automatically before pnpm build).
+# Run through `pnpm build:wasm` or `mise run build:wasm` (also invoked automatically before pnpm build).
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
