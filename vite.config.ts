@@ -34,9 +34,11 @@ export default defineConfig({
       : [
           cloudflare(),
           VitePWA({
-            // スパイク中は自動更新。更新通知とユーザー操作での切り替えは本体 UI で入れる
-            registerType: 'autoUpdate',
-            injectRegister: 'auto',
+            // 新しい Service Worker は waiting のままにし、アプリ側
+            // （features/app-update の useRegisterSW）がトーストで更新を促してから
+            // skipWaiting する。登録も useRegisterSW に任せるので injectRegister は切る
+            registerType: 'prompt',
+            injectRegister: null,
             manifest: {
               name: 'Go Tour Pocket',
               short_name: 'Go Tour',
