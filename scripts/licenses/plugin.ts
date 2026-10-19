@@ -7,7 +7,7 @@
  * - Service Worker: vite-plugin-pwa が生成した sw.js / workbox-*.js のマーカー
  *
  * データは `virtual:licenses` の JS チャンクに埋め込むので、Service Worker の
- * precache にそのまま乗る。`dist/client/licenses.json` も点検用に書き出す。
+ * precache にそのまま乗る。`dist/licenses.json` も点検用に書き出す。
  * ライセンスが特定できない依存があればビルドを失敗させる。
  */
 import { execFileSync } from 'node:child_process';
@@ -176,22 +176,16 @@ export function licensesPlugin(): Plugin {
 
   /** 直前のビルドの `licenses.json`。開発サーバーではこれをそのまま使う。 */
   function readBuiltData(): { data: LicensesData; serviceWorker: LicenseEntry[] } | null {
-    const candidates = [
-      path.resolve(config.root, 'dist', 'client', LICENSES_JSON_FILE_NAME),
-      path.resolve(config.root, config.build.outDir, LICENSES_JSON_FILE_NAME),
-    ];
-    for (const file of candidates) {
-      if (!fs.existsSync(file)) continue;
-      const data = validateLicensesData(JSON.parse(fs.readFileSync(file, 'utf8')));
-      const serviceWorker =
-        data.sections.find((section) => section.id === 'service-worker')?.entries ?? [];
-      // ページ側が Service Worker 分を足すので、ここでは外しておく。
-      return {
-        data: { sections: data.sections.filter((section) => section.id !== 'service-worker') },
-        serviceWorker,
-      };
-    }
-    return null;
+    const file = path.resolve(config.root, config.build.outDir, LICENSES_JSON_FILE_NAME);
+    if (!fs.existsSync(file)) return null;
+    const data = validateLicensesData(JSON.parse(fs.readFileSync(file, 'utf8')));
+    const serviceWorker =
+      data.sections.find((section) => section.id === 'service-worker')?.entries ?? [];
+    // ページ側が Service Worker 分を足すので、ここでは外しておく。
+    return {
+      data: { sections: data.sections.filter((section) => section.id !== 'service-worker') },
+      serviceWorker,
+    };
   }
 
   async function getDevData(): Promise<{ data: LicensesData; serviceWorker: LicenseEntry[] }> {
@@ -206,7 +200,7 @@ export function licensesPlugin(): Plugin {
     }
     config.logger.info(
       'licenses: 開発サーバーでは npm と Workbox の一覧は生成されません' +
-        '（一度 `pnpm build` すると dist/client/licenses.json から読み込みます）',
+        '（一度 `pnpm build` すると dist/licenses.json から読み込みます）',
     );
     const toolchain = readGoToolchainLicenses(runGo);
     const websiteLicense = await loadWebsiteLicense(config.root);

@@ -2,7 +2,7 @@
 /**
  * /spike のスモークテスト。
  *
- * `pnpm build` 済みの dist/client を vite preview で配信し、Playwright（chromium）で
+ * `pnpm build` 済みの dist を vite preview で配信し、Playwright（chromium）で
  * hello / select / 画像プリセットの実行、無限ループの停止、Service Worker 登録後の
  * オフラインリロードでの再実行を確認する。vitest とは別系統（`pnpm e2e:spike`）。
  */

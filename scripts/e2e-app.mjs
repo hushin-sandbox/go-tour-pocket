@@ -2,7 +2,7 @@
 /**
  * アプリ全体の通し e2e。
  *
- * `pnpm build` 済みの dist/client を vite preview で配信し、Playwright（chromium の
+ * `pnpm build` 済みの dist を vite preview で配信し、Playwright（chromium の
  * iPhone 13 エミュレーション）で次を確認する。
  *
  *   1. 一覧 → basics/1 を開く → 対訳が出る → 表示モードを切り替える → 次へで 2 ページ目
@@ -113,8 +113,8 @@ const waitForEditorLines = async (editor, expected, timeoutMs) => {
 };
 
 const main = async () => {
-  if (!existsSync('dist/client/index.html')) {
-    throw new Error('dist/client がありません。先に `pnpm build` を実行してください');
+  if (!existsSync('dist/index.html')) {
+    throw new Error('dist がありません。先に `pnpm build` を実行してください');
   }
 
   const server = spawn(

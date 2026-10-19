@@ -6,7 +6,7 @@
  */
 import path from 'node:path';
 
-/** ビルドで生成する JSON。dist のルート（クライアント環境の outDir）に置く。 */
+/** ビルドで生成する JSON。Vite の outDir（dist）のルートに置く。 */
 export const LICENSES_JSON_FILE_NAME = 'licenses.json';
 
 /** 取得したライセンス本文のキャッシュ（`.gitignore` の `.cache/` 以下）。 */
