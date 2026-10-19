@@ -150,3 +150,11 @@ pnpm build-storybook  # Storybook の静的ビルド
 - **ビルドスクリプト** — `scripts/**/*.test.ts`。`scripts` プロジェクト（Node）で動く
 
 書き方の指針は `.agents/skills/storybook-testing/SKILL.md` にまとめてある。
+
+## ライセンス
+
+- アプリのソースコードは MIT
+- `content/en` と `public/tour/images` は A Tour of Go（The Go Authors）由来。本文・画像は CC BY 4.0、コード例は BSD-3-Clause
+- `content/ja` は hushin による日本語訳で CC BY 4.0
+- `wasm/ministd`・`wasm/toursyms` と present の移植部分は BSD-3-Clause
+- 詳細は [`LICENSE`](LICENSE) を参照。アプリ内の `/licenses` ページでも表記している

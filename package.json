@@ -2,6 +2,7 @@
   "name": "go-tour-pocket",
   "private": true,
   "description": "A Tour of Go を英日対訳・オフラインで学べるスマホ向け PWA",
+  "license": "SEE LICENSE IN LICENSE",
   "type": "module",
   "scripts": {
     "build": "tsc -b && vite build",
