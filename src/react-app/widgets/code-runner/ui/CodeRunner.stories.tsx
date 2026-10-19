@@ -101,7 +101,7 @@ export const Stop: Story = {
 
     await userEvent.click(canvas.getByRole('button', { name: '停止' }));
 
-    await expect(await within(output).findByText(/実行を停止しました/)).toBeVisible();
+    await expect(await within(output).findByText('停止しました（12 ms）')).toBeVisible();
     await expect(await canvas.findByRole('button', { name: '実行' })).toBeEnabled();
   },
 };

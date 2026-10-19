@@ -13,7 +13,7 @@ export type GoRunEvent =
   | { type: 'stdout'; data: string }
   | { type: 'stderr'; data: string }
   | { type: 'image'; dataUrl: string }
-  | { type: 'exit'; ok: boolean; error?: string; ms: number };
+  | { type: 'exit'; ok: boolean; error?: string; ms: number; status?: GoRunStatus };
 
 export type GoRunStatus = 'ok' | 'error' | 'timeout' | 'cancelled' | 'crashed' | 'busy';
 
@@ -231,7 +231,7 @@ class GoRunner {
     if (this.active === active) this.active = null;
 
     const ms = Math.max(0, Math.round(performance.now() - active.startedAt));
-    active.onEvent?.({ type: 'exit', ok: status === 'ok', error, ms });
+    active.onEvent?.({ type: 'exit', ok: status === 'ok', error, ms, status });
     if (status === 'timeout' || status === 'cancelled' || status === 'crashed') {
       this.resetWorker();
     }
@@ -244,7 +244,7 @@ class GoRunner {
     error: string,
     ms: number,
   ): GoRunResult {
-    onEvent?.({ type: 'exit', ok: false, error, ms });
+    onEvent?.({ type: 'exit', ok: false, error, ms, status });
     return { status, error, ms };
   }
 

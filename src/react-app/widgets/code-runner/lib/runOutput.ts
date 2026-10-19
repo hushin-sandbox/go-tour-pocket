@@ -15,12 +15,14 @@ export type RunOutputEvent =
   | { type: 'stdout'; data: string }
   | { type: 'stderr'; data: string }
   | { type: 'image'; dataUrl: string }
-  | { type: 'exit'; ok: boolean; error?: string; ms: number };
+  | { type: 'exit'; ok: boolean; error?: string; ms: number; status?: RunExitStatus };
+
+export type RunExitStatus = 'ok' | 'error' | 'timeout' | 'cancelled' | 'crashed' | 'busy';
 
 export type RunOutputBlock =
   | { type: 'text'; chunks: { type: 'stdout' | 'stderr'; data: string }[] }
   | { type: 'image'; dataUrl: string }
-  | { type: 'exit'; ok: boolean; error?: string; ms: number };
+  | { type: 'exit'; ok: boolean; error?: string; ms: number; status?: RunExitStatus };
 
 /** 1 イベントを出力一覧に反映する。form feed を含む場合はそれ以前を捨てる。 */
 export function appendRunEvent(items: RunOutputEvent[], event: RunOutputEvent): RunOutputEvent[] {
@@ -51,7 +53,13 @@ export function groupRunOutput(items: RunOutputEvent[]): RunOutputBlock[] {
       blocks.push({ type: 'image', dataUrl: item.dataUrl });
       continue;
     }
-    blocks.push({ type: 'exit', ok: item.ok, error: item.error, ms: item.ms });
+    blocks.push({
+      type: 'exit',
+      ok: item.ok,
+      error: item.error,
+      ms: item.ms,
+      ...(item.status === undefined ? {} : { status: item.status }),
+    });
   }
   return blocks;
 }

@@ -59,6 +59,16 @@ describe('groupRunOutput', () => {
     ]);
   });
 
+  it('停止・タイムアウトの status を保つ', () => {
+    const blocks = groupRunOutput([
+      { type: 'exit', ok: false, error: '実行を停止しました', ms: 12, status: 'cancelled' },
+    ]);
+
+    expect(blocks).toEqual([
+      { type: 'exit', ok: false, error: '実行を停止しました', ms: 12, status: 'cancelled' },
+    ]);
+  });
+
   it('終了状態を順序どおりに並べる', () => {
     const blocks = groupRunOutput([
       stdout('one\n'),

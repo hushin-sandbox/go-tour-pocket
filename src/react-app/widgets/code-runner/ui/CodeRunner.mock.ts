@@ -45,6 +45,7 @@ export function createMockEngine(options: MockEngineOptions = {}): GoRunnerEngin
           ok: result.status === 'ok',
           error: result.error,
           ms: result.ms,
+          status: result.status,
         });
         return result;
       }),
@@ -67,7 +68,13 @@ export function createStopEngine(): GoRunnerEngine {
       new Promise<GoRunResult>((resolve) => {
         options?.onEvent?.({ type: 'stdout', data: 'running\n' });
         const onAbort = () => {
-          options?.onEvent?.({ type: 'exit', ok: false, error: '実行を停止しました', ms: 12 });
+          options?.onEvent?.({
+            type: 'exit',
+            ok: false,
+            error: '実行を停止しました',
+            ms: 12,
+            status: 'cancelled',
+          });
           resolve({ status: 'cancelled', error: '実行を停止しました', ms: 12 });
         };
         if (options?.signal?.aborted === true) {

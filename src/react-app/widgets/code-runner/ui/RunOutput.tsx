@@ -1,6 +1,6 @@
-import { CheckCircle2, CircleAlert, LoaderCircle } from 'lucide-react';
+import { CheckCircle2, CircleAlert, CircleStop, LoaderCircle, Timer } from 'lucide-react';
 import { cn, type GoRunEvent } from '@/react-app/shared/lib';
-import { groupRunOutput } from '../lib/runOutput';
+import { groupRunOutput, type RunOutputBlock } from '../lib/runOutput';
 
 export type GoLoadState = 'loading' | 'ready' | 'error';
 
@@ -70,24 +70,7 @@ export function RunOutput({ items, isRunning, loadState, loadError }: RunOutputP
             />
           );
         }
-        return (
-          <p
-            key={index}
-            className={cn(
-              'flex items-start gap-2 text-xs leading-5',
-              block.ok ? 'text-muted-foreground' : 'text-destructive',
-            )}
-          >
-            {block.ok ? (
-              <CheckCircle2 className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-            ) : (
-              <CircleAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-            )}
-            <span>
-              {block.ok ? '終了' : `エラー: ${block.error ?? '不明なエラー'}`}（{block.ms} ms）
-            </span>
-          </p>
-        );
+        return <ExitMessage key={index} block={block} />;
       })}
 
       {isRunning ? (
@@ -97,5 +80,40 @@ export function RunOutput({ items, isRunning, loadState, loadError }: RunOutputP
         </p>
       ) : null}
     </div>
+  );
+}
+
+function ExitMessage({ block }: { block: Extract<RunOutputBlock, { type: 'exit' }> }) {
+  const stopped = block.status === 'cancelled';
+  const timedOut = block.status === 'timeout';
+  const failed = !block.ok && !stopped && !timedOut;
+
+  return (
+    <p
+      className={cn(
+        'flex items-start gap-2 text-xs leading-5',
+        failed ? 'text-destructive' : 'text-muted-foreground',
+      )}
+    >
+      {block.ok ? (
+        <CheckCircle2 className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+      ) : stopped ? (
+        <CircleStop className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+      ) : timedOut ? (
+        <Timer className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+      ) : (
+        <CircleAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+      )}
+      <span>
+        {block.ok
+          ? '終了'
+          : stopped
+            ? '停止しました'
+            : timedOut
+              ? 'タイムアウトしました'
+              : `エラー: ${block.error ?? '不明なエラー'}`}
+        （{block.ms} ms）
+      </span>
+    </p>
   );
 }
