@@ -5,6 +5,7 @@ import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { resolve } from 'node:path';
+import { licensesPlugin } from './scripts/licenses/plugin.ts';
 
 // Storybook はこの設定ファイルを取り込んで自身の preview ビルドにも使うが、
 // cloudflare() は preview を workerd ランタイム上で動かそうとして壊れるため、
@@ -76,5 +77,7 @@ export default defineConfig({
             },
           }),
         ]),
+    // ライセンスの収集は VitePWA の後ろに置く（生成された sw.js を読むため）。
+    licensesPlugin(),
   ],
 });
