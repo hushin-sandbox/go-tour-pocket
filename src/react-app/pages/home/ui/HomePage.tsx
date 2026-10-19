@@ -170,18 +170,18 @@ export function HomePageView({ catalog, progress }: HomePageViewProps) {
 
       <footer className="flex flex-col gap-4 border-t border-border pt-6">
         <nav aria-label="アプリの情報" className="flex flex-wrap gap-x-5 gap-y-2">
-          <a
-            href="/about"
+          <Link
+            to="/about"
             className="inline-flex min-h-11 items-center text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
             このアプリについて
-          </a>
-          <a
-            href="/licenses"
+          </Link>
+          <Link
+            to="/licenses"
             className="inline-flex min-h-11 items-center text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
             ライセンス
-          </a>
+          </Link>
         </nav>
         <p className="text-xs leading-5 text-muted-foreground">
           本文は A Tour of Go（CC BY 4.0）を英日対訳にしたものです。

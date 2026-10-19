@@ -155,12 +155,13 @@ function ContentsSheet({ open, onOpenChange, lesson, catalog, pageIndex }: Conte
           </section>
 
           <div className="border-t border-border pt-3">
-            <a
-              href="/licenses"
+            <Link
+              to="/licenses"
+              onClick={() => onOpenChange(false)}
               className="inline-flex min-h-11 items-center text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             >
               ライセンス
-            </a>
+            </Link>
           </div>
         </div>
       </div>

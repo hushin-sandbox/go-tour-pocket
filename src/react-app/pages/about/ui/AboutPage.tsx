@@ -95,12 +95,12 @@ export function AboutPage() {
         <h2 className="text-base font-semibold tracking-tight">リンク</h2>
         <ul className="divide-y divide-border border-y border-border">
           <li>
-            <a href="/licenses" className={linkRowClass}>
+            <Link to="/licenses" className={linkRowClass}>
               <span>ライセンス</span>
               <span aria-hidden className="text-muted-foreground">
                 →
               </span>
-            </a>
+            </Link>
           </li>
           <li>
             <Link to="/spike" className={linkRowClass}>
