@@ -121,6 +121,22 @@ export const DraftRestored: Story = {
   },
 };
 
+export const DraftSavedOnPageHide: Story = {
+  name: 'pagehide で下書きを保存',
+  play: async ({ canvas, userEvent }) => {
+    const editor = await canvas.findByRole('textbox', { name: /packages.go のコード/ });
+    await userEvent.click(editor);
+    await userEvent.type(editor, 'x');
+
+    // debounce の 400ms を待たず、画面を離れる合図で保存される
+    window.dispatchEvent(new Event('pagehide'));
+
+    await waitFor(() =>
+      expect(window.localStorage.getItem(draftStorageKey(STORAGE_KEY))).toContain('x'),
+    );
+  },
+};
+
 export const DraftDiscardedWhenHashChanges: Story = {
   name: '原文が変わったら下書きを破棄',
   beforeEach: () => {

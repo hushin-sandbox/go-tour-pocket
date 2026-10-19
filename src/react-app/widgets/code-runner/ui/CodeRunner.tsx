@@ -146,9 +146,10 @@ function CodeRunnerContent({
     return () => window.clearTimeout(timer);
   }, [code, originalCode, storage, storageKey, codeHash]);
 
-  // 入力直後に画面を離れても最後の編集を落とさない
+  // 入力直後に画面を離れても最後の編集を落とさない。unmount に加えて、
+  // モバイルで発火しやすい pagehide と、タブが隠れたときにも保存する。
   useEffect(() => {
-    return () => {
+    const flushDraft = () => {
       const context = draftContextRef.current;
       if (context.storage === null) return;
       const latest = codeRef.current;
@@ -160,6 +161,16 @@ function CodeRunnerContent({
           code: latest,
         });
       }
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') flushDraft();
+    };
+    window.addEventListener('pagehide', flushDraft);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.removeEventListener('pagehide', flushDraft);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      flushDraft();
     };
   }, []);
 

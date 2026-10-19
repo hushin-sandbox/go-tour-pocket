@@ -192,8 +192,8 @@ const main = async () => {
 
     // 4. Service Worker を有効にしてオフラインへ
     await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
-    // 初回インストールでは既存ページを claim しないため、一度リロードして制御下にする
-    await page.reload({ waitUntil: 'load' });
+    // registerType: 'autoUpdate' は skipWaiting + clientsClaim なので、
+    // 初回インストールでもリロードなしにこのページが SW の制御下に入る。
     await page.waitForFunction(() => navigator.serviceWorker.controller !== null, undefined, {
       timeout: 60_000,
     });

@@ -35,10 +35,12 @@ export default defineConfig({
       : [
           cloudflare(),
           VitePWA({
-            // 新しい Service Worker は waiting のままにし、アプリ側
-            // （features/app-update の useRegisterSW）がトーストで更新を促してから
-            // skipWaiting する。登録も useRegisterSW に任せるので injectRegister は切る
-            registerType: 'prompt',
+            // 新しい Service Worker は install 後すぐ skipWaiting + clientsClaim で
+            // 制御を取り、ページ側の registerSW（features/app-update の useRegisterSW）が
+            // activated を検知して自動でリロードする。更新 UI を持たない旧版のページが
+            // waiting のまま残らないようにするため prompt は使わない。
+            // 登録も useRegisterSW に任せるので injectRegister は切る
+            registerType: 'autoUpdate',
             injectRegister: null,
             manifest: {
               name: 'Go Tour Pocket',
@@ -75,6 +77,9 @@ export default defineConfig({
               maximumFileSizeToCacheInBytes: 30 * 1024 * 1024,
               navigateFallback: '/index.html',
               navigateFallbackDenylist: [/^\/api\//],
+              // autoUpdate でも明示しておく（generateSW のデフォルトに依存しない）
+              skipWaiting: true,
+              clientsClaim: true,
               cleanupOutdatedCaches: true,
             },
           }),

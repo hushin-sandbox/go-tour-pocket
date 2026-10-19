@@ -129,9 +129,8 @@ const main = async () => {
 
     // 5. Service Worker 登録 → オフラインでリロード → hello 実行
     await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
-    // registerType: 'prompt' では初回インストール時に既存のページを claim しない。
-    // 一度リロードして 2 回目以降の起動と同じ「制御下」の状態にしてから確認する。
-    await page.reload({ waitUntil: 'load' });
+    // registerType: 'autoUpdate' は skipWaiting + clientsClaim なので、
+    // 初回インストールでもリロードなしにこのページが SW の制御下に入る。
     await page.waitForFunction(() => navigator.serviceWorker.controller !== null, undefined, {
       timeout: 60_000,
     });

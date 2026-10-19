@@ -129,7 +129,13 @@ type LessonJa = {
 - インストールの導線:
   - Android Chrome: `beforeinstallprompt` で「インストール」ボタンを出す
   - iOS Safari: 共有メニューから「ホーム画面に追加」する手順を案内する（追加しないと 7 日で消える）
-- 新バージョンは「更新があります」の通知を出し、ユーザーの操作で切り替える
+- 更新は `registerType: 'autoUpdate'`。新しい Service Worker は install 後すぐ
+  skipWaiting + clientsClaim で有効になり、ページは制御が切り替わったら自動でリロードする。
+  prompt 方式だと、更新 UI を持たない旧版のページは waiting のまま止まり、
+  新しい index.html に到達できないことがある。編集中のコードは端末に保存しているので、
+  自動リロードで失うものは小さい
+- 更新確認はタブが表示されたときと 1 時間ごとに `registration.update()` を呼ぶ
+  （オフライン時は呼ばない）
 
 ## 実機での確認結果（2026-10-19、スパイク）
 
@@ -177,7 +183,8 @@ type LessonJa = {
 - オフライン中はヘッダに小さく表示する
 - Android: `beforeinstallprompt` を受けたらレッスン一覧にインストールボタンを出す
 - iOS Safari（standalone でないとき）: ホーム画面への追加手順をレッスン一覧に出す。閉じたら出さない
-- 更新: Service Worker を `registerType: 'prompt'` にし、新版があればトーストで「更新」を出す
+- 更新: `registerType: 'autoUpdate'` で、新版はユーザーの操作なしに切り替わる。
+  旧版のページが waiting に残らないようにする理由は「オフライン」節を参照
 
 ## ライセンス
 
