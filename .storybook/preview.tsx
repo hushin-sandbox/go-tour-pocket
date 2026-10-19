@@ -1,9 +1,7 @@
 /// <reference types="vite/client" />
-import { setupWorker } from 'msw/browser';
 import type { Preview } from '@storybook/tanstack-react';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { mswLoader } from 'msw-storybook-addon/csf3';
 import '../src/react-app/index.css';
 
 const preview: Preview = {
@@ -22,13 +20,6 @@ const preview: Preview = {
         </QueryClientProvider>
       );
     },
-  ],
-  loaders: [
-    mswLoader(async () => {
-      const worker = setupWorker();
-      await worker.start({ quiet: true, onUnhandledFrame: 'bypass' });
-      return worker;
-    }),
   ],
   parameters: {
     controls: {

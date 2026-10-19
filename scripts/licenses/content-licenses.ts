@@ -40,7 +40,7 @@ export function collectContentEntries(input: ContentLicensesInput): LicenseEntry
       text: CC_BY_SUMMARY,
       note:
         `取得元は ${SOURCE_COMMIT}（${SOURCE_REPOSITORY}）の固定コミットです。` +
-        '本アプリでは原文を段落に分割し、日本語訳を追加し、表示形式を変更するという改変を行っています。',
+        'このアプリでは原文を段落に分割して日本語訳を加え、表示形式を変更する改変を行っています。',
       extras: [{ label: 'golang/website の LICENSE（BSD-3-Clause）', text: input.websiteLicense }],
     },
     {
@@ -48,12 +48,13 @@ export function collectContentEntries(input: ContentLicensesInput): LicenseEntry
       name: '日本語訳',
       version: null,
       license: 'CC BY 4.0',
-      author: 'go-tour-pocket（本アプリ）',
+      author: 'hushin',
       url: null,
       text: CC_BY_SUMMARY,
       note:
-        '本アプリが英語原文から新たに翻訳したもので、原文の翻案として原文と同じ CC BY 4.0 で公開します。' +
-        `翻訳の参考にした旧訳 go-tour-jp（${GO_TOUR_JP_URL}、BSD-3-Clause）にクレジットを記載します。`,
+        '英語原文からこのアプリのために新たに翻訳したものです。' +
+        '原文の翻案として、訳文も原文と同じ CC BY 4.0 で公開します。' +
+        `翻訳にあたり、旧訳 go-tour-jp（${GO_TOUR_JP_URL}、BSD-3-Clause、The Go Authors ほか）を参考にしました。`,
       extras: [],
     },
     {

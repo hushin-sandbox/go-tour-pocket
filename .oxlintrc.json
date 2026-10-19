@@ -4,7 +4,6 @@
     "dist",
     "node_modules",
     ".wrangler",
-    "worker-configuration.d.ts",
     "public",
     ".agents/skills/*/assets",
     ".claude/skills/*/assets",

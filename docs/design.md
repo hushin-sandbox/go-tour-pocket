@@ -21,7 +21,8 @@ A Tour of Go を通勤中にスマホで学ぶための PWA。英日を段落ご
      └─ Web Worker: yaegi.wasm を読み込み、コードを解釈実行
 ```
 
-Hono の Worker は静的配信と SPA フォールバックだけを担う。API は持たない。
+Cloudflare Workers は静的アセットの配信と SPA フォールバックだけを担う（Wrangler の
+`assets` のみで、Worker スクリプトを持たない）。API は持たない。
 
 ## コンテンツ
 

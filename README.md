@@ -10,33 +10,21 @@ Tour の英語原文と日本語訳を段落ごとに対訳表示し、コード
 
 ## Tech Stack
 
-| カテゴリ       | 技術                                                                                    |
-| -------------- | --------------------------------------------------------------------------------------- |
-| フロントエンド | React 19, TypeScript, shadcn/ui（base UI）, Tailwind CSS v4                             |
-| ルーティング   | TanStack Router（file-based routing）                                                   |
-| フォーム       | TanStack Form                                                                           |
-| データ取得     | TanStack Query                                                                          |
-| バックエンド   | Hono 4（Workers 上で動作）, zod, @hono/zod-validator                                    |
-| ビルドツール   | Vite 8, @cloudflare/vite-plugin, @tanstack/router-plugin                                |
-| PWA            | vite-plugin-pwa（Workbox）, Web Worker, Go + Yaegi（wasm）                              |
-| デプロイ       | Wrangler 4, Cloudflare Workers                                                          |
-| Lint / Format  | oxlint, oxfmt, steiger（FSD 構造）, dependency-cruiser（依存の向き）                    |
-| UI カタログ    | Storybook 10（@storybook/tanstack-react）, MSW                                          |
-| テスト         | Vitest, @cloudflare/vitest-plugin, @storybook/addon-vitest（browser mode / Playwright） |
-| Git hooks      | lefthook                                                                                |
-| パッケージ管理 | pnpm                                                                                    |
-| バージョン管理 | mise                                                                                    |
-
-## オプション構成（add-on）
-
-**データベースと認証は既定では含まれていない。** 要らないアプリがあるため main は最小構成に保ち、
-必要なアプリでだけ add-on として追加する。手順と貼り付け用の実ファイルは
-`.agents/skills/<name>/` にまとまっているので、エージェントに skill を適用させる。
-
-| 追加したいもの              | skill             | 前提                    |
-| --------------------------- | ----------------- | ----------------------- |
-| Cloudflare D1 + Drizzle ORM | `add-d1-drizzle`  | なし                    |
-| Better Auth（GitHub OAuth） | `add-better-auth` | `add-d1-drizzle` 適用済 |
+| カテゴリ       | 技術                                                                            |
+| -------------- | ------------------------------------------------------------------------------- |
+| フロントエンド | React 19, TypeScript, shadcn/ui（base UI）, Tailwind CSS v4                     |
+| ルーティング   | TanStack Router（file-based routing）                                           |
+| フォーム       | TanStack Form                                                                   |
+| データ取得     | TanStack Query                                                                  |
+| ビルドツール   | Vite 8, @tanstack/router-plugin                                                 |
+| PWA            | vite-plugin-pwa（Workbox）, Web Worker, Go + Yaegi（wasm）                      |
+| デプロイ       | Wrangler 4, Cloudflare Workers（静的アセット配信のみ。API は持たない）          |
+| Lint / Format  | oxlint, oxfmt, steiger（FSD 構造）, dependency-cruiser（依存の向き）            |
+| UI カタログ    | Storybook 10（@storybook/tanstack-react）                                       |
+| テスト         | Vitest, @storybook/addon-vitest（browser mode / Playwright）, Playwright（e2e） |
+| Git hooks      | lefthook                                                                        |
+| パッケージ管理 | pnpm                                                                            |
+| バージョン管理 | mise                                                                            |
 
 ## コード実行（スパイク）
 
@@ -54,43 +42,58 @@ pnpm e2e:spike       # build 後、Playwright で /spike の実行・停止・�
 
 詳細と制約は [`wasm/README.md`](wasm/README.md) を参照。
 
+## コンテンツ生成
+
+Tour の本文はビルド時に取得するのではなく、`content/` に生成物をコミットしている。
+生成・検証は `scripts/content/` を Node（型ストリッピング）で直接実行する。
+
+```bash
+node scripts/content/fetch.ts     # golang/website の固定コミットから原文を .cache/ に取得
+node scripts/content/build.ts     # content/en/<lesson>.json を生成
+node scripts/content/validate.ts  # content/ja と突き合わせて検証（訳の欠落・hash のズレ）
+```
+
+## ライセンス表記
+
+`/licenses` のデータはビルド時に `scripts/licenses/plugin.ts`（Vite プラグイン）が集める。
+npm / Go / Workbox のライセンスと、本文・日本語訳・コード例の表記を `virtual:licenses` の
+JS チャンクに埋め込み、Service Worker の precache に載せる。点検用に `dist/licenses.json` も
+書き出す。追加のコマンドはなく、`pnpm build` の一部として動く。
+
 ## ディレクトリ構造
 
 ```
 .
 ├── .storybook/            # Storybook 設定（main.ts / preview.tsx）
 ├── .agents/skills/        # skill（外部スキルは skills-lock.json から復元。.claude/skills はここへの symlink）
+├── content/               # Tour 本文（en）と日本語訳（ja）。scripts/content が生成・検証する
+├── scripts/               # content / licenses / e2e の Node スクリプト
 ├── src/
-│   ├── worker/            # Hono Worker（API routes）
-│   │   ├── index.ts       # Workers entrypoint（wrangler.json の main）
-│   │   ├── routes/        # Hono route（method chain）
-│   │   └── repositories/  # データアクセス（add-d1-drizzle 適用後）
-│   ├── react-app/         # React SPA（Feature-Sliced Design）
+│   ├── react-app/         # React SPA（Feature-Sliced Design。構造は steiger が検査）
 │   │   ├── main.tsx
 │   │   ├── app/           # provider / router 初期化、layouts
 │   │   ├── routes/        # TanStack Router file-based routes（薄い route 定義）
 │   │   ├── pages/         # 画面本体（URL セグメント単位のスライス）
-│   │   └── shared/        # ui（shadcn/ui）, lib（cn, Go runner, msw-hono=story 専用）, api（hc クライアント）
-│   └── shared/            # worker / react-app 共通コード
-│       └── schemas/       # zod スキーマ
+│   │   └── shared/        # ui（shadcn/ui）, lib（cn, Go runner）
+│   └── shared/            # アプリとビルドスクリプトの共通コード（zod スキーマなど）
 ├── public/                # 静的アセット（wasm は build:wasm の生成物で gitignore）
 ├── wasm/                  # Go モジュール（Yaegi + 抽出済みシンボル）
-├── dist/                  # ビルド出力
+├── dist/                  # ビルド出力（wrangler.json の assets.directory）
 ├── docs/                  # ドキュメント
-├── wrangler.json          # Wrangler 設定
+├── wrangler.json          # Wrangler 設定（静的アセット配信）
 ├── vite.config.ts
-├── vitest.config.ts       # worker / storybook の 2 プロジェクト構成
+├── vitest.config.ts       # unit / storybook / scripts の 3 プロジェクト構成
 ├── steiger.config.ts      # FSD の構造 lint
 ├── .dependency-cruiser.mjs # レイヤー間の import 方向の lint
 ├── tsconfig.*.json
 └── mise.toml              # ツールバージョン管理（Node / pnpm / Go）
 ```
 
-story（`*.stories.tsx`）と MSW モック（`*.mock.ts`）は対象ファイルの隣に置く。
+story（`*.stories.tsx`）とモックデータ（`*.mock.ts`）は対象ファイルの隣に置く。
 `src/react-app/` のレイヤー構成の詳細は `.agents/skills/fsd/SKILL.md` を参照。
 
-レイヤーをまたぐ import の向き（`shared` → `worker` 禁止、`react-app` → `worker` は
-`import type` のみ、など）は `.dependency-cruiser.mjs` に規約（理由は `comment`）として書かれており、
+`src/shared` はアプリとビルドスクリプトの両方から読まれる土台で、`src/react-app` に依存しては
+いけない。この向きは `.dependency-cruiser.mjs` に規約（理由は `comment`）として書かれており、
 `pnpm lint` で検査される。概要は `AGENTS.md` の「依存の向き」を参照。
 
 ## よく使うコマンド
@@ -119,37 +122,39 @@ pnpm fmt              # フォーマット
 pnpm fmt:check        # フォーマットチェック
 
 # テスト / Storybook
-pnpm test             # vitest run（worker テスト + storybook interaction test）
+pnpm test             # vitest run（unit + storybook + scripts）
 pnpm test:watch       # vitest watch
-pnpm e2e:spike        # build + Playwright で /spike のスモークテスト
+pnpm e2e              # build 済み dist で通し e2e（Playwright）
+pnpm e2e:update       # Service Worker の自動更新だけを e2e
+pnpm e2e:spike        # build + /spike のスモークテスト
 pnpm storybook        # Storybook UI（localhost:6006）
 pnpm build-storybook  # Storybook の静的ビルド
-
-# その他
-pnpm cf-typegen       # Wrangler の型定義を再生成
-npx wrangler tail     # Workers のリアルタイムログ
 ```
 
 ## テスト
 
-`pnpm test` は vitest の 2 プロジェクトをまとめて実行する。
+`pnpm test` は vitest の 3 プロジェクトをまとめて実行する。
 
-| プロジェクト | 対象                             | 実行環境                                       |
-| ------------ | -------------------------------- | ---------------------------------------------- |
-| worker       | `src/**/*.test.ts`               | `@cloudflare/vitest-plugin`（Workers runtime） |
-| storybook    | `src/react-app/**/*.stories.tsx` | vitest browser mode（Playwright / chromium）   |
+| プロジェクト | 対象                             | 実行環境                                     |
+| ------------ | -------------------------------- | -------------------------------------------- |
+| unit         | `src/**/*.test.ts`               | Node                                         |
+| storybook    | `src/react-app/**/*.stories.tsx` | vitest browser mode（Playwright / chromium） |
+| scripts      | `scripts/**/*.test.ts`           | Node                                         |
 
 書き分けの方針:
 
 - **UI（コンポーネント・ページ）** — 専用のテストファイルを作らず、**story の `play` 関数がそのまま
   interaction test** になる（[Storybook: Interaction testing](https://storybook.js.org/docs/writing-tests/interaction-testing)）。
-  API は MSW でモックし、ハンドラは `src/react-app/shared/lib/msw-hono.ts` の `createHandler` で
-  Hono の `AppType` から型付けして書く。このヘルパーは msw 一式を引き込むため barrel
-  （`@/react-app/shared/lib`）からは export しておらず、story / mock から
-  `@/react-app/shared/lib/msw-hono` を直接 import する（本番バンドルに入れない）
 - **util 関数・複雑な計算ロジック** — 対象の隣に `*.test.ts` を置いて直接テストする。
-  ただし react-app 配下でも worker プロジェクト（Workers runtime）で実行されるため、
-  `document` / `window` は使えない（DOM が要るものは story にする）
-- **Hono route** — `src/worker/**/*.test.ts`
+  `src/` 配下でも DOM が要るものは story にする（Node 環境で動く）
+- **ビルドスクリプト** — `scripts/**/*.test.ts`。`scripts` プロジェクト（Node）で動く
 
 書き方の指針は `.agents/skills/storybook-testing/SKILL.md` にまとめてある。
+
+## ライセンス
+
+- アプリのソースコードは MIT
+- `content/en` と `public/tour/images` は A Tour of Go（The Go Authors）由来。本文・画像は CC BY 4.0、コード例は BSD-3-Clause
+- `content/ja` は hushin による日本語訳で CC BY 4.0
+- `wasm/ministd`・`wasm/toursyms` と present の移植部分は BSD-3-Clause
+- 詳細は [`LICENSE`](LICENSE) を参照。アプリ内の `/licenses` ページでも表記している

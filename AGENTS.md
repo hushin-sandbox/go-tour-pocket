@@ -2,7 +2,7 @@
 
 A Tour of Go を英日対訳・オフラインで学べるスマホ向け PWA。
 
-Cloudflare Workers / Hono 4 / React 19 + Vite 8 / TanStack Router・Form・Query /
+Cloudflare Workers（静的アセット配信）/ React 19 + Vite 8 / TanStack Router・Form・Query /
 shadcn/ui（base UI）+ Tailwind v4 / zod / Vitest + Storybook 10 / oxlint + oxfmt
 
 設計の詳細は `docs/design.md` を参照する。
@@ -11,75 +11,70 @@ shadcn/ui（base UI）+ Tailwind v4 / zod / Vitest + Storybook 10 / oxlint + oxf
 
 - パッケージマネージャは pnpm（mise で Node 24 / pnpm 12 / Go 1.25 を固定）
 - 変更が一区切りしたら `pnpm check` と `pnpm test` を通す。型チェックは oxlint が兼ねるので `pnpm check` で型エラーまで見える
-- `worker-configuration.d.ts` は `pnpm cf-typegen` の生成物。手で編集しない
 - コミットメッセージは Conventional Commits
-- シークレットは `.dev.vars` / `wrangler secret put`（コミットしない）。公開してよい設定は `wrangler.json` の `vars`
 - 整形は oxfmt、lint の自動修正は `pnpm lint:fix` が行う（pre-commit の lefthook も同じものを走らせる）
 
 ## コマンド
 
 ```bash
 pnpm check       # 検証: lint（型チェック込み）+ fmt:check + build + deploy --dry-run
-pnpm test        # 検証: vitest run（worker + storybook）
+pnpm test        # 検証: vitest run（unit + storybook + scripts）
+pnpm e2e         # 検証: build 済み dist で通し e2e（Playwright）
 pnpm e2e:spike   # 検証: /spike を Playwright でスモークテスト（要 build）
 pnpm lint        # lint だけ（oxlint + steiger + dependency-cruiser）
 pnpm fmt         # 整形（oxfmt）。lint の自動修正は pnpm lint:fix
 pnpm dev         # 開発サーバー（localhost:5173）
 pnpm storybook   # Storybook（localhost:6006）
-pnpm cf-typegen  # worker-configuration.d.ts を再生成
 mise run build:wasm  # Yaegi wasm を public/wasm/ にビルド（pnpm build の prebuild でも走る）
+node scripts/content/fetch.ts     # Tour 原文を golang/website から取得（初回・更新時）
+node scripts/content/build.ts     # content/en を生成
+node scripts/content/validate.ts  # content/ja と突き合わせて検証
 ```
+
+ライセンス一覧は `pnpm build` 時に `scripts/licenses/plugin.ts` が生成する（`virtual:licenses`
+への埋め込みと `dist/licenses.json` の書き出し）。ライセンス生成専用のコマンドはない。
 
 ## 構造
 
 ```
 src/
-├── worker/            # Hono。entrypoint は index.ts（wrangler.json の main）
-│   └── routes/        # 機能ごとの route。index.ts に .route() でマウント
 ├── react-app/         # React SPA（Feature-Sliced Design。構造は steiger が検査）
 │   ├── app/           # provider / router の初期化、layouts
 │   ├── routes/        # TanStack Router の file-based route（薄い定義だけ）
 │   ├── pages/         # 画面本体（URL セグメント単位のスライス）
-│   └── shared/        # ui（shadcn/ui）/ lib（Go runner 含む）/ api（hc クライアント）
-└── shared/            # worker と react-app の共通コード（zod スキーマなど）
+│   └── shared/        # ui（shadcn/ui）/ lib（Go runner 含む）
+└── shared/            # アプリとビルドスクリプトの共通コード（zod スキーマなど）
+content/               # Tour 本文（en）と日本語訳（ja）。scripts/content が生成・検証する
+scripts/               # content / licenses / e2e の Node スクリプト
 wasm/                  # ブラウザ内 Go インタプリタ（Yaegi）。main.go と抽出済みシンボル
 public/wasm/           # build:wasm の生成物（gitignore）。wasm_exec.js もここにコピーされる
 ```
 
-- 新規 API route → `src/worker/routes/` に追加し、`src/worker/index.ts` に `.route()` でマウントする
 - 新規ページ → `src/react-app/pages/<name>/ui/` に本体を書いて `src/react-app/routes/` に薄い route 定義を足す（詳細は `fsd` skill）
-- `src/shared/` と `src/react-app/shared/` は別物。前者は worker と react-app が共有するスキーマ・型、後者は FSD の shared レイヤー
+- `src/shared/` と `src/react-app/shared/` は別物。前者はアプリとビルドスクリプトが共有するスキーマ・型、後者は FSD の shared レイヤー
 
 ## 依存の向き
 
 依存の向きは `.dependency-cruiser.mjs` が規約を持ち、`pnpm lint` が検査する。
 
-- `src/react-app` から `src/worker` を import してよいのは `import type` だけ（Hono RPC の型）。値を import すると worker の実装がクライアントのバンドルに入る
-- `src/shared` は worker / react-app の両方から読まれる土台なので、DTO と定数だけに保つ
-- `src/worker/repositories` から `src/worker/routes` を参照しない（データアクセスが HTTP 層を知ってはいけない）
+- `src/shared` はアプリとビルドスクリプトの両方から読まれる土台なので、DTO と定数だけに保つ
+- `src/shared` から `src/react-app` を参照しない（土台が UI に依存してはいけない）
+- FSD のレイヤーをまたぐ import の向きは steiger が検査する
 
 ## テスト
 
 - UI（描画・操作・状態分岐）は `*.stories.tsx` の `play` で書く。UI のために `render()` する専用テストは作らない
-- DOM に触らないロジックは対象の隣に `*.test.ts`、Hono route は `src/worker/**/*.test.ts`（詳細は `testing` / `storybook-testing` skill）
-- wasm / Worker / Service Worker の実機相当の確認は `pnpm e2e:spike`（`scripts/e2e-spike.mjs`）。vitest とは別系統
+- DOM に触らないロジックは対象の隣に `*.test.ts` を置く（Node 環境。詳細は `testing` / `storybook-testing` skill）
+- ビルドスクリプトは `scripts/**/*.test.ts`（`scripts` プロジェクト、Node 環境）
+- wasm / Service Worker の実機相当の確認は `pnpm e2e` / `pnpm e2e:spike`（`scripts/e2e-*.mjs`）。vitest とは別系統
 
 ## ハマりどころ
 
-- Hono の method chain を切ると RPC の型が失われる。route 定義も `.route()` でのマウントも繋げたまま書く
-- `src/react-app` 配下の `*.test.ts` も Workers runtime で動く（`document` / `window` なし）。DOM が要るものは story にする
 - `routeTree.gen.ts` は自動生成だがコミット対象。手で編集しない
 - Go の実行は Dedicated Worker（`src/react-app/shared/lib/goRunner.worker.ts`）。無限ループは Yaegi 側で止められないため、タイムアウト・停止は `worker.terminate()` で行い Worker を作り直す
 - wasm は約 13MB あり Service Worker の precache 対象。`maximumFileSizeToCacheInBytes` を超えるファイルを増やすときは `vite.config.ts` も見る
 - `wasm_exec.js` は Go のバージョンと一致必須。`mise run build:wasm` が `go env GOROOT` からコピーする
-
-## DB・認証（add-on）
-
-main は DB なし・認証なしの最小構成。必要になったら手で作らず skill を適用する。
-
-- Cloudflare D1 + Drizzle ORM → `add-d1-drizzle` skill（`src/worker/db/` と `src/worker/repositories/` が増える）
-- Better Auth（GitHub OAuth）→ `add-better-auth` skill（`add-d1-drizzle` の適用が前提）
-- 適用済みかは `src/worker/db/` と `wrangler.json` の `d1_databases` の有無で分かる
+- ビルド出力は `dist`（`wrangler.json` の `assets.directory`）。`vitest` / Storybook は `vite.config.ts` を取り込むので、プラグインを足すときは両方で壊れないか確認する
 
 ## 外部スキル
 
@@ -90,7 +85,7 @@ main は DB なし・認証なしの最小構成。必要になったら手で�
 
 ## 参照
 
-- Hono RPC の型付け（`InferResponseType` / `zValidator`）→ `docs/hono-rpc-types.md`
 - 設計方針（コンテンツ、コード実行、オフライン）→ `docs/design.md`
+- 翻訳の用語・文体 → `docs/translation-guide.md`
 - wasm のビルド・シンボル再生成・既知の制約 → `wasm/README.md`
-- skill（`fsd` / `testing` / `storybook-testing` / `shadcn-ui` / `add-*` / `cloudflare` など）は description を見て、必要になったら読む
+- skill（`fsd` / `testing` / `storybook-testing` / `shadcn-ui` / `cloudflare` など）は description を見て、必要になったら読む

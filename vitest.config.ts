@@ -1,4 +1,3 @@
-import { cloudflareTest } from '@cloudflare/vitest-plugin';
 import { defaultExclude, defineConfig } from 'vitest/config';
 import path from 'node:path';
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
@@ -7,13 +6,6 @@ const dirname = import.meta.dirname;
 
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
-  plugins: [
-    cloudflareTest({
-      wrangler: {
-        configPath: './wrangler.json',
-      },
-    }),
-  ],
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, 'src'),
@@ -24,9 +16,11 @@ export default defineConfig({
       {
         extends: true,
         test: {
+          name: 'unit',
           globals: true,
-          // add-on skill の assets は「貼り付け用の実ファイル」であって
-          // このリポジトリでは解決できない import を含むため、テスト対象から外す。
+          environment: 'node',
+          // 外部スキル（skills-lock.json から復元）の assets は「貼り付け用の実ファイル」で、
+          // このリポジトリでは解決できない import を含むことがあるためテスト対象から外す。
           // .wt は git worktree の置き場（別ブランチの作業ツリー）。
           // scripts/ は Node 環境の project で別途動かす。
           exclude: [...defaultExclude, '**/skills/*/assets/**', '**/.wt/**', 'scripts/**'],
@@ -56,8 +50,7 @@ export default defineConfig({
         },
       },
       {
-        // コンテンツ生成スクリプトは node:fs を使うので workerd ではなく Node で動かす。
-        // extends: false で cloudflareTest プラグインを継承しない。
+        // コンテンツ生成・ライセンス収集のスクリプトは node:fs を使うので Node で動かす。
         extends: false,
         test: {
           name: 'scripts',

@@ -2,7 +2,7 @@
 /**
  * Service Worker の自動更新（registerType: 'autoUpdate'）の e2e。
  *
- * `pnpm build` 済みの dist/client を 2 つに複製し、それぞれ index.html の
+ * `pnpm build` 済みの dist を 2 つに複製し、それぞれ index.html の
  * title に別の目印を入れて、sw.js の precache revision も新しい index.html の
  * md5 に合わせて書き換える（sw.js が同一のままだと更新と判定されない）。
  * 自前の静的サーバーで配信先を old → new に差し替え、old の SW が入った
@@ -147,15 +147,15 @@ const reloadIgnoringInterruption = async (page) => {
 };
 
 const main = async () => {
-  if (!existsSync('dist/client/index.html')) {
-    throw new Error('dist/client がありません。先に `pnpm build` を実行してください');
+  if (!existsSync('dist/index.html')) {
+    throw new Error('dist がありません。先に `pnpm build` を実行してください');
   }
 
   const tempDir = await mkdtemp(join(tmpdir(), 'go-tour-e2e-update-'));
   const oldDir = join(tempDir, 'old');
   const newDir = join(tempDir, 'new');
-  await cp('dist/client', oldDir, { recursive: true });
-  await cp('dist/client', newDir, { recursive: true });
+  await cp('dist', oldDir, { recursive: true });
+  await cp('dist', newDir, { recursive: true });
   const oldTitle = await patchBuild(oldDir, 'old');
   const newTitle = await patchBuild(newDir, 'new');
 
