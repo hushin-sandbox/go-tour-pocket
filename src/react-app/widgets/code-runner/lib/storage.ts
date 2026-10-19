@@ -1,5 +1,5 @@
 /**
- * CodeRunner が localStorage に保存するもの（編集中のコード・文字サイズ）。
+ * CodeRunner が localStorage に保存するもの（編集中のコード・文字サイズ・折り返し）。
  *
  * DOM に依存しないので Workers runtime のテストからも使える。localStorage は
  * プライベートモードや容量超過で例外を投げることがあるため、読み書きはすべて
@@ -29,6 +29,7 @@ export const CODE_FONT_SIZE_OPTIONS: readonly { value: CodeFontSize; label: stri
 
 const DRAFT_KEY_PREFIX = 'go-tour-pocket:draft:';
 const FONT_SIZE_KEY = 'go-tour-pocket:code-font-size';
+const WRAP_KEY = 'go-tour-pocket:code-wrap';
 
 export function draftStorageKey(storageKey: string): string {
   return `${DRAFT_KEY_PREFIX}${storageKey}`;
@@ -96,6 +97,31 @@ export function saveCodeFontSize(storage: KeyValueStorage | null, size: CodeFont
 
 function isCodeFontSize(value: unknown): value is CodeFontSize {
   return value === 'sm' || value === 'md' || value === 'lg';
+}
+
+/**
+ * 保存済みの折り返し設定を読む。未保存・不正な値・storage なし・例外なら null
+ * （呼び出し側が画面幅などから初期値を決める）。
+ */
+export function loadCodeWrap(storage: KeyValueStorage | null): boolean | null {
+  if (storage === null) return null;
+  try {
+    const value = storage.getItem(WRAP_KEY);
+    if (value === 'on') return true;
+    if (value === 'off') return false;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveCodeWrap(storage: KeyValueStorage | null, wrap: boolean): void {
+  if (storage === null) return;
+  try {
+    storage.setItem(WRAP_KEY, wrap ? 'on' : 'off');
+  } catch {
+    // 保存できなくても折り返しの変更自体は反映する
+  }
 }
 
 function parseDraft(raw: string): CodeDraft | null {

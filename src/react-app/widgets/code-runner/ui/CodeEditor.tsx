@@ -7,7 +7,7 @@ import {
   indentUnit,
   syntaxHighlighting,
 } from '@codemirror/language';
-import { EditorState, Text } from '@codemirror/state';
+import { Compartment, EditorState, Text } from '@codemirror/state';
 import { EditorView, keymap, lineNumbers } from '@codemirror/view';
 import { tags } from '@lezer/highlight';
 import type { CodeFontSize } from '../lib/storage';
@@ -78,6 +78,8 @@ export interface CodeEditorProps {
   value: string;
   fileName: string;
   fontSize: CodeFontSize;
+  /** 長い行をエディタの幅で折り返すか */
+  lineWrapping: boolean;
   onChange: (value: string) => void;
   /** エディタにフォーカスがあるときの実行（Shift + Enter） */
   onRun?: () => void;
@@ -94,6 +96,7 @@ export function CodeEditor({
   value,
   fileName,
   fontSize,
+  lineWrapping,
   onChange,
   onRun,
   onFormat,
@@ -106,6 +109,8 @@ export function CodeEditor({
   const onFormatRef = useRef(onFormat);
   const initialValueRef = useRef(value);
   const fontSizeRef = useRef(fontSize);
+  const lineWrappingRef = useRef(lineWrapping);
+  const wrapCompartmentRef = useRef<Compartment | null>(null);
 
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -148,6 +153,10 @@ export function CodeEditor({
     const host = hostRef.current;
     if (host === null) return () => {};
 
+    // 折り返しはマウント後にも切り替えるため、専用の Compartment に入れておく。
+    const wrapCompartment = wrapCompartmentRef.current ?? new Compartment();
+    wrapCompartmentRef.current = wrapCompartment;
+
     const view = new EditorView({
       state: EditorState.create({
         doc: initialValueRef.current,
@@ -159,6 +168,7 @@ export function CodeEditor({
           syntaxHighlighting(highlightStyle),
           indentUnit.of('\t'),
           EditorState.tabSize.of(4),
+          wrapCompartment.of(lineWrappingRef.current ? EditorView.lineWrapping : []),
           // Shift + Enter / Ctrl (Cmd) + Enter は defaultKeymap の割り当てより先に
           // 見てほしいので、この 2 つを先頭に置く。
           keymap.of([
@@ -214,6 +224,17 @@ export function CodeEditor({
     if (view === null) return;
     view.contentDOM.setAttribute('aria-label', `${fileName} のコード`);
   }, [fileName]);
+
+  useEffect(() => {
+    if (lineWrappingRef.current === lineWrapping) return;
+    lineWrappingRef.current = lineWrapping;
+    const view = viewRef.current;
+    const compartment = wrapCompartmentRef.current;
+    if (view === null || compartment === null) return;
+    view.dispatch({
+      effects: compartment.reconfigure(lineWrapping ? EditorView.lineWrapping : []),
+    });
+  }, [lineWrapping]);
 
   useEffect(() => {
     if (fontSizeRef.current === fontSize) return;

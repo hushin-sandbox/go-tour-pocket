@@ -220,6 +220,63 @@ export const ChangeFontSize: Story = {
   },
 };
 
+export const ToggleLineWrapping: Story = {
+  name: '折り返しを切り替えて保存',
+  beforeEach: () => {
+    // ビューポート幅の既定値に左右されないよう、オフを保存してから描画する
+    window.localStorage.setItem('go-tour-pocket:code-wrap', 'off');
+  },
+  play: async ({ canvas, userEvent }) => {
+    const editor = await canvas.findByRole('textbox', { name: /packages.go のコード/ });
+    const button = await canvas.findByRole('button', { name: '折り返し' });
+    await expect(button).toHaveAttribute('title', '折り返し');
+    await expect(button).toHaveAttribute('aria-pressed', 'false');
+    await expect(editor).not.toHaveClass('cm-lineWrapping');
+
+    await userEvent.click(button);
+
+    await expect(button).toHaveAttribute('aria-pressed', 'true');
+    await expect(editor).toHaveClass('cm-lineWrapping');
+    await expect(window.localStorage.getItem('go-tour-pocket:code-wrap')).toBe('on');
+
+    await userEvent.click(button);
+
+    await expect(button).toHaveAttribute('aria-pressed', 'false');
+    await expect(editor).not.toHaveClass('cm-lineWrapping');
+    await expect(window.localStorage.getItem('go-tour-pocket:code-wrap')).toBe('off');
+  },
+};
+
+export const LineWrappingStoredOn: Story = {
+  name: '保存した折り返し（オン）で開く',
+  beforeEach: () => {
+    window.localStorage.setItem('go-tour-pocket:code-wrap', 'on');
+  },
+  play: async ({ canvas }) => {
+    const editor = await canvas.findByRole('textbox', { name: /packages.go のコード/ });
+    await expect(await canvas.findByRole('button', { name: '折り返し' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(editor).toHaveClass('cm-lineWrapping');
+  },
+};
+
+export const LineWrappingStoredOff: Story = {
+  name: '保存した折り返し（オフ）で開く',
+  beforeEach: () => {
+    window.localStorage.setItem('go-tour-pocket:code-wrap', 'off');
+  },
+  play: async ({ canvas }) => {
+    const editor = await canvas.findByRole('textbox', { name: /packages.go のコード/ });
+    await expect(await canvas.findByRole('button', { name: '折り返し' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    await expect(editor).not.toHaveClass('cm-lineWrapping');
+  },
+};
+
 export const FormatCode: Story = {
   name: 'フォーマットで本文が変わる',
   play: async ({ canvas, userEvent }) => {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlignLeft, ChevronDown, FileCode2, Play, RotateCcw, Square } from 'lucide-react';
+import { AlignLeft, ChevronDown, FileCode2, Play, RotateCcw, Square, WrapText } from 'lucide-react';
 import {
   DEFAULT_GO_TIMEOUT_MS,
   cn,
@@ -16,8 +16,10 @@ import {
   CODE_FONT_SIZE_OPTIONS,
   clearDraft,
   loadCodeFontSize,
+  loadCodeWrap,
   loadDraft,
   saveCodeFontSize,
+  saveCodeWrap,
   saveDraft,
   type CodeFontSize,
   type KeyValueStorage,
@@ -73,6 +75,16 @@ function describeError(error: unknown): string {
 }
 
 /**
+ * 折り返しの保存値がないときの初期値。スマホ幅では長い行がはみ出すため
+ * 折り返しを既定でオンにする。matchMedia がない環境ではオフ。
+ */
+function prefersWrapByDefault(): boolean {
+  return typeof window.matchMedia === 'function'
+    ? window.matchMedia('(max-width: 767px)').matches
+    : false;
+}
+
+/**
  * レッスン画面に埋め込む Go のコード実行ウィジェット。
  *
  * storageKey / codeHash が変わったら別の下書きとして扱いたいので、外側で key を
@@ -101,6 +113,7 @@ function CodeRunnerContent({
     return loadDraft(storage, storageKey, codeHash) ?? originalCode;
   });
   const [fontSize, setFontSize] = useState<CodeFontSize>(() => loadCodeFontSize(storage));
+  const [wrap, setWrap] = useState(() => loadCodeWrap(storage) ?? prefersWrapByDefault());
   const [items, setItems] = useState<GoRunEvent[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [isFormatting, setIsFormatting] = useState(false);
@@ -328,6 +341,12 @@ function CodeRunnerContent({
     saveCodeFontSize(storage, size);
   };
 
+  const handleWrap = () => {
+    const next = !wrap;
+    setWrap(next);
+    saveCodeWrap(storage, next);
+  };
+
   return (
     <section
       aria-label={`${fileName} のコード例`}
@@ -342,21 +361,35 @@ function CodeRunnerContent({
             {fileName}
           </span>
         </div>
-        <div className="flex items-center gap-1" role="group" aria-label="文字サイズ">
-          {CODE_FONT_SIZE_OPTIONS.map((option) => (
-            <Button
-              key={option.value}
-              type="button"
-              size="sm"
-              variant={fontSize === option.value ? 'secondary' : 'ghost'}
-              aria-pressed={fontSize === option.value}
-              aria-label={`文字サイズ ${option.label}`}
-              className="min-h-11 min-w-11"
-              onClick={() => handleFontSize(option.value)}
-            >
-              {option.label}
-            </Button>
-          ))}
+        <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1" role="group" aria-label="文字サイズ">
+            {CODE_FONT_SIZE_OPTIONS.map((option) => (
+              <Button
+                key={option.value}
+                type="button"
+                size="sm"
+                variant={fontSize === option.value ? 'secondary' : 'ghost'}
+                aria-pressed={fontSize === option.value}
+                aria-label={`文字サイズ ${option.label}`}
+                className="min-h-11 min-w-11"
+                onClick={() => handleFontSize(option.value)}
+              >
+                {option.label}
+              </Button>
+            ))}
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant={wrap ? 'secondary' : 'ghost'}
+            aria-pressed={wrap}
+            aria-label="折り返し"
+            title="折り返し"
+            className="min-h-11 min-w-11"
+            onClick={handleWrap}
+          >
+            <WrapText aria-hidden />
+          </Button>
         </div>
       </div>
 
@@ -371,6 +404,7 @@ function CodeRunnerContent({
           value={code}
           fileName={fileName}
           fontSize={fontSize}
+          lineWrapping={wrap}
           onChange={updateCode}
           onRun={() => void handleRunRef.current()}
           onFormat={() => void handleFormat()}

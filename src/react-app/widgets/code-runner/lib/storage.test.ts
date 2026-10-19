@@ -3,8 +3,10 @@ import {
   clearDraft,
   draftStorageKey,
   loadCodeFontSize,
+  loadCodeWrap,
   loadDraft,
   saveCodeFontSize,
+  saveCodeWrap,
   saveDraft,
   type KeyValueStorage,
 } from './storage';
@@ -126,5 +128,37 @@ describe('文字サイズ', () => {
   it('読み書きに失敗しても例外を投げない', () => {
     expect(loadCodeFontSize(throwingStorage)).toBe(DEFAULT_CODE_FONT_SIZE);
     expect(() => saveCodeFontSize(throwingStorage, 'sm')).not.toThrow();
+  });
+});
+
+describe('折り返し', () => {
+  it("'on' / 'off' を保存して真偽値で返す", () => {
+    const storage = new MemoryStorage();
+
+    saveCodeWrap(storage, true);
+    expect(storage.getItem('go-tour-pocket:code-wrap')).toBe('on');
+    expect(loadCodeWrap(storage)).toBe(true);
+
+    saveCodeWrap(storage, false);
+    expect(storage.getItem('go-tour-pocket:code-wrap')).toBe('off');
+    expect(loadCodeWrap(storage)).toBe(false);
+  });
+
+  it('未保存・不正な値は null にする', () => {
+    const storage = new MemoryStorage();
+    expect(loadCodeWrap(storage)).toBeNull();
+
+    storage.setItem('go-tour-pocket:code-wrap', 'true');
+    expect(loadCodeWrap(storage)).toBeNull();
+  });
+
+  it('storage がなくても例外を投げない', () => {
+    expect(loadCodeWrap(null)).toBeNull();
+    expect(() => saveCodeWrap(null, true)).not.toThrow();
+  });
+
+  it('読み書きに失敗しても例外を投げない', () => {
+    expect(loadCodeWrap(throwingStorage)).toBeNull();
+    expect(() => saveCodeWrap(throwingStorage, true)).not.toThrow();
   });
 });
