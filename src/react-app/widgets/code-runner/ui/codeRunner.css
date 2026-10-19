@@ -58,6 +58,20 @@
   color: var(--code-runner-editor-fg);
 }
 
+/*
+ * 幅の広い画面の右カラム（layout="fill"）用。親の高さいっぱいに広げ、
+ * エディタと実行結果をそれぞれ内部スクロールさせる。高さの上限は親が決める。
+ */
+.code-runner[data-layout='fill'] {
+  --code-runner-min-height: 0;
+  --code-runner-max-height: none;
+}
+
+.code-runner[data-layout='fill'] .code-runner-editor,
+.code-runner[data-layout='fill'] .code-runner-editor .cm-editor {
+  height: 100%;
+}
+
 .code-runner .cm-editor.cm-focused {
   outline: 2px solid var(--ring);
   outline-offset: -2px;

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/tanstack-react';
+import { useEffect, useRef, useState, type ComponentProps } from 'react';
 import { expect, waitFor, within } from 'storybook/test';
 import { draftStorageKey, saveDraft } from '../lib/storage';
 import { CodeRunner } from './CodeRunner';
@@ -298,6 +299,64 @@ export const RunWithShiftEnterOutsideEditor: Story = {
 
     const output = await canvas.findByRole('log');
     await expect(await within(output).findByText('outside')).toBeVisible();
+  },
+};
+
+/**
+ * モーダルのダイアログ（表示設定や目次）を開いている間は、エディタ外の
+ * Shift + Enter でコードを実行しない。フォーカスはダイアログ自身に置いて、
+ * 「ボタンの上だから偶然避けられた」ではないことを確かめる。
+ */
+function DialogHarness(args: ComponentProps<typeof CodeRunner>) {
+  const [open, setOpen] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog === null) return;
+    if (open && !dialog.open) dialog.showModal();
+    if (!open && dialog.open) dialog.close();
+  }, [open]);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <button type="button" onClick={() => setOpen(true)}>
+        ダイアログを開く
+      </button>
+      <CodeRunner {...args} />
+      <dialog
+        ref={dialogRef}
+        tabIndex={-1}
+        aria-label="テスト用ダイアログ"
+        onClose={() => setOpen(false)}
+      >
+        <p>ダイアログを開いている間は Shift + Enter で実行しない。</p>
+        <button type="button" onClick={() => setOpen(false)}>
+          閉じる
+        </button>
+      </dialog>
+    </div>
+  );
+}
+
+export const NoRunWhileDialogOpen: Story = {
+  name: 'ダイアログ内では Shift + Enter で実行しない',
+  args: {
+    engine: createMockEngine({ events: [{ type: 'stdout', data: 'dialog\n' }] }),
+  },
+  render: (args) => <DialogHarness {...args} />,
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(await canvas.findByRole('button', { name: 'ダイアログを開く' }));
+    const dialog = await canvas.findByRole('dialog', { name: 'テスト用ダイアログ' });
+    await expect(dialog).toBeVisible();
+    dialog.focus();
+
+    await userEvent.keyboard('{Shift>}{Enter}{/Shift}');
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const output = canvas.getByRole('log');
+    await expect(within(output).queryByText('dialog')).not.toBeInTheDocument();
+    await expect(dialog).toBeVisible();
   },
 };
 

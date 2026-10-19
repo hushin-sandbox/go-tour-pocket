@@ -3,7 +3,7 @@
  * アプリ全体の通し e2e。
  *
  * `pnpm build` 済みの dist を vite preview で配信し、Playwright（chromium の
- * iPhone 13 エミュレーション）で次を確認する。
+ * iPhone 13 エミュレーションと 1280x800 のデスクトップ）で次を確認する。
  *
  *   1. 一覧 → basics/1 を開く → 対訳が出る → 表示モードを切り替える → 次へで 2 ページ目
  *   2. コードを実行して出力が出る。実 wasm で Ctrl + Enter の整形（gofmt 済みになる）と
@@ -15,6 +15,9 @@
  *   5. オフラインで /licenses を、目次シートのリンク（クライアント遷移）と直接アクセスの
  *      両方から開ける。ライセンス本文は JS チャンクに埋め込まれていて、
  *      precache 対象外の licenses.json は取得しない
+ *   6. デスクトップ幅（1280x800）では本文とコードが 2 カラムになり、コードは Header の
+ *      下に貼り付いてスクロールしても見え続ける。Header の表示設定、コード実行、
+ *      PageDown でのページ送りも確認する
  *
  * vitest / Storybook とは別系統（`pnpm e2e`）。`pnpm e2e:spike` は /spike 専用で残す。
  */
@@ -58,11 +61,7 @@ const waitForEnabled = async (locator, timeoutMs) => {
   }
 };
 
-/**
- * 固定フッター（前へ・次へ）の下にボタンが潜り込むことがあるため、
- * 画面中央に寄せてからマウスで押す。CodeMirror にフォーカスがあると
- * Playwright の自動スクロールと競合するので、位置を決めてクリックする。
- */
+/** 画面中央に寄せてからマウスで押す。位置を決めてクリックすると安定する。 */
 const clickCentered = async (page, locator) => {
   await locator.evaluate((element) => element.scrollIntoView({ block: 'center' }));
   const box = await locator.boundingBox();
@@ -82,6 +81,21 @@ const runCode = async (page) => {
     .waitFor({ timeout: RUN_TIMEOUT_MS });
   await waitForEnabled(runButton, 30_000);
   return output;
+};
+
+/** Header 右端の「表示設定」を開く。 */
+const openDisplaySettings = async (page) => {
+  await page.getByRole('button', { name: '表示設定' }).click();
+  const dialog = page.getByRole('dialog', { name: '表示設定' });
+  await dialog.waitFor();
+  return dialog;
+};
+
+/** 表示設定のシート／ダイアログを閉じる。 */
+const closeDisplaySettings = async (page) => {
+  const dialog = page.getByRole('dialog', { name: '表示設定' });
+  await dialog.getByRole('button', { name: '表示設定を閉じる' }).click();
+  await dialog.waitFor({ state: 'hidden' });
 };
 
 /** CodeMirror の本文を行単位で取り出す（textContent は改行を保たないため）。 */
@@ -166,17 +180,38 @@ const main = async () => {
     log('bilingual', '英語と日本語の対訳が表示された');
 
     // 表示モード: 英語のみ → 訳を開く → 日本語のみ → 対訳
-    await page.getByRole('button', { name: '英語のみ', exact: true }).click();
+    // （切り替えは Header 右端の「表示設定」メニューから行う）
+    let settings = await openDisplaySettings(page);
+    await settings.getByRole('button', { name: '英語のみ', exact: true }).click();
+    await closeDisplaySettings(page);
     await japaneseParagraph.waitFor({ state: 'hidden' });
     assert.ok(await englishParagraph.isVisible(), '英語の本文が表示されていない');
     await page.getByRole('button', { name: '訳を表示' }).first().click();
     await japaneseParagraph.waitFor({ state: 'visible' });
-    await page.getByRole('button', { name: '日本語のみ', exact: true }).click();
+    settings = await openDisplaySettings(page);
+    await settings.getByRole('button', { name: '日本語のみ', exact: true }).click();
+    await closeDisplaySettings(page);
     assert.ok(await japaneseParagraph.isVisible(), '日本語の本文が表示されていない');
     await englishParagraph.waitFor({ state: 'hidden' });
-    await page.getByRole('button', { name: '対訳', exact: true }).click();
+    settings = await openDisplaySettings(page);
+    await settings.getByRole('button', { name: '対訳', exact: true }).click();
+    await closeDisplaySettings(page);
     await englishParagraph.waitFor({ state: 'visible' });
-    log('display-mode', '対訳 → 英語のみ → 訳を開く → 日本語のみ → 対訳 を切り替えられた');
+    log(
+      'display-mode',
+      'Header の表示設定から 対訳 → 英語のみ → 訳を開く → 日本語のみ → 対訳 を切り替えられた',
+    );
+
+    // 前へ・次へには PageUp / PageDown のショートカットがあることを示す
+    assert.equal(
+      await page.getByRole('link', { name: /前へ/ }).getAttribute('aria-keyshortcuts'),
+      'PageUp',
+    );
+    assert.equal(
+      await page.getByRole('link', { name: /次へ/ }).getAttribute('aria-keyshortcuts'),
+      'PageDown',
+    );
+    log('shortcut-hint', '前へ・次へに aria-keyshortcuts が付いている');
 
     // 次へで 2 ページ目
     await page.getByRole('link', { name: /次へ/ }).click();
@@ -313,6 +348,90 @@ const main = async () => {
     await context.setOffline(false);
 
     assert.deepEqual(pageErrors, [], `pageerror が発生した: ${pageErrors.join(' / ')}`);
+
+    // 6. デスクトップ幅（1280x800）では、本文とコードの 2 カラムになり、
+    //    コードは Header の下に貼り付いてスクロールしても見え続ける。
+    //    コード実行と PageDown でのページ送りもここで確かめる。
+    const desktopContext = await browser.newContext({
+      viewport: { width: 1280, height: 800 },
+      locale: 'ja-JP',
+    });
+    const desktopPage = await desktopContext.newPage();
+    const desktopErrors = [];
+    desktopPage.on('pageerror', (error) => desktopErrors.push(error.message));
+
+    await desktopPage.goto(`${BASE_URL}/tour/welcome/1`, { waitUntil: 'load' });
+    await desktopPage.getByRole('heading', { level: 1, name: 'Hello, 世界' }).waitFor();
+
+    const headerBox = await desktopPage.getByRole('banner').boundingBox();
+    const articleBox = await desktopPage.getByRole('article').boundingBox();
+    const codeRegion = desktopPage.getByRole('region', { name: /のコード例$/ });
+    const codeBox = await codeRegion.boundingBox();
+    assert.ok(headerBox && articleBox && codeBox, '2 カラムの要素が見つからない');
+    assert.ok(
+      codeBox.x >= articleBox.x + articleBox.width - 1,
+      '本文の右側にコードが並んでいない（2 カラムになっていない）',
+    );
+    assert.ok(
+      headerBox.y + headerBox.height <= codeBox.y + 1,
+      'コードが Header の下から始まっていない',
+    );
+    assert.ok(
+      codeBox.y + codeBox.height <= 800,
+      'コードがビューポートの高さいっぱいに収まっていない',
+    );
+    assert.equal(
+      await codeRegion.evaluate((element) => getComputedStyle(element.parentElement).position),
+      'sticky',
+      '右カラムが sticky になっていない',
+    );
+    log('desktop-columns', '1280x800 で本文とコードの 2 カラムになった');
+
+    // 本文をスクロールしても右カラムは Header の下に残る。
+    // 先に少しスクロールして sticky が効いた位置（Header の直下）を覚え、
+    // さらにスクロールしても同じ位置にいることを確かめる。
+    await desktopPage.evaluate(() => window.scrollTo(0, 200));
+    await desktopPage.waitForFunction(() => window.scrollY >= 200);
+    const stickyBox = await codeRegion.boundingBox();
+    assert.ok(stickyBox.y >= headerBox.y + headerBox.height - 1, '右カラムが Header に重なった');
+    await desktopPage.evaluate(() => window.scrollTo(0, 600));
+    await desktopPage.waitForFunction(() => window.scrollY >= 600);
+    const stickyBoxAfter = await codeRegion.boundingBox();
+    assert.ok(
+      Math.abs(stickyBoxAfter.y - stickyBox.y) <= 1,
+      'スクロールで右カラムが動いてしまった',
+    );
+    log('desktop-sticky', 'スクロールしてもコードの右カラムが Header の下に残った');
+
+    // 表示設定は Header のメニューから（デスクトップでも同じ）
+    await desktopPage.evaluate(() => window.scrollTo(0, 0));
+    const desktopSettings = await openDisplaySettings(desktopPage);
+    await desktopSettings.getByRole('button', { name: '英語のみ', exact: true }).click();
+    await closeDisplaySettings(desktopPage);
+    await desktopPage
+      .getByText('ページの移動には、次の方法を使います。')
+      .waitFor({ state: 'hidden' });
+    log('desktop-display-mode', 'Header の表示設定から英語のみに切り替えられた');
+
+    // コード実行（エディタは右カラムの中でスクロールする）
+    const desktopOutput = await runCode(desktopPage);
+    await desktopOutput.getByText('Hello, 世界').first().waitFor({ timeout: RUN_TIMEOUT_MS });
+    log('desktop-run', 'デスクトップでもコードが実行できた');
+
+    // エディタの外にフォーカスを移してから PageDown で次のページへ
+    await desktopPage.getByRole('heading', { level: 1, name: 'Hello, 世界' }).click();
+    await desktopPage.keyboard.press('PageDown');
+    await desktopPage.waitForURL('**/tour/welcome/2');
+    await desktopPage.getByRole('heading', { level: 1, name: 'Go local' }).waitFor();
+    log('desktop-pagedown', 'PageDown で welcome/2 へ進んだ');
+
+    assert.deepEqual(
+      desktopErrors,
+      [],
+      `desktop pageerror が発生した: ${desktopErrors.join(' / ')}`,
+    );
+    await desktopContext.close();
+
     log('done', 'すべての確認に成功した');
   } catch (error) {
     console.error('[e2e-app] FAILED:', error);

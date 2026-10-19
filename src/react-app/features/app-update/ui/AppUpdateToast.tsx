@@ -5,17 +5,13 @@ type AppUpdateToastProps = {
 };
 
 /**
- * 画面下部のトースト。下部固定ナビと重ならないよう、位置は CSS 変数
- * `--toast-bottom-offset` で外から調整できる（既定は safe-area + 1rem）。
+ * 画面下部のトースト。ナビは固定しないので、位置は safe-area + 1rem で足りる。
  */
 export function AppUpdateToast({ open, title, description }: AppUpdateToastProps) {
   if (!open) return null;
 
   return (
-    <div
-      className="pointer-events-none fixed inset-x-0 z-50 flex justify-center px-4"
-      style={{ bottom: 'var(--toast-bottom-offset, calc(env(safe-area-inset-bottom) + 1rem))' }}
-    >
+    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+1rem)] z-50 flex justify-center px-4">
       <div
         role="status"
         aria-live="polite"
