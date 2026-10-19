@@ -7,9 +7,13 @@
  *
  *   1. 一覧 → basics/1 を開く → 対訳が出る → 表示モードを切り替える → 次へで 2 ページ目
  *   2. コードを実行して出力が出る
- *   3. 一覧の「続きから」が最後に開いたページを指す
+ *   3. 一覧の「続きから」が最後に開いたページを指す。一覧下部の /licenses リンクが
+ *      フルリロードなしで /licenses を開く
  *   4. Service Worker の制御下でオフラインにし、未読の concurrency/1 を開いて
  *      本文の表示・コード実行ができる（オフラインリロードも含む）
+ *   5. オフラインで /licenses を、目次シートのリンク（クライアント遷移）と直接アクセスの
+ *      両方から開ける。ライセンス本文は JS チャンクに埋め込まれていて、
+ *      precache 対象外の licenses.json は取得しない
  *
  * vitest / Storybook とは別系統（`pnpm e2e`）。`pnpm e2e:spike` は /spike 専用で残す。
  */
@@ -158,6 +162,25 @@ const main = async () => {
     // 3. 「続きから」が最後に開いたページ（basics/2）を指す
     await page.getByRole('link', { name: 'Go Tour Pocket' }).click();
     await page.waitForURL(BASE_URL + '/');
+
+    // 一覧下部の /licenses がクライアント遷移になっている（フルリロードしない）。
+    // フルリロードが起きると window のマーカーが消えるので、それで判定する。
+    await page.evaluate(() => {
+      window.e2eSpaMarker = true;
+    });
+    await page.getByRole('link', { name: 'ライセンス', exact: true }).click();
+    await page.waitForURL('**/licenses');
+    await page.getByRole('table', { name: 'ライセンスの要約' }).waitFor();
+    assert.equal(
+      await page.evaluate(() => window.e2eSpaMarker),
+      true,
+      '一覧下部の /licenses リンクでフルリロードが起きた',
+    );
+    log('licenses-link', '一覧下部から /licenses へクライアント遷移した');
+    await page.goBack();
+    await page.waitForURL(BASE_URL + '/');
+    await page.getByRole('heading', { level: 1, name: 'Go Tour Pocket' }).waitFor();
+
     const continueSection = page.locator('section[aria-labelledby="continue-heading"]');
     await continueSection.waitFor();
     const continueText = await continueSection.innerText();
@@ -207,6 +230,31 @@ const main = async () => {
     await page.reload({ waitUntil: 'load' });
     await page.getByRole('heading', { level: 1, name: 'ゴルーチン' }).waitFor();
     log('offline-reload', 'オフラインでリロードしても表示できた');
+
+    // 5. オフラインで /licenses。データは JS チャンクに埋め込まれているので、
+    //    precache 対象外の licenses.json を取得しなくても表示できる。
+    const licensesJsonRequests = [];
+    page.on('request', (request) => {
+      if (request.url().endsWith('/licenses.json')) licensesJsonRequests.push(request.url());
+    });
+
+    await page.getByRole('button', { name: '目次', exact: true }).click();
+    await page.getByRole('dialog').getByRole('link', { name: 'ライセンス' }).click();
+    await page.waitForURL('**/licenses');
+    await page.getByRole('table', { name: 'ライセンスの要約' }).waitFor();
+    await page.getByRole('rowheader', { name: /A Tour of Go の本文/ }).waitFor();
+    log('offline-licenses', 'オフラインで目次シートから /licenses を開けた（クライアント遷移）');
+
+    await page.goto(`${BASE_URL}/licenses`, { waitUntil: 'load' });
+    await page.getByRole('heading', { level: 1, name: 'ライセンス' }).waitFor();
+    await page.getByRole('table', { name: 'ライセンスの要約' }).waitFor();
+    await page.getByRole('rowheader', { name: /A Tour of Go の本文/ }).waitFor();
+    log('offline-licenses-goto', 'オフラインで /licenses に直接アクセスしても表示できた');
+    assert.deepEqual(
+      licensesJsonRequests,
+      [],
+      '/licenses.json を取得しようとした（precache 対象外なので、データは JS チャンクに埋め込む）',
+    );
 
     await context.setOffline(false);
 
