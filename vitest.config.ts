@@ -28,7 +28,8 @@ export default defineConfig({
           // add-on skill の assets は「貼り付け用の実ファイル」であって
           // このリポジトリでは解決できない import を含むため、テスト対象から外す。
           // .wt は git worktree の置き場（別ブランチの作業ツリー）。
-          exclude: [...defaultExclude, '**/skills/*/assets/**', '**/.wt/**'],
+          // scripts/ は Node 環境の project で別途動かす。
+          exclude: [...defaultExclude, '**/skills/*/assets/**', '**/.wt/**', 'scripts/**'],
         },
       },
       {
@@ -52,6 +53,16 @@ export default defineConfig({
               },
             ],
           },
+        },
+      },
+      {
+        // コンテンツ生成スクリプトは node:fs を使うので workerd ではなく Node で動かす。
+        // extends: false で cloudflareTest プラグインを継承しない。
+        extends: false,
+        test: {
+          name: 'scripts',
+          environment: 'node',
+          include: ['scripts/**/*.test.ts'],
         },
       },
     ],
