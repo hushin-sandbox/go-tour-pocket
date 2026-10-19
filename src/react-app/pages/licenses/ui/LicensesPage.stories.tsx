@@ -104,7 +104,7 @@ export const Default: Story = {
       'href',
       'https://react.dev/',
     );
-    await expect(within(table).getByRole('columnheader', { name: '著作者' })).toBeVisible();
+    await expect(within(table).getByRole('columnheader', { name: '著作者・リンク' })).toBeVisible();
     await expect(
       within(table).getByRole('rowheader', { name: 'A Tour of Go の本文（英語原文）' }),
     ).toBeVisible();
