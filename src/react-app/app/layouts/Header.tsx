@@ -8,14 +8,11 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/80 backdrop-blur-md">
       <div className="container mx-auto flex h-14 items-center gap-6 px-4">
         <Link to="/" className="font-heading text-sm font-semibold tracking-tight">
-          My App
+          Go Tour Pocket
         </Link>
         <nav className="flex items-center">
           <Link to="/" className={navLinkClass}>
             ホーム
-          </Link>
-          <Link to="/example-todo" className={navLinkClass}>
-            Todo
           </Link>
         </nav>
       </div>

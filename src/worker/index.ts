@@ -1,10 +1,8 @@
 import { Hono } from 'hono';
-import exampleTodoRoute from './routes/example-todo';
 
 const app = new Hono<{ Bindings: Env }>()
   .basePath('/api')
-  .get('/health', (c) => c.json({ status: 'ok' }))
-  .route('/example-todo', exampleTodoRoute);
+  .get('/health', (c) => c.json({ status: 'ok' }));
 
 // run_worker_first: ["/api/*"] により /api/* だけが Worker に到達する
 export default {

@@ -38,10 +38,10 @@ Hono の Worker は静的配信と SPA フォールバックだけを担う。AP
 
 ```ts
 type Lesson = {
-  id: string;            // "basics"
+  id: string; // "basics"
   title: string;
   description: string;
-  pages: Page[];         // 0 始まり。URL は 1 始まり
+  pages: Page[]; // 0 始まり。URL は 1 始まり
 };
 type Page = {
   title: string;
@@ -49,10 +49,10 @@ type Page = {
   code?: { name: string; content: string }; // .play のファイル。OMIT 行を除去済み
 };
 type Block =
-  | { id: string; hash: string; kind: "p"; text: string }         // 段落
-  | { id: string; hash: string; kind: "list"; items: string[] }   // "- " で始まる箇条書き
-  | { id: string; kind: "pre"; text: string }                     // タブ字下げのコードブロック（訳さない）
-  | { id: string; kind: "image"; src: string };                   // .image（訳さない）
+  | { id: string; hash: string; kind: 'p'; text: string } // 段落
+  | { id: string; hash: string; kind: 'list'; items: string[] } // "- " で始まる箇条書き
+  | { id: string; kind: 'pre'; text: string } // タブ字下げのコードブロック（訳さない）
+  | { id: string; kind: 'image'; src: string }; // .image（訳さない）
 ```
 
 - `id` は `<lesson>/<pageIndex>/<blockIndex>`。`hash` は原文テキストの SHA-1（先頭 12 桁）

@@ -1,14 +1,12 @@
-# [プロジェクト名]
+# go-tour-pocket
 
-<!-- TODO: アプリのテンプレートなので書き換える -->
+A Tour of Go を英日対訳・オフラインで学べるスマホ向け PWA。
 
-[このアプリの概要説明を書く]
+Tour の英語原文と日本語訳を段落ごとに対訳表示し、コード例はブラウザ内の Go インタプリタ
+（Yaegi を wasm 化したもの）で実行する。iOS Safari（ホーム画面追加）と Android Chrome
+（インストール済み PWA）の両方で、機内モードでも動くことを目標にしている。
 
-## テンプレートから引き継いだ設定
-
-Dependabot と外部スキル（`skills-lock.json`）はテンプレート本体の運用向けの設定です。扱いと、
-アプリを作るときの置換箇所・削除対象は `.agents/skills/template-maintenance/SKILL.md` に
-まとめてあります。アプリではその skill ごと削除して、この節も消してください。
+設計の詳細は [`docs/design.md`](docs/design.md) を参照。
 
 ## Tech Stack
 
@@ -20,6 +18,7 @@ Dependabot と外部スキル（`skills-lock.json`）はテンプレート本体
 | データ取得     | TanStack Query                                                                          |
 | バックエンド   | Hono 4（Workers 上で動作）, zod, @hono/zod-validator                                    |
 | ビルドツール   | Vite 8, @cloudflare/vite-plugin, @tanstack/router-plugin                                |
+| PWA            | vite-plugin-pwa（Workbox）, Web Worker, Go + Yaegi（wasm）                              |
 | デプロイ       | Wrangler 4, Cloudflare Workers                                                          |
 | Lint / Format  | oxlint, oxfmt, steiger（FSD 構造）, dependency-cruiser（依存の向き）                    |
 | UI カタログ    | Storybook 10（@storybook/tanstack-react）, MSW                                          |
@@ -39,9 +38,6 @@ Dependabot と外部スキル（`skills-lock.json`）はテンプレート本体
 | Cloudflare D1 + Drizzle ORM | `add-d1-drizzle`  | なし                    |
 | Better Auth（GitHub OAuth） | `add-better-auth` | `add-d1-drizzle` 適用済 |
 
-これらの手順が実態とズレないよう、適用しきった状態を `example/*` ブランチで維持している
-（直接 merge して使うものではない）。同期の手順は `template-maintenance` skill を参照。
-
 ## ディレクトリ構造
 
 ```
@@ -58,10 +54,10 @@ Dependabot と外部スキル（`skills-lock.json`）はテンプレート本体
 │   │   ├── app/           # provider / router 初期化、layouts
 │   │   ├── routes/        # TanStack Router file-based routes（薄い route 定義）
 │   │   ├── pages/         # 画面本体（URL セグメント単位のスライス）
-│   │   └── shared/        # ui（shadcn/ui）, lib（cn, msw-hono）, api（hc クライアント）
+│   │   └── shared/        # ui（shadcn/ui）, lib（cn, msw-hono, Go runner）, api（hc クライアント）
 │   └── shared/            # worker / react-app 共通コード
 │       └── schemas/       # zod スキーマ
-├── public/                # 静的アセット
+├── public/                # 静的アセット（wasm は build:wasm の生成物で gitignore）
 ├── dist/                  # ビルド出力
 ├── docs/                  # ドキュメント
 ├── wrangler.json          # Wrangler 設定
@@ -70,7 +66,7 @@ Dependabot と外部スキル（`skills-lock.json`）はテンプレート本体
 ├── steiger.config.ts      # FSD の構造 lint
 ├── .dependency-cruiser.mjs # レイヤー間の import 方向の lint
 ├── tsconfig.*.json
-└── mise.toml              # ツールバージョン管理
+└── mise.toml              # ツールバージョン管理（Node / pnpm / Go）
 ```
 
 story（`*.stories.tsx`）と MSW モック（`*.mock.ts`）は対象ファイルの隣に置く。
@@ -84,7 +80,7 @@ story（`*.stories.tsx`）と MSW モック（`*.mock.ts`）は対象ファイ�
 
 ```bash
 # 環境セットアップ
-mise install          # Node, pnpm などのバージョンを揃える
+mise install          # Node, pnpm, Go などのバージョンを揃える
 mise run setup        # pnpm install + 外部スキル復元 + Playwright + lefthook install
 
 # 開発
@@ -94,7 +90,7 @@ pnpm dev              # 開発サーバー起動（localhost:5173）
 pnpm build            # プロダクションビルド
 pnpm preview          # ビルドしたものをローカルプレビュー
 pnpm run deploy       # Cloudflare Workers にデプロイ (run が必要)
-pnpm check            # 型チェック + ビルド + dry-run
+pnpm check            # lint + 整形チェック + ビルド + dry-run
 
 # Lint / Format
 pnpm lint             # lint チェック（oxlint + steiger + dependency-cruiser）

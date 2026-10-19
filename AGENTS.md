@@ -1,15 +1,15 @@
-# [プロジェクト名]
+# go-tour-pocket
 
-<!-- TODO: アプリのテンプレートなので書き換える -->
-
-[このアプリの概要説明]
+A Tour of Go を英日対訳・オフラインで学べるスマホ向け PWA。
 
 Cloudflare Workers / Hono 4 / React 19 + Vite 8 / TanStack Router・Form・Query /
 shadcn/ui（base UI）+ Tailwind v4 / zod / Vitest + Storybook 10 / oxlint + oxfmt
 
+設計の詳細は `docs/design.md` を参照する。
+
 ## 作業のルール
 
-- パッケージマネージャは pnpm（mise で Node 24 / pnpm 12 を固定）
+- パッケージマネージャは pnpm（mise で Node 24 / pnpm 12 / Go 1.25 を固定）
 - 変更が一区切りしたら `pnpm check` と `pnpm test` を通す。型チェックは oxlint が兼ねるので `pnpm check` で型エラーまで見える
 - `worker-configuration.d.ts` は `pnpm cf-typegen` の生成物。手で編集しない
 - コミットメッセージは Conventional Commits
@@ -19,7 +19,7 @@ shadcn/ui（base UI）+ Tailwind v4 / zod / Vitest + Storybook 10 / oxlint + oxf
 ## コマンド
 
 ```bash
-pnpm check       # 検証: lint（型チェック込み）+ fmt:check + vite build + deploy --dry-run
+pnpm check       # 検証: lint（型チェック込み）+ fmt:check + build + deploy --dry-run
 pnpm test        # 検証: vitest run（worker + storybook）
 pnpm lint        # lint だけ（oxlint + steiger + dependency-cruiser）
 pnpm fmt         # 整形（oxfmt）。lint の自動修正は pnpm lint:fix
@@ -83,5 +83,5 @@ main は DB なし・認証なしの最小構成。必要になったら手で�
 ## 参照
 
 - Hono RPC の型付け（`InferResponseType` / `zValidator`）→ `docs/hono-rpc-types.md`
+- 設計方針（コンテンツ、コード実行、オフライン）→ `docs/design.md`
 - skill（`fsd` / `testing` / `storybook-testing` / `shadcn-ui` / `add-*` / `cloudflare` など）は description を見て、必要になったら読む
-- テンプレート本体のメンテ（参照実装ブランチ、`skills:check`、Dependabot、アプリへの展開）→ `template-maintenance` skill
