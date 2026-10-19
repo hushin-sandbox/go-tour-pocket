@@ -15,5 +15,5 @@ export {
   type FontSize,
   type SettingsStorage,
 } from './model/display-settings';
-export { useDisplaySettings } from './model/use-display-settings';
-export { DisplayModeSwitcher } from './ui/DisplayModeSwitcher';
+export { DisplaySettingsProvider, useDisplaySettings } from './model/display-settings-context';
+export { DisplaySettingsMenu } from './ui/DisplaySettingsMenu';

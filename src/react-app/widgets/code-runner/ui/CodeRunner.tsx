@@ -49,6 +49,11 @@ export interface CodeRunnerProps {
   timeoutMs?: number;
   /** 実行エンジン。省略時は shared/lib の wasm ランナーを使う */
   engine?: GoRunnerEngine;
+  /**
+   * `fill` は親の高さいっぱいに広げ、エディタと実行結果をそれぞれ内部スクロールさせる
+   * （幅の広い画面の 2 カラム右側で使う）。既定は本文に埋め込む `inline`。
+   */
+  layout?: 'inline' | 'fill';
   className?: string;
 }
 
@@ -84,8 +89,10 @@ function CodeRunnerContent({
   codeHash,
   timeoutMs = DEFAULT_GO_TIMEOUT_MS,
   engine: engineProp,
+  layout = 'inline',
   className,
 }: CodeRunnerProps) {
+  const isFilled = layout === 'fill';
   const storage = useMemo(() => getBrowserStorage(), []);
   const engineRef = useRef<GoRunnerEngine>(engineProp ?? defaultEngine);
 
@@ -284,6 +291,7 @@ function CodeRunnerContent({
   /**
    * エディタの外（レッスン画面のどこか）にフォーカスがあるときの Shift + Enter。
    * 入力欄・ボタン・リンク・ダイアログの操作とは衝突させない。
+   * 表示設定や目次は `<dialog>`（`role` 属性なし）なので、`dialog[open]` で見る。
    */
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -294,7 +302,7 @@ function CodeRunnerContent({
       if (
         target instanceof Element &&
         target.closest(
-          'input, textarea, select, button, a, [contenteditable="true"], .cm-editor, [role="dialog"]',
+          'input, textarea, select, button, a, [contenteditable="true"], .cm-editor, [role="dialog"], dialog[open]',
         ) !== null
       ) {
         return;
@@ -324,7 +332,8 @@ function CodeRunnerContent({
     <section
       aria-label={`${fileName} のコード例`}
       data-font-size={fontSize}
-      className={cn('code-runner flex flex-col gap-3', className)}
+      data-layout={layout}
+      className={cn('code-runner flex flex-col gap-3', isFilled && 'h-full min-h-0', className)}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
@@ -351,7 +360,12 @@ function CodeRunnerContent({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+      <div
+        className={cn(
+          'overflow-hidden rounded-lg border border-border bg-card shadow-sm',
+          isFilled && 'min-h-0 flex-1',
+        )}
+      >
         <CodeEditor
           ref={editorRef}
           value={code}
@@ -413,33 +427,47 @@ function CodeRunnerContent({
         ) : null}
       </div>
 
-      {formatError === null ? null : (
-        <p role="status" className="text-xs leading-5 text-destructive">
-          フォーマットできませんでした: {formatError}
-        </p>
-      )}
+      <div
+        className={cn(
+          'flex flex-col gap-3',
+          // 高さを固定した右カラムでは、出力と既知の差異をまとめて内部スクロールさせる。
+          // 出力が短いときはエディタに高さを譲り、長いときは 45% までで頭打ちにする。
+          isFilled && 'max-h-[45%] min-h-0 shrink-0 overflow-y-auto overscroll-contain',
+        )}
+      >
+        {formatError === null ? null : (
+          <p role="status" className="text-xs leading-5 text-destructive">
+            フォーマットできませんでした: {formatError}
+          </p>
+        )}
 
-      <RunOutput items={items} isRunning={isRunning} loadState={loadState} loadError={loadError} />
+        <RunOutput
+          items={items}
+          isRunning={isRunning}
+          loadState={loadState}
+          loadError={loadError}
+        />
 
-      <details className="group rounded-lg border border-border bg-muted/20 px-3 text-xs">
-        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 font-medium [&::-webkit-details-marker]:hidden">
-          既知の差異
-          <ChevronDown
-            className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
-            aria-hidden
-          />
-        </summary>
-        <ul className="mt-1 mb-3 list-disc space-y-1 pl-4 leading-5 text-muted-foreground">
-          <li>時刻は実時間です（go.dev は 2009-11-10 23:00 UTC に固定されています）。</li>
-          <li>
-            <code>runtime.GOOS</code> は <code>js</code> になります。
-          </li>
-          <li>
-            <code>%T</code> の型名が gc と異なる場合があります。
-          </li>
-          <li>不正なコード（return の欠落など）を受理する場合があります。</li>
-        </ul>
-      </details>
+        <details className="group shrink-0 rounded-lg border border-border bg-muted/20 px-3 text-xs">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 font-medium [&::-webkit-details-marker]:hidden">
+            既知の差異
+            <ChevronDown
+              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+              aria-hidden
+            />
+          </summary>
+          <ul className="mt-1 mb-3 list-disc space-y-1 pl-4 leading-5 text-muted-foreground">
+            <li>時刻は実時間です（go.dev は 2009-11-10 23:00 UTC に固定されています）。</li>
+            <li>
+              <code>runtime.GOOS</code> は <code>js</code> になります。
+            </li>
+            <li>
+              <code>%T</code> の型名が gc と異なる場合があります。
+            </li>
+            <li>不正なコード（return の欠落など）を受理する場合があります。</li>
+          </ul>
+        </details>
+      </div>
     </section>
   );
 }

@@ -1,0 +1,15 @@
+/*
+ * 幅の広い画面（1024px 以上）の 2 カラム用。
+ *
+ * 右のコードはアプリ Header の下に sticky で貼り付き、ビューポートの高さを
+ * 使い切る。固定するのは Header だけなので、高さは
+ * 「100dvh - Header（safe-area + 3rem + border 1px）」から上下の余白を引く。
+ * レッスンのヘッダや前へ・次へのナビは固定しない（スクロールで流れる）。
+ */
+@media (min-width: 64rem) {
+  .tour-code-pane {
+    position: sticky;
+    top: calc(env(safe-area-inset-top) + 3rem + 1px + 1rem);
+    height: calc(100dvh - env(safe-area-inset-top) - 3rem - 1px - 2rem);
+  }
+}

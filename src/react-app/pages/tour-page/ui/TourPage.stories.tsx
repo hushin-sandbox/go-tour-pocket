@@ -1,8 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/tanstack-react';
+import { createRootRoute, createRoute } from '@tanstack/react-router';
 import { expect, waitFor, within } from 'storybook/test';
 import type { LessonCatalog, LoadedLesson } from '@/react-app/entities/lesson';
 import { PROGRESS_STORAGE_KEY, readProgress } from '@/react-app/entities/progress';
-import { DISPLAY_SETTINGS_STORAGE_KEY } from '@/react-app/features/display-mode';
+import {
+  DISPLAY_SETTINGS_STORAGE_KEY,
+  DisplaySettingsMenu,
+  DisplaySettingsProvider,
+} from '@/react-app/features/display-mode';
 import { TourPageView } from './TourPage';
 
 const lesson: LoadedLesson = {
@@ -140,9 +145,55 @@ const catalogWithoutJapanese: LessonCatalog = [
   },
 ];
 
+/**
+ * 実際のアプリでは Header（app/layouts）が表示設定メニューを持つ。
+ * Storybook ではレイヤーの向きを守るため、同じ feature のメニューだけを
+ * Header と同じ高さのバーに置いて、本文と一緒に描画する。
+ */
+function LessonPageStory(props: {
+  lesson: LoadedLesson;
+  pageIndex: number;
+  catalog: LessonCatalog;
+}) {
+  return (
+    <DisplaySettingsProvider>
+      <div className="flex min-h-dvh flex-col bg-background">
+        <header className="sticky top-0 z-40 flex h-12 shrink-0 items-center justify-end border-b border-border/70 bg-background px-2">
+          <DisplaySettingsMenu />
+        </header>
+        <TourPageView {...props} />
+      </div>
+    </DisplaySettingsProvider>
+  );
+}
+
+// Header の「表示設定」メニューがレッスン画面で出るよう、story をレッスンの
+// パスで描画する。実アプリの route は使わず、story 用の細い route を用意する。
+const storyRootRoute = createRootRoute();
+const storyTourRoute = createRoute({
+  getParentRoute: () => storyRootRoute,
+  path: '/tour/$lesson/$page',
+});
+storyRootRoute.addChildren([storyTourRoute]);
+
 const meta = {
   component: TourPageView,
   args: { lesson, pageIndex: 0, catalog },
+  render: (args) => <LessonPageStory {...args} />,
+  parameters: {
+    tanstack: {
+      router: { route: storyTourRoute, params: { lesson: 'basics', page: '1' } },
+    },
+    // 既定はスマホ幅。2 カラムの story だけが広い viewport を指定する
+    viewport: {
+      defaultViewport: 'mobile2',
+      options: {
+        wide: { name: 'Wide desktop', styles: { width: '1280px', height: '800px' } },
+        tabletLandscape: { name: 'Tablet landscape', styles: { width: '1024px', height: '768px' } },
+        tabletPortrait: { name: 'Tablet portrait', styles: { width: '768px', height: '1024px' } },
+      },
+    },
+  },
   beforeEach: () => {
     localStorage.removeItem(DISPLAY_SETTINGS_STORAGE_KEY);
     localStorage.removeItem(PROGRESS_STORAGE_KEY);
@@ -151,6 +202,25 @@ const meta = {
 
 export default meta;
 type Story = StoryObj<typeof meta>;
+
+type StoryCanvas = Parameters<NonNullable<Story['play']>>[0]['canvas'];
+type StoryUserEvent = Parameters<NonNullable<Story['play']>>[0]['userEvent'];
+
+async function openDisplaySettings(
+  canvas: StoryCanvas,
+  userEvent: StoryUserEvent,
+): Promise<HTMLElement> {
+  await userEvent.click(canvas.getByRole('button', { name: '表示設定' }));
+  return canvas.findByRole('dialog', { name: '表示設定' });
+}
+
+async function closeDisplaySettings(canvas: StoryCanvas, userEvent: StoryUserEvent): Promise<void> {
+  const dialog = canvas.getByRole('dialog', { name: '表示設定' });
+  await userEvent.click(within(dialog).getByRole('button', { name: '表示設定を閉じる' }));
+  await waitFor(() =>
+    expect(canvas.queryByRole('dialog', { name: '表示設定' })).not.toBeInTheDocument(),
+  );
+}
 
 export const InlineMarkup: Story = {
   play: async ({ canvas }) => {
@@ -181,7 +251,10 @@ export const Bilingual: Story = {
 
 export const EnglishOnlyToggle: Story = {
   play: async ({ canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole('button', { name: '英語のみ' }));
+    const dialog = await openDisplaySettings(canvas, userEvent);
+    await userEvent.click(within(dialog).getByRole('button', { name: '英語のみ' }));
+    await closeDisplaySettings(canvas, userEvent);
+
     await expect(
       canvas.queryByText('Go のプログラムはパッケージで構成されます。'),
     ).not.toBeInTheDocument();
@@ -202,7 +275,9 @@ export const EnglishOnlyToggle: Story = {
 
 export const JapaneseOnly: Story = {
   play: async ({ canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole('button', { name: '日本語のみ' }));
+    const dialog = await openDisplaySettings(canvas, userEvent);
+    await userEvent.click(within(dialog).getByRole('button', { name: '日本語のみ' }));
+    await closeDisplaySettings(canvas, userEvent);
 
     await expect(
       canvas.queryByText('Every Go program is made up of packages.'),
@@ -217,11 +292,14 @@ export const FontSize: Story = {
     const article = canvas.getByRole('article');
     await expect(article).toHaveStyle({ fontSize: '18px' });
 
-    await userEvent.click(canvas.getByRole('button', { name: /文字サイズ: 中/ }));
+    const dialog = await openDisplaySettings(canvas, userEvent);
+    await userEvent.click(within(dialog).getByRole('button', { name: '大' }));
     await expect(article).toHaveStyle({ fontSize: '20px' });
 
-    await userEvent.click(canvas.getByRole('button', { name: /文字サイズ: 大/ }));
+    await userEvent.click(within(dialog).getByRole('button', { name: '小' }));
     await expect(article).toHaveStyle({ fontSize: '16px' });
+
+    await closeDisplaySettings(canvas, userEvent);
   },
 };
 
@@ -231,8 +309,10 @@ export const Navigation: Story = {
     const next = canvas.getByRole('link', { name: /次へ/ });
 
     await expect(previous).toHaveAttribute('href', '/tour/welcome/2');
+    await expect(previous).toHaveAttribute('aria-keyshortcuts', 'PageUp');
     await expect(previous).toHaveTextContent('Go をローカルで');
     await expect(next).toHaveAttribute('href', '/tour/basics/2');
+    await expect(next).toHaveAttribute('aria-keyshortcuts', 'PageDown');
     await expect(next).toHaveTextContent('インポート');
   },
 };
@@ -274,7 +354,10 @@ export const JapaneseMissing: Story = {
     catalog: catalogWithoutJapanese,
   },
   play: async ({ canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole('button', { name: '日本語のみ' }));
+    const dialog = await openDisplaySettings(canvas, userEvent);
+    await userEvent.click(within(dialog).getByRole('button', { name: '日本語のみ' }));
+    await closeDisplaySettings(canvas, userEvent);
+
     await expect(canvas.getByText('This page has no Japanese translation.')).toBeVisible();
   },
 };
@@ -287,5 +370,148 @@ export const RecordsProgress: Story = {
         readPages: { 'basics/0': true },
       }),
     );
+  },
+};
+
+/**
+ * 幅の広い画面では、左に本文、右にコードを置く。右カラムは Header の下に
+ * sticky で貼り付き、ビューポートの高さいっぱいを使う（ページ自体は普通にスクロールする）。
+ */
+export const WideLayout: Story = {
+  globals: { viewport: { value: 'wide' } },
+  play: async ({ canvas }) => {
+    const articleBox = canvas.getByRole('article').getBoundingClientRect();
+    const codeRegion = canvas.getByRole('region', { name: /のコード例$/ });
+    const codeBox = codeRegion.getBoundingClientRect();
+    const appHeader = canvas.getByRole('button', { name: '表示設定' }).closest('header');
+    await expect(appHeader).not.toBeNull();
+    const headerBox = appHeader!.getBoundingClientRect();
+
+    // 左に本文、右にコードが並ぶ
+    await expect(articleBox.right).toBeLessThanOrEqual(codeBox.left + 1);
+    // 右カラムは Header の直下からビューポートの下端まで
+    await expect(codeBox.top).toBeGreaterThanOrEqual(headerBox.bottom);
+    await expect(codeBox.bottom).toBeLessThanOrEqual(window.innerHeight);
+    // 貼り付き（sticky）で、スクロールしても Header の下に残る
+    await expect(getComputedStyle(codeRegion.parentElement!).position).toBe('sticky');
+
+    // エディタは右カラムの中でスクロールする（カラムからはみ出さない）
+    const editor = canvas.getByRole('textbox', { name: 'main.go のコード' });
+    await expect(editor.getBoundingClientRect().bottom).toBeLessThanOrEqual(codeBox.bottom + 1);
+
+    // レッスンのヘッダと前へ・次へは固定しない（本文と一緒に流れる）
+    const navBox = canvas.getByRole('navigation', { name: 'ページ移動' }).getBoundingClientRect();
+    await expect(
+      getComputedStyle(canvas.getByRole('navigation', { name: 'ページ移動' })).position,
+    ).toBe('static');
+    await expect(navBox.top).toBeGreaterThan(codeBox.top);
+  },
+};
+
+/** 1024px（タブレット横向き）から 2 カラムにする。 */
+export const WideTabletLandscape: Story = {
+  globals: { viewport: { value: 'tabletLandscape' } },
+  play: async ({ canvas }) => {
+    const articleBox = canvas.getByRole('article').getBoundingClientRect();
+    const codeBox = canvas.getByRole('region', { name: /のコード例$/ }).getBoundingClientRect();
+    await expect(articleBox.right).toBeLessThanOrEqual(codeBox.left + 1);
+  },
+};
+
+/** コードの無いページは、幅の広い画面でも本文を中央 1 カラムで読む。 */
+export const WideWithoutCode: Story = {
+  args: { pageIndex: 1 },
+  globals: { viewport: { value: 'wide' } },
+  play: async ({ canvas }) => {
+    await expect(canvas.queryByRole('region', { name: /のコード例$/ })).not.toBeInTheDocument();
+
+    const articleBox = canvas.getByRole('article').getBoundingClientRect();
+    const center = (articleBox.left + articleBox.right) / 2;
+    await expect(Math.abs(center - window.innerWidth / 2)).toBeLessThanOrEqual(1);
+    await expect(articleBox.width).toBeLessThanOrEqual(576);
+  },
+};
+
+/** スマホ幅では今までどおり、本文の下にコードを置く（横スクロールもしない）。 */
+export const StackedOnMobile: Story = {
+  globals: { viewport: { value: 'mobile2' } },
+  play: async ({ canvas }) => {
+    const articleBox = canvas.getByRole('article').getBoundingClientRect();
+    const codeBox = canvas.getByRole('region', { name: /のコード例$/ }).getBoundingClientRect();
+    const navBox = canvas.getByRole('navigation', { name: 'ページ移動' }).getBoundingClientRect();
+    await expect(codeBox.top).toBeGreaterThanOrEqual(articleBox.bottom - 1);
+    await expect(navBox.top).toBeGreaterThanOrEqual(codeBox.bottom - 1);
+    await expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(window.innerWidth);
+  },
+};
+
+/** 768px（タブレット縦）でも 2 カラムにはせず、スマホと同じ縦積みにする。 */
+export const StackedOnTabletPortrait: Story = {
+  globals: { viewport: { value: 'tabletPortrait' } },
+  play: async ({ canvas }) => {
+    const articleBox = canvas.getByRole('article').getBoundingClientRect();
+    const codeBox = canvas.getByRole('region', { name: /のコード例$/ }).getBoundingClientRect();
+    await expect(codeBox.top).toBeGreaterThanOrEqual(articleBox.bottom - 1);
+    await expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(window.innerWidth);
+  },
+};
+
+/**
+ * PageUp / PageDown の遷移を確かめるための、実ルートと同じパスの細いルート。
+ * 遷移のたびに loader が呼ばれるので、そこに page を記録する。
+ */
+const shortcutNavigationLog: string[] = [];
+
+const shortcutRootRoute = createRootRoute();
+const shortcutTourRoute = createRoute({
+  getParentRoute: () => shortcutRootRoute,
+  path: '/tour/$lesson/$page',
+  loader: ({ params }) => {
+    shortcutNavigationLog.push(`${params.lesson}/${params.page}`);
+  },
+});
+shortcutRootRoute.addChildren([shortcutTourRoute]);
+
+export const PageKeyNavigation: Story = {
+  parameters: {
+    tanstack: {
+      router: {
+        route: shortcutTourRoute,
+        params: { lesson: 'basics', page: '1' },
+      },
+    },
+  },
+  play: async ({ userEvent }) => {
+    shortcutNavigationLog.length = 0;
+
+    await userEvent.keyboard('{PageDown}');
+    await waitFor(() => expect(shortcutNavigationLog).toEqual(['basics/2']));
+
+    await userEvent.keyboard('{PageUp}');
+    await waitFor(() => expect(shortcutNavigationLog).toEqual(['basics/2', 'welcome/2']));
+  },
+};
+
+/** エディタを編集中は、キーボードショートカットでページを移動しない。 */
+export const EditorKeepsPageKeys: Story = {
+  globals: { viewport: { value: 'wide' } },
+  parameters: {
+    tanstack: {
+      router: {
+        route: shortcutTourRoute,
+        params: { lesson: 'basics', page: '1' },
+      },
+    },
+  },
+  play: async ({ canvas, userEvent }) => {
+    shortcutNavigationLog.length = 0;
+
+    await userEvent.click(canvas.getByRole('textbox', { name: 'main.go のコード' }));
+    await userEvent.keyboard('{PageDown}');
+    await userEvent.keyboard('{PageUp}');
+    // 遷移していれば loader が呼ばれる。呼ばれないことを確かめる
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    await expect(shortcutNavigationLog).toEqual([]);
+    await expect(canvas.getByText('ページ 1 / 3')).toBeVisible();
   },
 };

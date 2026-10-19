@@ -12,15 +12,13 @@ import {
   type PageRef,
 } from '@/react-app/entities/lesson';
 import { recordPageOpened } from '@/react-app/entities/progress';
-import {
-  DisplayModeSwitcher,
-  FONT_SIZE_PX,
-  useDisplaySettings,
-} from '@/react-app/features/display-mode';
+import { FONT_SIZE_PX, useDisplaySettings } from '@/react-app/features/display-mode';
 import { cn } from '@/react-app/shared/lib';
 import { CodeRunner } from '@/react-app/widgets/code-runner';
+import { usePageShortcuts } from '../model/use-page-shortcuts';
 import { PageBlocks } from './PageBlocks';
 import { TableOfContents } from './TableOfContentsSheet';
+import './tour-page.css';
 
 const routeApi = getRouteApi('/tour/$lesson/$page');
 
@@ -112,9 +110,12 @@ type TourPageViewProps = {
 };
 
 export function TourPageView({ lesson, pageIndex, catalog }: TourPageViewProps) {
-  const { settings, setMode, cycleFontSize } = useDisplaySettings();
+  const { settings } = useDisplaySettings();
   const page = lesson.pages[pageIndex];
   const { prev, next } = adjacentPages(catalog, lesson.id, pageIndex);
+  const hasCode = page.code !== undefined;
+
+  usePageShortcuts({ prev, next });
 
   useEffect(() => {
     recordPageOpened(lesson.id, pageIndex);
@@ -122,10 +123,21 @@ export function TourPageView({ lesson, pageIndex, catalog }: TourPageViewProps) 
   }, [lesson.id, pageIndex]);
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col px-4 pt-4">
-      <header className="sticky top-[calc(env(safe-area-inset-top)+3rem)] z-40 -mx-4 mb-6 border-b border-border/70 bg-background px-4 pt-2 pb-2">
-        <div className="mx-auto flex w-full max-w-xl flex-col gap-1.5">
-          <div className="flex items-center gap-2">
+    <div
+      className={cn(
+        'mx-auto flex w-full max-w-xl flex-col px-4 pt-4',
+        // コードのあるページだけ、幅の広い画面で 2 カラムぶんの幅を使う
+        hasCode && 'lg:max-w-6xl lg:px-6 lg:pt-6',
+      )}
+    >
+      <div
+        className={cn(
+          'flex flex-col',
+          hasCode && 'lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start lg:gap-10',
+        )}
+      >
+        <div className="flex min-w-0 flex-col">
+          <div className="mb-6 flex items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{primaryText(lesson.title)}</p>
               <p className="text-xs text-muted-foreground">
@@ -134,40 +146,37 @@ export function TourPageView({ lesson, pageIndex, catalog }: TourPageViewProps) 
             </div>
             <TableOfContents lesson={lesson} catalog={catalog} pageIndex={pageIndex} />
           </div>
-          <DisplayModeSwitcher
-            mode={settings.mode}
-            fontSize={settings.fontSize}
-            onModeChange={setMode}
-            onFontSizeChange={cycleFontSize}
-          />
+
+          <article
+            className="flex flex-col gap-7"
+            style={{ fontSize: FONT_SIZE_PX[settings.fontSize] }}
+          >
+            <header className="flex flex-col gap-1">
+              <h1 className="text-2xl leading-tight font-semibold tracking-tight text-balance">
+                {primaryText(page.title)}
+              </h1>
+              {page.title.ja !== undefined && (
+                <p className="text-sm text-muted-foreground">{page.title.en}</p>
+              )}
+            </header>
+
+            <PageBlocks page={page} mode={settings.mode} />
+          </article>
         </div>
-      </header>
-
-      <article
-        className="flex flex-col gap-7 pb-[calc(env(safe-area-inset-bottom)+7rem)]"
-        style={{ fontSize: FONT_SIZE_PX[settings.fontSize] }}
-      >
-        <header className="flex flex-col gap-1">
-          <h1 className="text-2xl leading-tight font-semibold tracking-tight text-balance">
-            {primaryText(page.title)}
-          </h1>
-          {page.title.ja !== undefined && (
-            <p className="text-sm text-muted-foreground">{page.title.en}</p>
-          )}
-        </header>
-
-        <PageBlocks page={page} mode={settings.mode} />
 
         {page.code && (
-          <CodeRunner
-            code={page.code.content}
-            fileName={page.code.name}
-            storageKey={`${lesson.id}/${pageIndex}`}
-            codeHash={codeHash(page.code.content)}
-            className="border-t border-border pt-6"
-          />
+          <aside className="tour-code-pane mt-8 lg:mt-0 lg:min-h-0 lg:min-w-0">
+            <CodeRunner
+              code={page.code.content}
+              fileName={page.code.name}
+              storageKey={`${lesson.id}/${pageIndex}`}
+              codeHash={codeHash(page.code.content)}
+              layout="fill"
+              className="border-t border-border pt-6 lg:h-full lg:border-t-0 lg:pt-0"
+            />
+          </aside>
         )}
-      </article>
+      </div>
 
       <BottomNavigation prev={prev} next={next} />
     </div>
@@ -178,9 +187,10 @@ function BottomNavigation({ prev, next }: { prev?: PageRef; next?: PageRef }) {
   return (
     <nav
       aria-label="ページ移動"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background"
+      // 固定せず、本文とコードの後ろに普通に置く。スマホの下部は safe-area を空ける。
+      className="mt-10 border-t border-border pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
     >
-      <div className="mx-auto grid w-full max-w-xl grid-cols-2 gap-2 px-4 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <div className="mx-auto grid w-full max-w-xl grid-cols-2 gap-2">
         {prev ? <PageLink direction="prev" page={prev} /> : <span aria-hidden="true" />}
         {next ? (
           <PageLink direction="next" page={next} />
@@ -199,17 +209,19 @@ function BottomNavigation({ prev, next }: { prev?: PageRef; next?: PageRef }) {
 }
 
 function PageLink({ direction, page }: { direction: 'prev' | 'next'; page: PageRef }) {
+  const isPrev = direction === 'prev';
   return (
     <Link
       to="/tour/$lesson/$page"
       params={{ lesson: page.lessonId, page: String(page.pageIndex + 1) }}
+      aria-keyshortcuts={isPrev ? 'PageUp' : 'PageDown'}
       className={cn(
         'flex min-h-11 min-w-0 flex-col justify-center rounded-lg border border-border bg-card px-3 py-1.5',
-        direction === 'next' && 'text-right',
+        !isPrev && 'text-right',
       )}
     >
       <span className="text-[0.65rem] font-medium text-muted-foreground">
-        {direction === 'prev' ? '前へ' : '次へ'}
+        {isPrev ? '前へ' : '次へ'}
       </span>
       <span className="w-full truncate text-xs font-medium">{primaryText(page.pageTitle)}</span>
       <span className="w-full truncate text-[0.65rem] text-muted-foreground">
