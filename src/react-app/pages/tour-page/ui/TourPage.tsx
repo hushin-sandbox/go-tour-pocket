@@ -76,7 +76,7 @@ export function TourPage() {
         <p role="alert" className="text-sm text-destructive">
           ページを読み込めませんでした。
         </p>
-        <Link to="/" className="text-sm text-primary underline underline-offset-4">
+        <Link to="/" className="text-sm text-link underline underline-offset-4">
           レッスン一覧へ戻る
         </Link>
       </div>

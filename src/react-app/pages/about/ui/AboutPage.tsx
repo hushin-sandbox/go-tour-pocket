@@ -19,7 +19,7 @@ const knownDifferences = [
 ];
 
 const linkRowClass =
-  'flex min-h-11 items-center justify-between gap-3 text-sm text-foreground underline-offset-4 hover:text-primary hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none';
+  'flex min-h-11 items-center justify-between gap-3 text-sm text-foreground underline-offset-4 hover:text-link hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none';
 
 export function AboutPage() {
   return (

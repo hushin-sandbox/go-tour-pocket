@@ -142,9 +142,7 @@ function ContentsSheet({ open, onOpenChange, lesson, catalog, pageIndex }: Conte
                               </span>
                             </span>
                             {current && (
-                              <span className="shrink-0 text-xs font-medium text-primary">
-                                表示中
-                              </span>
+                              <span className="shrink-0 text-xs font-medium text-link">表示中</span>
                             )}
                           </Link>
                         </li>

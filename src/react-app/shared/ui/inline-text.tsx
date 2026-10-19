@@ -48,7 +48,7 @@ function renderToken(token: InlineToken, key: number): ReactNode {
           href={href}
           target="_blank"
           rel="noreferrer noopener"
-          className="text-primary underline decoration-primary/50 underline-offset-4 hover:decoration-primary"
+          className="text-link underline decoration-link/50 underline-offset-4 hover:decoration-link"
         >
           {label}
         </a>

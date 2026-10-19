@@ -111,7 +111,7 @@ function ParagraphBlock({
             event.stopPropagation();
             setExpanded((previous) => !previous);
           }}
-          className="min-h-11 text-xs font-medium text-primary underline underline-offset-4 hover:no-underline"
+          className="min-h-11 text-xs font-medium text-link underline underline-offset-4 hover:no-underline"
         >
           {expanded ? '訳を閉じる' : '訳を表示'}
         </button>
@@ -207,7 +207,7 @@ function ListBlock({
             event.stopPropagation();
             setExpanded((previous) => !previous);
           }}
-          className="min-h-11 text-xs font-medium text-primary underline underline-offset-4 hover:no-underline"
+          className="min-h-11 text-xs font-medium text-link underline underline-offset-4 hover:no-underline"
         >
           {expanded ? '訳を閉じる' : '訳を表示'}
         </button>

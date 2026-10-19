@@ -237,7 +237,7 @@ function LessonCard({ lesson, progress }: LessonCardProps) {
               <span>
                 既読 {read} / {total} ページ
               </span>
-              {complete && <span className="font-medium text-primary">読了</span>}
+              {complete && <span className="font-medium text-link">読了</span>}
             </div>
             <div
               role="progressbar"
@@ -278,7 +278,7 @@ function LessonCard({ lesson, progress }: LessonCardProps) {
                       )}
                     </span>
                     {pageRead && (
-                      <span className="flex shrink-0 items-center gap-1 text-xs text-primary">
+                      <span className="flex shrink-0 items-center gap-1 text-xs text-link">
                         <Check aria-hidden="true" className="size-3.5" />
                         <span className="sr-only">既読</span>
                       </span>
