@@ -42,12 +42,14 @@ describe('collectContentEntries', () => {
     ]);
   });
 
-  it('日本語訳に CC BY 4.0 と go-tour-jp へのクレジットが入る', () => {
+  it('日本語訳に著作者 hushin と CC BY 4.0、参考にした旧訳が入る', () => {
     const [, translation] = collectContentEntries(INPUT);
+    expect(translation?.author).toBe('hushin');
     expect(translation?.license).toBe('CC BY 4.0');
     expect(translation?.note).toContain('新たに翻訳');
     expect(translation?.note).toContain(GO_TOUR_JP_URL);
     expect(translation?.note).toContain('BSD-3-Clause');
+    expect(translation?.note).toContain('参考にしました');
   });
 
   it('コード例は BSD-3-Clause の全文と Go 節への案内を持つ', () => {
