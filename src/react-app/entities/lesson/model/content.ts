@@ -5,6 +5,7 @@ import {
   type Lesson,
   type LessonIndex,
   type LessonJa,
+  type LessonVariants,
 } from '@/shared/content';
 import { joinLesson, type JoinedLesson } from './join';
 
@@ -85,6 +86,24 @@ const lessonJaSchema = z.object({
   ),
 });
 
+const codeVariantSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  note: z.string().optional(),
+  code: z.string(),
+});
+
+const pageCodeVariantsSchema = z.object({
+  hash: z.string(),
+  originalNote: z.string().optional(),
+  variants: z.array(codeVariantSchema),
+});
+
+const lessonVariantsSchema = z.object({
+  id: z.string(),
+  pages: z.record(z.string(), pageCodeVariantsSchema),
+});
+
 /**
  * レッスン JSON は `?raw` で読んでから zod で検証する。
  * `?raw` にしているのは (1) tsconfig に resolveJsonModule を足さずに済む、
@@ -112,6 +131,22 @@ const jaLessonLoaders: Record<ContentLessonId, () => Promise<RawJsonModule>> = {
   concurrency: () => import('../../../../../content/ja/concurrency.json?raw'),
 };
 
+/**
+ * コードパターンはパターンのあるレッスンにしかファイルが無い（ディレクトリ自体が
+ * 無いこともある）。存在しないレッスンを自然に扱うため、静的な import ではなく
+ * glob で集め、ファイル名からレッスン id を引く。
+ */
+const variantModules = import.meta.glob<string>('../../../../../content/variants/*.json', {
+  query: '?raw',
+  import: 'default',
+});
+
+const variantLoaders = new Map<string, () => Promise<string>>();
+for (const [modulePath, loader] of Object.entries(variantModules)) {
+  const fileName = modulePath.slice(modulePath.lastIndexOf('/') + 1);
+  variantLoaders.set(fileName.replace(/\.json$/, ''), loader);
+}
+
 async function loadJsonText(loader: () => Promise<RawJsonModule>): Promise<unknown> {
   const module = await loader();
   return JSON.parse(module.default);
@@ -136,24 +171,38 @@ export async function loadLessonJa(id: ContentLessonId): Promise<LessonJa> {
   return lessonJaSchema.parse(await loadJsonText(jaLessonLoaders[id]));
 }
 
+/** パターンの無いレッスンは undefined。JSON が壊れている場合は reject する。 */
+export async function loadLessonVariants(id: ContentLessonId): Promise<LessonVariants | undefined> {
+  const loader = variantLoaders.get(id);
+  if (loader === undefined) return undefined;
+  const raw: unknown = JSON.parse(await loader());
+  return lessonVariantsSchema.parse(raw);
+}
+
 export type LessonContent = {
   en: Lesson;
   ja?: LessonJa;
+  variants?: LessonVariants;
 };
 
 /** 読み込み済みレッスン。route の lesson id が検証済みなので id を絞り込む。 */
 export type LoadedLesson = Omit<JoinedLesson, 'id'> & { id: ContentLessonId };
 
 /**
- * レッスン 1 つ分の英語と日本語を読み込む。ja が壊れていても英語だけで表示できるよう、
- * ja の失敗は握りつぶして undefined にする（英語は必ず読めなければならない）。
+ * レッスン 1 つ分の英語・日本語・コードパターンを読み込む。ja と patterns が壊れて
+ * いても英語だけで表示できるよう、失敗は握りつぶして undefined にする
+ * （英語は必ず読めなければならない）。
  */
 export async function loadLessonContent(id: ContentLessonId): Promise<LessonContent> {
-  const [en, ja] = await Promise.all([loadLesson(id), loadLessonJa(id).catch(() => undefined)]);
-  return { en, ja };
+  const [en, ja, variants] = await Promise.all([
+    loadLesson(id),
+    loadLessonJa(id).catch(() => undefined),
+    loadLessonVariants(id).catch(() => undefined),
+  ]);
+  return { en, ja, variants };
 }
 
 export async function loadJoinedLesson(id: ContentLessonId): Promise<LoadedLesson> {
-  const { en, ja } = await loadLessonContent(id);
-  return { ...joinLesson(en, ja), id };
+  const { en, ja, variants } = await loadLessonContent(id);
+  return { ...joinLesson(en, ja, variants), id };
 }

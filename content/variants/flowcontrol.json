@@ -1,0 +1,16 @@
+{
+  "id": "flowcontrol",
+  "pages": {
+    "5": {
+      "hash": "41d8f598c5e1",
+      "variants": [
+        {
+          "id": "use-v-after-if",
+          "label": "return で v を使う",
+          "note": "v は if の外では使えないため、コンパイルエラーになります。",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\nfunc pow(x, n, lim float64) float64 {\n\tif v := math.Pow(x, n); v < lim {\n\t\treturn v\n\t}\n\treturn v // v は if の外では使えない\n}\n\nfunc main() {\n\tfmt.Println(\n\t\tpow(3, 2, 10),\n\t\tpow(3, 3, 20),\n\t)\n}\n"
+        }
+      ]
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import type { Lesson, LessonJa } from '@/shared/content';
+import type { Lesson, LessonJa, LessonVariants } from '@/shared/content';
 import { joinLesson } from './join';
 
 const en: Lesson = {
@@ -48,6 +48,29 @@ const ja: LessonJa = {
   ],
 };
 
+const variants: LessonVariants = {
+  id: 'basics',
+  pages: {
+    '0': {
+      hash: 'hash-of-main-go',
+      originalNote: 'このまま実行するとエラーになります。',
+      variants: [
+        {
+          id: 'fixed',
+          label: '修正する',
+          note: '修正すると動きます。',
+          code: 'package main\n\nfunc main() {}\n',
+        },
+        { id: 'print', label: '出力する', code: 'package main\n\nfunc main() { print() }\n' },
+      ],
+    },
+    '9': {
+      hash: 'unknown-page',
+      variants: [{ id: 'ignored', label: '無視', code: 'package main\n' }],
+    },
+  },
+};
+
 describe('joinLesson', () => {
   it('joins paragraphs and list items by block id', () => {
     const joined = joinLesson(en, ja);
@@ -84,7 +107,32 @@ describe('joinLesson', () => {
     });
     expect(pre).toEqual({ kind: 'pre', id: 'basics/0/3', text: 'package main' });
     expect(image).toEqual({ kind: 'image', id: 'basics/0/4', src: '/tour/images/tree.png' });
-    expect(page.code).toEqual({ name: 'main.go', content: 'package main\n' });
+    expect(page.code).toEqual({ name: 'main.go', content: 'package main\n', variants: [] });
+  });
+
+  it('adds code patterns and the original note to the page code', () => {
+    const joined = joinLesson(en, ja, variants);
+    const page = joined.pages[0];
+
+    expect(page.code).toEqual({
+      name: 'main.go',
+      content: 'package main\n',
+      originalNote: 'このまま実行するとエラーになります。',
+      variants: variants.pages['0'].variants,
+    });
+  });
+
+  it('returns an empty variants array when the page has no patterns', () => {
+    const joined = joinLesson(en, undefined, {
+      ...variants,
+      pages: { '9': variants.pages['9'] },
+    });
+
+    expect(joined.pages[0].code).toEqual({
+      name: 'main.go',
+      content: 'package main\n',
+      variants: [],
+    });
   });
 
   it('falls back to English when the Japanese lesson is missing', () => {

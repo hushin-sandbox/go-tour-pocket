@@ -1,0 +1,45 @@
+{
+  "id": "methods",
+  "pages": {
+    "3": {
+      "hash": "7c0c6f963953",
+      "variants": [
+        {
+          "id": "value-receiver",
+          "label": "値レシーバに変更",
+          "note": "Scale が値のコピーを変更するため、main の v は変わらず、Abs の結果は 5 と表示されます。",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\ntype Vertex struct {\n\tX, Y float64\n}\n\nfunc (v Vertex) Abs() float64 {\n\treturn math.Sqrt(v.X*v.X + v.Y*v.Y)\n}\n\nfunc (v Vertex) Scale(f float64) { // * を外す\n\tv.X = v.X * f\n\tv.Y = v.Y * f\n}\n\nfunc main() {\n\tv := Vertex{3, 4}\n\tv.Scale(10)\n\tfmt.Println(v.Abs())\n}\n"
+        }
+      ]
+    },
+    "4": {
+      "hash": "5246a2a47237",
+      "variants": [
+        {
+          "id": "remove-star",
+          "label": "* を外す",
+          "note": "Scale が値を受け取るようになるため、&v を渡す呼び出しがコンパイルエラーになります。",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\ntype Vertex struct {\n\tX, Y float64\n}\n\nfunc Abs(v Vertex) float64 {\n\treturn math.Sqrt(v.X*v.X + v.Y*v.Y)\n}\n\nfunc Scale(v Vertex, f float64) { // * を外す\n\tv.X = v.X * f\n\tv.Y = v.Y * f\n}\n\nfunc main() {\n\tv := Vertex{3, 4}\n\tScale(&v, 10)\n\tfmt.Println(Abs(v))\n}\n"
+        },
+        {
+          "id": "value-arg",
+          "label": "値渡しに変更",
+          "note": "値のコピーが変更されるため、main の v は変わらず、Abs の結果は 5 と表示されます。",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\ntype Vertex struct {\n\tX, Y float64\n}\n\nfunc Abs(v Vertex) float64 {\n\treturn math.Sqrt(v.X*v.X + v.Y*v.Y)\n}\n\nfunc Scale(v Vertex, f float64) { // * を外し、値を受け取る\n\tv.X = v.X * f\n\tv.Y = v.Y * f\n}\n\nfunc main() {\n\tv := Vertex{3, 4}\n\tScale(v, 10) // ポインタではなく値を渡す\n\tfmt.Println(Abs(v))\n}\n"
+        }
+      ]
+    },
+    "8": {
+      "hash": "dcea0471ea81",
+      "originalNote": "原文の 22 行目 a = v は、本物の Go ではコンパイルエラーになりますが、このアプリの Yaegi はそのまま実行して 5 と表示します。",
+      "variants": [
+        {
+          "id": "fix-pointer",
+          "label": "a = &v に修正",
+          "note": "a に &v を代入するため、5 と表示されます。",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\ntype Abser interface {\n\tAbs() float64\n}\n\nfunc main() {\n\tvar a Abser\n\tf := MyFloat(-math.Sqrt2)\n\tv := Vertex{3, 4}\n\n\ta = f  // a MyFloat implements Abser\n\ta = &v // a *Vertex implements Abser\n\n\t// In the following line, v is a Vertex (not *Vertex)\n\t// and does NOT implement Abser.\n\ta = &v // v → &v\n\n\tfmt.Println(a.Abs())\n}\n\ntype MyFloat float64\n\nfunc (f MyFloat) Abs() float64 {\n\tif f < 0 {\n\t\treturn float64(-f)\n\t}\n\treturn float64(f)\n}\n\ntype Vertex struct {\n\tX, Y float64\n}\n\nfunc (v *Vertex) Abs() float64 {\n\treturn math.Sqrt(v.X*v.X + v.Y*v.Y)\n}\n"
+        }
+      ]
+    }
+  }
+}

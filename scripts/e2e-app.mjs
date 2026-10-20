@@ -7,7 +7,8 @@
  *
  *   1. 一覧 → basics/1 を開く → 対訳が出る → 表示モードを切り替える → 次へで 2 ページ目
  *   2. コードを実行して出力が出る。実 wasm で Ctrl + Enter の整形（gofmt 済みになる）と
- *      Shift + Enter の実行も確認する
+ *      Shift + Enter の実行も確認する。basics/3 ではコードパターンのチップで原文の
+ *      エラーを直し、3.14159 が出力される
  *   3. 一覧の「続きから」が最後に開いたページを指す。一覧下部の /licenses リンクが
  *      フルリロードなしで /licenses を開く
  *   4. Service Worker の制御下でオフラインにし、未読の concurrency/1 を開いて
@@ -247,6 +248,63 @@ const main = async () => {
       .waitFor({ timeout: RUN_TIMEOUT_MS });
     await waitForEnabled(page.getByRole('button', { name: '実行', exact: true }), 30_000);
     log('shortcut-run', 'Shift + Enter で編集したコードを実行できた');
+
+    // 2c. コードパターンのチップ: 原文はエラー、math.Pi に直すと 3.14159 が出る
+    await page.getByRole('link', { name: /次へ/ }).click();
+    await page.waitForURL('**/tour/basics/3');
+    await page.getByRole('heading', { level: 1, name: 'エクスポートされた名前' }).waitFor();
+
+    const patternGroup = page.getByRole('group', { name: 'コードのパターン' });
+    await patternGroup.waitFor();
+    const originalChip = patternGroup.getByRole('button', { name: '原文' });
+    const fixedChip = patternGroup.getByRole('button', { name: 'math.Pi に修正' });
+    assert.equal(
+      await originalChip.getAttribute('aria-pressed'),
+      'true',
+      '原文のコードなのに「原文」のチップが選択されていない',
+    );
+
+    const patternRunButton = page.getByRole('button', { name: '実行', exact: true });
+    await waitForEnabled(patternRunButton, 60_000);
+    await clickCentered(page, patternRunButton);
+    const errorOutput = page.getByRole('log');
+    await errorOutput
+      .getByText(/エラー:/)
+      .first()
+      .waitFor({ timeout: RUN_TIMEOUT_MS });
+    await waitForEnabled(patternRunButton, 30_000);
+    log('pattern-original', 'basics/3 の原文はエラーになった');
+
+    const patternEditor = page.getByRole('textbox', { name: /exported-names.go のコード/ });
+    await clickCentered(page, fixedChip);
+    await page.waitForFunction(
+      (element) => element?.getAttribute('aria-pressed') === 'true',
+      await fixedChip.elementHandle(),
+      { timeout: 10_000 },
+    );
+    await page.waitForFunction(
+      (element) => element?.textContent?.includes('math.Pi'),
+      await patternEditor.elementHandle(),
+      { timeout: 10_000 },
+    );
+    assert.equal(
+      await originalChip.getAttribute('aria-pressed'),
+      'false',
+      'パターンに切り替えたのに「原文」のチップが選択されたまま',
+    );
+    log('pattern-switch', 'チップで「math.Pi に修正」に切り替えた');
+
+    const patternOutput = await runCode(page);
+    await patternOutput
+      .getByText(/3\.14159/)
+      .first()
+      .waitFor({ timeout: RUN_TIMEOUT_MS });
+    log('pattern-run', '修正したパターンで 3.14159 が出力された');
+
+    // 「続きから」の確認は basics/2 を最後に開いた状態で行うので戻る
+    await page.getByRole('link', { name: /前へ/ }).click();
+    await page.waitForURL('**/tour/basics/2');
+    await page.getByRole('heading', { level: 1, name: 'インポート' }).waitFor();
 
     // 3. 「続きから」が最後に開いたページ（basics/2）を指す
     await page.getByRole('link', { name: 'Go Tour Pocket' }).click();

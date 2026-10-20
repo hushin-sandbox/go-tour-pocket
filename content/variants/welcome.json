@@ -1,0 +1,22 @@
+{
+  "id": "welcome",
+  "pages": {
+    "0": {
+      "hash": "0f07d9089d8d",
+      "variants": [
+        {
+          "id": "greet-english",
+          "label": "英語の挨拶に変更",
+          "note": "「Hello, Gopher」と表示されます。",
+          "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"Hello, Gopher\") // 表示する文字列を変更\n}\n"
+        },
+        {
+          "id": "greet-japanese",
+          "label": "日本語の挨拶に変更",
+          "note": "「こんにちは、世界」と表示されます。",
+          "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"こんにちは、世界\") // 表示する文字列を変更\n}\n"
+        }
+      ]
+    }
+  }
+}

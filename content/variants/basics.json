@@ -1,0 +1,68 @@
+{
+  "id": "basics",
+  "pages": {
+    "2": {
+      "hash": "f01a4102e4e5",
+      "originalNote": "原文の math.pi はエクスポートされていないため、コンパイルエラーになります。",
+      "variants": [
+        {
+          "id": "fixed",
+          "label": "math.Pi に修正",
+          "note": "3.141592653589793 と表示されます。",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\nfunc main() {\n\tfmt.Println(math.Pi) // pi → Pi\n}\n"
+        }
+      ]
+    },
+    "12": {
+      "hash": "2466e0f6dbad",
+      "variants": [
+        {
+          "id": "no-float64-conversion",
+          "label": "float64 変換を外す",
+          "note": "int の値を float64 として扱えないため、コンパイルエラーになります。",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\nfunc main() {\n\tvar x, y int = 3, 4\n\tvar f float64 = math.Sqrt(x*x + y*y) // float64 変換を外す\n\tvar z uint = uint(f)\n\tfmt.Println(x, y, z)\n}\n"
+        },
+        {
+          "id": "no-uint-conversion",
+          "label": "uint 変換を外す",
+          "note": "float64 の値を uint に代入できないため、コンパイルエラーになります。",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\nfunc main() {\n\tvar x, y int = 3, 4\n\tvar f float64 = math.Sqrt(float64(x*x + y*y))\n\tvar z uint = f // uint 変換を外す\n\tfmt.Println(x, y, z)\n}\n"
+        }
+      ]
+    },
+    "13": {
+      "hash": "d4aedb82392b",
+      "variants": [
+        {
+          "id": "float64",
+          "label": "浮動小数点にする",
+          "note": "型は float64 になり、「v is of type float64」と表示されます。",
+          "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tv := 3.142 // 42 → 3.142\n\tfmt.Printf(\"v is of type %T\\n\", v)\n}\n"
+        },
+        {
+          "id": "complex128",
+          "label": "複素数にする",
+          "note": "型は complex128 になり、「v is of type complex128」と表示されます。",
+          "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tv := 0.867 + 0.5i // 42 → 複素数\n\tfmt.Printf(\"v is of type %T\\n\", v)\n}\n"
+        },
+        {
+          "id": "string",
+          "label": "文字列にする",
+          "note": "型は string になり、「v is of type string」と表示されます。",
+          "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tv := \"hello\" // 42 → 文字列\n\tfmt.Printf(\"v is of type %T\\n\", v)\n}\n"
+        }
+      ]
+    },
+    "15": {
+      "hash": "9a96b50934c3",
+      "variants": [
+        {
+          "id": "need-int-big",
+          "label": "needInt(Big) を追加",
+          "note": "Big は int の範囲を超えるため、コンパイルエラーになります。",
+          "code": "package main\n\nimport \"fmt\"\n\nconst (\n\t// Create a huge number by shifting a 1 bit left 100 places.\n\t// In other words, the binary number that is 1 followed by 100 zeroes.\n\tBig = 1 << 100\n\t// Shift it right again 99 places, so we end up with 1<<1, or 2.\n\tSmall = Big >> 99\n)\n\nfunc needInt(x int) int { return x*10 + 1 }\nfunc needFloat(x float64) float64 {\n\treturn x * 0.1\n}\n\nfunc main() {\n\tfmt.Println(needInt(Small))\n\tfmt.Println(needFloat(Small))\n\tfmt.Println(needFloat(Big))\n\tfmt.Println(needInt(Big)) // needInt(Big) を追加\n}\n"
+        }
+      ]
+    }
+  }
+}

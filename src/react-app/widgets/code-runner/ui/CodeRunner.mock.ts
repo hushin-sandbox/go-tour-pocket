@@ -1,5 +1,5 @@
 import type { GoRunEvent, GoRunResult } from '@/react-app/shared/lib';
-import type { GoRunnerEngine } from './CodeRunner';
+import type { CodePatterns, GoRunnerEngine } from './CodeRunner';
 
 export const STORAGE_KEY = 'basics/1';
 export const CODE_HASH = 'code-hash-v1';
@@ -21,6 +21,36 @@ func main() {
 	fmt.Println("edited")
 }
 `;
+
+/** 1 つ目のパターン。原文と完全には一致しないコード。 */
+export const FIXED_CODE = `package main
+
+import "fmt"
+
+func main() {
+	fmt.Println("fixed")
+}
+`;
+
+/** 2 つ目のパターン。note を持たない。 */
+export const LOOP_CODE = `package main
+
+import "fmt"
+
+func main() {
+	for index := 0; index < 3; index++ {
+		fmt.Println(index)
+	}
+}
+`;
+
+export const PATTERNS = {
+  originalNote: 'このまま実行するとエラーになります。',
+  variants: [
+    { id: 'fixed', label: '修正する', note: '修正すると動きます。', code: FIXED_CODE },
+    { id: 'loop', label: 'ループする', code: LOOP_CODE },
+  ],
+} satisfies CodePatterns;
 
 /** gofmt 済みのコード。モックの format は SAMPLE_CODE をこれに置き換える。 */
 export const FORMATTED_CODE = `package main

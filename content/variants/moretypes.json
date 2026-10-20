@@ -1,0 +1,16 @@
+{
+  "id": "moretypes",
+  "pages": {
+    "10": {
+      "hash": "902706197612",
+      "variants": [
+        {
+          "id": "over-capacity",
+          "label": "容量を超えて伸ばす",
+          "note": "容量 6 を超えて伸ばすとパニックになり、このアプリでは最初の 2 行を表示したあとエラーになります。",
+          "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\ts := []int{2, 3, 5, 7, 11, 13}\n\tprintSlice(s)\n\n\t// Slice the slice to give it zero length.\n\ts = s[:0]\n\tprintSlice(s)\n\n\t// Extend its length.\n\ts = s[:7] // 容量 6 を超えて伸ばす\n\tprintSlice(s)\n\n\t// Drop its first two values.\n\ts = s[2:]\n\tprintSlice(s)\n}\n\nfunc printSlice(s []int) {\n\tfmt.Printf(\"len=%d cap=%d %v\\n\", len(s), cap(s), s)\n}\n"
+        }
+      ]
+    }
+  }
+}

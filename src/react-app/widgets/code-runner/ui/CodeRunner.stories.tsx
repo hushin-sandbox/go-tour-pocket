@@ -6,8 +6,11 @@ import { CodeRunner } from './CodeRunner';
 import {
   CODE_HASH,
   EDITED_CODE,
+  FIXED_CODE,
   FORMAT_ERROR,
   FORMATTED_CODE,
+  LOOP_CODE,
+  PATTERNS,
   SAMPLE_CODE,
   STORAGE_KEY,
   createMockEngine,
@@ -18,6 +21,10 @@ import {
 /** CodeMirror の本文を行単位で取り出す（textContent は改行を保たないため）。 */
 const readEditorLines = (editor: HTMLElement): string[] =>
   Array.from(editor.querySelectorAll('.cm-line'), (line) => line.textContent ?? '');
+
+/** 確認ダイアログの呼び出しを記録する。story ごとに beforeEach でリセットする。 */
+let confirmMessages: string[] = [];
+let confirmResult = true;
 
 const meta = {
   component: CodeRunner,
@@ -179,6 +186,170 @@ export const ResetDraft: Story = {
       expect(canvas.queryByRole('button', { name: '元に戻す' })).not.toBeInTheDocument(),
     );
     await expect(window.localStorage.getItem(draftStorageKey(STORAGE_KEY))).toBeNull();
+  },
+};
+
+export const PatternsSwitch: Story = {
+  name: 'コードのパターンを切り替える',
+  args: { patterns: PATTERNS },
+  play: async ({ canvas, userEvent }) => {
+    const editor = await canvas.findByRole('textbox', { name: /packages.go のコード/ });
+    const group = await canvas.findByRole('group', { name: 'コードのパターン' });
+    const originalChip = within(group).getByRole('button', { name: '原文' });
+    const fixedChip = within(group).getByRole('button', { name: '修正する' });
+    const loopChip = within(group).getByRole('button', { name: 'ループする' });
+
+    // 原文のコードと一致しているので「原文」が選択中
+    await expect(originalChip).toHaveAttribute('aria-pressed', 'true');
+    await expect(fixedChip).toHaveAttribute('aria-pressed', 'false');
+    await expect(await canvas.findByText('このまま実行するとエラーになります。')).toBeVisible();
+
+    // 実行結果を出しておき、切り替えたら消えることを確かめる
+    await userEvent.click(await canvas.findByRole('button', { name: '実行' }));
+    const output = await canvas.findByRole('log');
+    await expect(await within(output).findByText('終了（7 ms）')).toBeVisible();
+
+    await userEvent.click(fixedChip);
+
+    await waitFor(() => expect(readEditorLines(editor)).toEqual(FIXED_CODE.split('\n')));
+    await expect(fixedChip).toHaveAttribute('aria-pressed', 'true');
+    await expect(originalChip).toHaveAttribute('aria-pressed', 'false');
+    await expect(await canvas.findByText('修正すると動きます。')).toBeVisible();
+    await expect(within(output).getByText('まだ実行していません。')).toBeVisible();
+
+    // note を持たないパターンでは注記を出さない
+    await userEvent.click(loopChip);
+    await waitFor(() => expect(readEditorLines(editor)).toEqual(LOOP_CODE.split('\n')));
+    await expect(loopChip).toHaveAttribute('aria-pressed', 'true');
+    await expect(canvas.queryByText('修正すると動きます。')).not.toBeInTheDocument();
+
+    // パターン選択中は確認なしで原文に戻せる
+    await expect(canvas.queryByRole('button', { name: '元に戻す' })).toBeVisible();
+    await userEvent.click(await canvas.findByRole('button', { name: '元に戻す' }));
+    await waitFor(() => expect(readEditorLines(editor)).toEqual(SAMPLE_CODE.split('\n')));
+    await expect(originalChip).toHaveAttribute('aria-pressed', 'true');
+    await expect(await canvas.findByText('このまま実行するとエラーになります。')).toBeVisible();
+  },
+};
+
+export const PatternsConfirmWhenEdited: Story = {
+  name: '手で編集した後は確認してから切り替える',
+  args: { patterns: PATTERNS },
+  beforeEach: () => {
+    confirmMessages = [];
+    confirmResult = false;
+    window.confirm = (message?: string) => {
+      confirmMessages.push(message ?? '');
+      return confirmResult;
+    };
+  },
+  play: async ({ canvas, userEvent }) => {
+    const editor = await canvas.findByRole('textbox', { name: /packages.go のコード/ });
+    const group = await canvas.findByRole('group', { name: 'コードのパターン' });
+    const fixedChip = within(group).getByRole('button', { name: '修正する' });
+
+    // 手で編集すると、どのパターンとも一致しないのでどれも pressed でない
+    await userEvent.click(editor);
+    await userEvent.type(editor, 'x');
+    await waitFor(() => expect(editor).toHaveTextContent('x'));
+    await expect(fixedChip).toHaveAttribute('aria-pressed', 'false');
+
+    // キャンセルしたら編集したコードが残る
+    await userEvent.click(fixedChip);
+    await expect(confirmMessages).toEqual([
+      '編集したコードを破棄して「修正する」に切り替えますか？',
+    ]);
+    await expect(editor).toHaveTextContent('fmt.Println("Hello, 世界")');
+    await expect(editor).not.toHaveTextContent('fmt.Println("fixed")');
+
+    // OK ならパターンに置き換わる
+    confirmResult = true;
+    await userEvent.click(fixedChip);
+    await expect(confirmMessages).toHaveLength(2);
+    await waitFor(() => expect(readEditorLines(editor)).toEqual(FIXED_CODE.split('\n')));
+    await expect(fixedChip).toHaveAttribute('aria-pressed', 'true');
+  },
+};
+
+export const PatternsDraftRestored: Story = {
+  name: '下書きがパターンと一致すればそのチップが選択される',
+  args: { patterns: PATTERNS },
+  beforeEach: () => {
+    saveDraft(window.localStorage, STORAGE_KEY, {
+      codeHash: CODE_HASH,
+      code: FIXED_CODE,
+    });
+  },
+  play: async ({ canvas }) => {
+    const editor = await canvas.findByRole('textbox', { name: /packages.go のコード/ });
+    await waitFor(() => expect(editor).toHaveTextContent('fmt.Println("fixed")'));
+
+    const group = await canvas.findByRole('group', { name: 'コードのパターン' });
+    await expect(within(group).getByRole('button', { name: '修正する' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(within(group).getByRole('button', { name: '原文' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    await expect(await canvas.findByText('修正すると動きます。')).toBeVisible();
+  },
+};
+
+export const PatternsResetFromVariant: Story = {
+  name: 'パターン選択中の元に戻すは確認しない',
+  args: { patterns: PATTERNS },
+  beforeEach: () => {
+    confirmMessages = [];
+    window.confirm = (message?: string) => {
+      confirmMessages.push(message ?? '');
+      return true;
+    };
+  },
+  play: async ({ canvas, userEvent }) => {
+    const editor = await canvas.findByRole('textbox', { name: /packages.go のコード/ });
+    const group = await canvas.findByRole('group', { name: 'コードのパターン' });
+    await userEvent.click(within(group).getByRole('button', { name: '修正する' }));
+    await waitFor(() => expect(readEditorLines(editor)).toEqual(FIXED_CODE.split('\n')));
+
+    await userEvent.click(await canvas.findByRole('button', { name: '元に戻す' }));
+
+    await waitFor(() => expect(readEditorLines(editor)).toEqual(SAMPLE_CODE.split('\n')));
+    await expect(confirmMessages).toEqual([]);
+    await expect(within(group).getByRole('button', { name: '原文' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  },
+};
+
+export const NoPatterns: Story = {
+  name: 'パターンが無ければチップを出さない',
+  play: async ({ canvas }) => {
+    await expect(
+      await canvas.findByRole('textbox', { name: /packages.go のコード/ }),
+    ).toBeVisible();
+    await expect(canvas.queryByRole('group', { name: 'コードのパターン' })).not.toBeInTheDocument();
+  },
+};
+
+export const PatternsFillLayout: Story = {
+  name: 'fill レイアウトでもチップと注記が見える',
+  args: { patterns: PATTERNS, layout: 'fill' },
+  decorators: [
+    (Story) => (
+      <div className="h-[480px] w-[375px] max-w-full">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas }) => {
+    await expect(await canvas.findByRole('group', { name: 'コードのパターン' })).toBeVisible();
+    await expect(await canvas.findByText('このまま実行するとエラーになります。')).toBeVisible();
+    await expect(
+      await canvas.findByRole('textbox', { name: /packages.go のコード/ }),
+    ).toBeVisible();
   },
 };
 

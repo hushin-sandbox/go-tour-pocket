@@ -107,3 +107,27 @@ export type LessonJa = {
   description: string;
   pages: LessonJaPage[];
 };
+
+/** エディタのチップで切り替える、あらかじめ用意したコードのパターン。 */
+export type CodeVariant = {
+  id: string;
+  /** チップに出す短い名前（16 文字以内を目安）。 */
+  label: string;
+  /** 選択中にチップの下へ出す 1 文の説明。 */
+  note?: string;
+  code: string;
+};
+
+/** `content/variants/<lesson>.json` の 1 ページ分。key は 0 始まりのページ index。 */
+export type PageCodeVariants = {
+  /** パターンを書いたときの原文コードの hash。原文が変わったら検出する。 */
+  hash: string;
+  /** 原文のコードを実行すると何が起きるかの 1 文。 */
+  originalNote?: string;
+  variants: CodeVariant[];
+};
+
+export type LessonVariants = {
+  id: string;
+  pages: Record<string, PageCodeVariants>;
+};

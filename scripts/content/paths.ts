@@ -12,5 +12,7 @@ export const TOUR_SOURCE_DIR = path.join(WEBSITE_CACHE_DIR, '_content', 'tour');
 
 export const CONTENT_EN_DIR = path.join(ROOT_DIR, 'content', 'en');
 export const CONTENT_JA_DIR = path.join(ROOT_DIR, 'content', 'ja');
+/** エディタで切り替えるコードパターン。パターンのあるレッスンだけファイルがある。 */
+export const CONTENT_VARIANTS_DIR = path.join(ROOT_DIR, 'content', 'variants');
 export const PUBLIC_DIR = path.join(ROOT_DIR, 'public');
 export const TOUR_IMAGES_DIR = path.join(PUBLIC_DIR, 'tour', 'images');

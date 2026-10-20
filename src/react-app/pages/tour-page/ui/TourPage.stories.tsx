@@ -51,7 +51,7 @@ const lesson: LoadedLesson = {
           ja: '`package` と *強調* と [[https://go.dev][go.dev]] を使います。',
         },
       ],
-      code: { name: 'main.go', content: 'package main\n\nfunc main() {}\n' },
+      code: { name: 'main.go', content: 'package main\n\nfunc main() {}\n', variants: [] },
     },
     {
       title: { en: 'Imports', ja: 'インポート' },

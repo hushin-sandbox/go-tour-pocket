@@ -82,6 +82,37 @@ type LessonJa = {
 - `scripts/content` の検証で次を検査する: 全 p/list に訳がある、`hash` が一致する、
   list の項目数が一致する、インラインコード（`` ` `` で囲んだ部分）と URL の集合が原文と一致する
 
+### コードパターン `content/variants/<lesson>.json`
+
+スマホではコードを打ちにくいので、「書き換えて試す」系のページに用意したパターンを
+エディタのチップで出せるようにする。パターンのあるレッスンだけファイルを置く（generics は無い）。
+
+```ts
+type LessonVariants = {
+  id: string;
+  pages: Record<string, PageCodeVariants>; // key は 0 始まりのページ index（block id と同じ数え方）
+};
+type PageCodeVariants = {
+  hash: string; // 書いたときの原文コードの hash（contentHash）
+  originalNote?: string; // 原文のコードを実行すると何が起きるかの 1 文
+  variants: CodeVariant[];
+};
+type CodeVariant = {
+  id: string; // ページ内で一意な kebab-case。"original" は原文のチップに予約
+  label: string; // チップに出す名前。16 文字を超えたら warning
+  note?: string; // 選択中にチップの下へ出す 1 文
+  code: string;
+};
+```
+
+- `hash` は原文コードと対で意味を持つ。原文が更新されたら一致しなくなるので、
+  検証で「パターンが古い」と分かる
+- `scripts/content/validate.ts` が次を検査する（`scripts/content/validate-variants.ts`）:
+  ファイル名と id の一致、未知のレッスン、キーが整数でない／ページが無い／ページに
+  `code` が無い、`hash` の不一致、`variants` が空、id の重複・`original` の使用・
+  kebab-case でない、`label` が空、`code` が原文や他の variant と同一、末尾が改行でない
+- `content/variants` ディレクトリが無い場合は「パターンなし」として扱い、エラーにしない
+
 ### 翻訳の方針
 
 - です・ます調。読者は Go 初学者のエンジニア
@@ -188,6 +219,10 @@ type LessonJa = {
   - インライン記法は `src/shared/inline.ts` のパーサで描画する。英日とも同じものを使う
 - コード（`code` があるページ）: スマホでは本文の下に置く（幅の広い画面は下の「幅の広い画面」）
   - エディタは CodeMirror 6（Go のシンタックスハイライト、行番号、文字サイズの調整）
+  - パターンのあるページでは、ファイル名の下にチップ（先頭が「原文」、続いて用意したパターン）を
+    横スクロールで出す。選択中は現在のコードと完全一致するものだけを pressed にし、手で編集すると
+    どれも選択しない。チップを押すとコードを置き換え（undo 可能）、選択中のパターンの note を
+    チップの下に出す。手で編集した状態から切り替えるときだけ確認する
   - 実行・フォーマット・停止・元に戻すのボタン。実行結果（stdout、stderr、画像、終了状態、所要時間）をエディタの下に出す
   - 既知の差異（時刻、`runtime.GOOS`、`%T`、不正なコードを受理する場合がある）を、折りたたんだ注記で出す
 - 下部: 前へ・次へを本文とコードの後ろに置く。スマホでは固定せず、safe-area の

@@ -1,4 +1,12 @@
-import type { Block, Lesson, LessonJa, ListBlock, ParagraphBlock } from '@/shared/content';
+import type {
+  Block,
+  CodeVariant,
+  Lesson,
+  LessonJa,
+  LessonVariants,
+  ListBlock,
+  ParagraphBlock,
+} from '@/shared/content';
 
 /** 英日を並べるための表示用テキスト。ja が無ければ英語だけになる。 */
 export type LocalizedText = {
@@ -50,6 +58,10 @@ export type JoinedPage = {
   code?: {
     name: string;
     content: string;
+    /** 原文のコードを実行すると何が起きるかの 1 文（パターンが無ければ未定義）。 */
+    originalNote?: string;
+    /** エディタで切り替えるパターン。無ければ空配列。 */
+    variants: CodeVariant[];
   };
 };
 
@@ -66,18 +78,28 @@ export type JoinedLesson = {
  * - ja のページは英語と同じ index で対応させる（content 側の仕様）
  * - ja が欠けている block / 項目は英語だけのままにする
  * - hash が一致しない訳は原文が変わった古い訳なので使わない（英語だけ表示する）
+ * - コードパターンは 0 始まりのページ index で対応させる。hash の鮮度は
+ *   `content/variants` の検証（scripts/content/validate-variants.ts）で見る
  */
-export function joinLesson(en: Lesson, ja?: LessonJa): JoinedLesson {
+export function joinLesson(en: Lesson, ja?: LessonJa, variants?: LessonVariants): JoinedLesson {
   return {
     id: en.id,
     title: { en: en.title, ja: localizedValue(ja?.title) },
     description: { en: en.description, ja: localizedValue(ja?.description) },
     pages: en.pages.map((page, pageIndex) => {
       const jaPage = ja?.pages[pageIndex];
+      const pageVariants = variants?.pages[String(pageIndex)];
       return {
         title: { en: page.title, ja: localizedValue(jaPage?.title) },
         blocks: page.blocks.map((block) => joinBlock(block, jaPage?.blocks[block.id])),
-        code: page.code,
+        code:
+          page.code === undefined
+            ? undefined
+            : {
+                ...page.code,
+                originalNote: pageVariants?.originalNote,
+                variants: pageVariants?.variants ?? [],
+              },
       };
     }),
   };

@@ -28,7 +28,7 @@ pnpm storybook   # Storybook（localhost:6006）
 mise run build:wasm  # Yaegi wasm を public/wasm/ にビルド（pnpm build の prebuild でも走る）
 node scripts/content/fetch.ts     # Tour 原文を golang/website から取得（初回・更新時）
 node scripts/content/build.ts     # content/en を生成
-node scripts/content/validate.ts  # content/ja と突き合わせて検証
+node scripts/content/validate.ts  # content/ja と content/variants を突き合わせて検証
 ```
 
 ライセンス一覧は `pnpm build` 時に `scripts/licenses/plugin.ts` が生成する（`virtual:licenses`
@@ -44,7 +44,7 @@ src/
 │   ├── pages/         # 画面本体（URL セグメント単位のスライス）
 │   └── shared/        # ui（shadcn/ui）/ lib（Go runner 含む）
 └── shared/            # アプリとビルドスクリプトの共通コード（zod スキーマなど）
-content/               # Tour 本文（en）と日本語訳（ja）。scripts/content が生成・検証する
+content/               # Tour 本文（en）・日本語訳（ja）・コードパターン（variants）。scripts/content が生成・検証する
 scripts/               # content / licenses / e2e の Node スクリプト
 wasm/                  # ブラウザ内 Go インタプリタ（Yaegi）。main.go と抽出済みシンボル
 public/wasm/           # build:wasm の生成物（gitignore）。wasm_exec.js もここにコピーされる

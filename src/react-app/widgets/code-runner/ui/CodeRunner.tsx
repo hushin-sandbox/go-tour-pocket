@@ -38,6 +38,20 @@ export interface GoRunnerEngine {
   format: typeof formatGo;
 }
 
+/** エディタのチップで切り替える 1 パターン。entities に依存させないため widget 側で定義する。 */
+export interface CodePattern {
+  id: string;
+  label: string;
+  note?: string;
+  code: string;
+}
+
+export interface CodePatterns {
+  /** 原文のコードを実行すると何が起きるかの 1 文 */
+  originalNote?: string;
+  variants: CodePattern[];
+}
+
 export interface CodeRunnerProps {
   /** レッスンに掲載されている原文のコード */
   code: string;
@@ -47,6 +61,8 @@ export interface CodeRunnerProps {
   storageKey: string;
   /** 原文コードの識別子。保存した下書きを捨てるかの判定に使う */
   codeHash: string;
+  /** あらかじめ用意したコードのパターン。無ければチップを出さない */
+  patterns?: CodePatterns;
   /** 実行のタイムアウト。既定は 10 秒 */
   timeoutMs?: number;
   /** 実行エンジン。省略時は shared/lib の wasm ランナーを使う */
@@ -99,6 +115,7 @@ function CodeRunnerContent({
   fileName,
   storageKey,
   codeHash,
+  patterns,
   timeoutMs = DEFAULT_GO_TIMEOUT_MS,
   engine: engineProp,
   layout = 'inline',
@@ -202,6 +219,17 @@ function CodeRunnerContent({
   }, []);
 
   const isDirty = code !== originalCode;
+
+  // 選択中のチップは「今のコードと完全一致するパターン」で導出する。
+  // 手で編集した状態はどれとも一致しないので、どれも pressed にならない。
+  const patternOptions: CodePattern[] =
+    patterns === undefined || patterns.variants.length === 0
+      ? []
+      : [
+          { id: 'original', label: '原文', note: patterns.originalNote, code: originalCode },
+          ...patterns.variants,
+        ];
+  const activePattern = patternOptions.find((option) => option.code === code);
 
   const updateCode = (next: string) => {
     codeRef.current = next;
@@ -330,10 +358,35 @@ function CodeRunnerContent({
 
   const handleReset = () => {
     if (!isDirty || isRunning) return;
-    if (!window.confirm(DEFAULT_CONFIRM_MESSAGE)) return;
+    // パターン選択中は原文コードに戻すだけなので確認しない。
+    // 手で編集したとき（patterns が無いときも同じ）だけ確認する。
+    const isPatternSelected = patternOptions.some(
+      (option) => option.id !== 'original' && option.code === code,
+    );
+    if (!isPatternSelected && !window.confirm(DEFAULT_CONFIRM_MESSAGE)) return;
     updateCode(originalCode);
     setItems([]);
     if (storage !== null) clearDraft(storage, storageKey);
+  };
+
+  /**
+   * チップでパターンを選ぶ。手で編集したコードを捨てるときだけ確認し、
+   * 置き換えはフォーマットと同じく undo できる transaction で行う。
+   */
+  const handlePattern = (option: CodePattern) => {
+    if (runningRef.current || formattingRef.current) return;
+    if (codeRef.current === option.code) return;
+    if (activePattern === undefined) {
+      const message = `編集したコードを破棄して「${option.label}」に切り替えますか？`;
+      if (!window.confirm(message)) return;
+    }
+    if (editorRef.current !== null) {
+      editorRef.current.replaceDoc(option.code);
+    } else {
+      updateCode(option.code);
+    }
+    setItems([]);
+    setFormatError(null);
   };
 
   const handleFontSize = (size: CodeFontSize) => {
@@ -392,6 +445,39 @@ function CodeRunnerContent({
           </Button>
         </div>
       </div>
+
+      {patternOptions.length > 0 ? (
+        <div className="flex shrink-0 flex-col gap-1">
+          <div
+            role="group"
+            aria-label="コードのパターン"
+            className="flex gap-2 overflow-x-auto pb-0.5"
+          >
+            {patternOptions.map((option) => {
+              const isPressed = option === activePattern;
+              return (
+                <Button
+                  key={option.id}
+                  type="button"
+                  size="sm"
+                  variant={isPressed ? 'secondary' : 'outline'}
+                  aria-pressed={isPressed}
+                  disabled={isRunning || isFormatting}
+                  className="min-h-11 shrink-0 px-3"
+                  onClick={() => handlePattern(option)}
+                >
+                  {option.label}
+                </Button>
+              );
+            })}
+          </div>
+          {activePattern?.note === undefined ? null : (
+            <p aria-live="polite" className="text-xs leading-5 text-muted-foreground">
+              {activePattern.note}
+            </p>
+          )}
+        </div>
+      ) : null}
 
       <div
         className={cn(

@@ -1,5 +1,5 @@
 import { LESSON_IDS } from '@/shared/content';
-import { loadJoinedLesson, loadLessonIndex, loadLessonJa } from './content';
+import { loadJoinedLesson, loadLessonIndex, loadLessonJa, loadLessonVariants } from './content';
 
 describe('lesson content', () => {
   it('joins every page and block of every lesson', async () => {
@@ -43,6 +43,37 @@ describe('lesson content', () => {
 
       expect(ja.pages).toHaveLength(joined.pages.length);
       expect(ja.pages.map((page) => page.title)).toEqual(joined.pages.map((page) => page.title.ja));
+    }
+  });
+
+  it('leaves code pages without patterns untouched', async () => {
+    // generics にはパターンのファイルを置かない（content/variants の仕様）
+    expect(await loadLessonVariants('generics')).toBeUndefined();
+
+    const joined = await loadJoinedLesson('generics');
+    for (const page of joined.pages) {
+      if (page.code !== undefined) {
+        expect(page.code.variants).toEqual([]);
+        expect(page.code.originalNote).toBeUndefined();
+      }
+    }
+  });
+
+  it('joins the pattern file with the code of the matching page', async () => {
+    for (const lessonId of LESSON_IDS) {
+      const variants = await loadLessonVariants(lessonId);
+      if (variants === undefined) continue;
+
+      const joined = await loadJoinedLesson(lessonId);
+      expect(variants.id).toBe(lessonId);
+
+      for (const [pageIndex, pageVariants] of Object.entries(variants.pages)) {
+        const page = joined.pages[Number(pageIndex)];
+        expect(page, `${lessonId} page ${pageIndex} がありません`).toBeDefined();
+        expect(page.code, `${lessonId} page ${pageIndex} に code がありません`).toBeDefined();
+        expect(page.code?.variants).toEqual(pageVariants.variants);
+        expect(page.code?.originalNote).toEqual(pageVariants.originalNote);
+      }
     }
   });
 });

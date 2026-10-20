@@ -171,6 +171,14 @@ export function TourPageView({ lesson, pageIndex, catalog }: TourPageViewProps) 
               fileName={page.code.name}
               storageKey={`${lesson.id}/${pageIndex}`}
               codeHash={codeHash(page.code.content)}
+              patterns={
+                page.code.variants.length === 0
+                  ? undefined
+                  : {
+                      originalNote: page.code.originalNote,
+                      variants: page.code.variants,
+                    }
+              }
               layout="fill"
               className="border-t border-border pt-6 lg:h-full lg:border-t-0 lg:pt-0"
             />
