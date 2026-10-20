@@ -1,0 +1,82 @@
+{
+  "id": "basics",
+  "questions": [
+    {
+      "id": "exported-names",
+      "pageIndex": 2,
+      "prompt": "パッケージ `geo` で次の名前を宣言しました。ほかのパッケージから `geo.` を付けて参照できるのはどれですか？",
+      "choices": ["`maxSize`", "`_MaxSize`", "`MaxSize`", "`maxsize`"],
+      "answer": 2,
+      "explanation": "Go では名前が大文字で始まる場合にエクスポートされます。`maxSize` と `maxsize` は小文字で、`_MaxSize` はアンダースコアで始まるので、パッケージの外からは参照できません。"
+    },
+    {
+      "id": "short-declaration-scope",
+      "pageIndex": 9,
+      "prompt": "このプログラムをビルドするとどうなりますか？",
+      "code": "package main\n\nimport \"fmt\"\n\nvar a = 1\nb := 2\n\nfunc main() {\n\tc := 3\n\tfmt.Println(a, b, c)\n}\n",
+      "choices": [
+        "`b := 2` の行でコンパイルエラーになる",
+        "`c := 3` の行でコンパイルエラーになる",
+        "コンパイルが通り、`1 2 3` と表示される",
+        "コンパイルが通り、実行時に panic する"
+      ],
+      "answer": 0,
+      "explanation": "`:=` は関数の中でだけ使えます。関数の外では、すべてのステートメントを `var` や `func` などのキーワードで始める必要があります。"
+    },
+    {
+      "id": "zero-values",
+      "pageIndex": 11,
+      "prompt": "このプログラムの実行結果はどれですか？",
+      "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar i int\n\tvar s string\n\tvar ok bool\n\tvar f float64\n\tfmt.Printf(\"%d %q %t %g\\n\", i, s, ok, f)\n}\n",
+      "choices": [
+        "`0 \"nil\" false 0`",
+        "`0 \"\" true 0`",
+        "`0 \"\" false 0`",
+        "`0 \"\" false NaN`"
+      ],
+      "answer": 2,
+      "explanation": "初期値を与えずに宣言した変数にはゼロ値が入ります。数値型は `0`、真偽値型は `false`、文字列型は `\"\"`（空の文字列）です。"
+    },
+    {
+      "id": "explicit-conversion",
+      "pageIndex": 12,
+      "prompt": "このプログラムをビルドするとどうなりますか？",
+      "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar i int = 42\n\tvar f float64 = i\n\tfmt.Println(f)\n}\n",
+      "choices": [
+        "コンパイルが通り、`42` と表示される",
+        "型が異なるためコンパイルエラーになる",
+        "コンパイルが通り、`42.0` と表示される",
+        "実行時に panic する"
+      ],
+      "answer": 1,
+      "explanation": "Go では異なる型の間の代入に明示的な型変換が必要です。`float64(i)` のように変換してから代入します。"
+    },
+    {
+      "id": "type-inference",
+      "pageIndex": 13,
+      "prompt": "このプログラムの実行結果はどれですか？",
+      "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\ti := 42\n\tf := 3.142\n\tg := 0.867 + 0.5i\n\tfmt.Printf(\"%T %T %T\\n\", i, f, g)\n}\n",
+      "choices": [
+        "`int float64 float64`",
+        "`int64 float64 complex128`",
+        "`int float32 complex64`",
+        "`int float64 complex128`"
+      ],
+      "answer": 3,
+      "explanation": "型を指定しない場合、型のない数値定数は精度に応じて `int`、`float64`、`complex128` のいずれかになります。`3.142` は `float64`、`0.867 + 0.5i` は `complex128` です。"
+    },
+    {
+      "id": "byte-rune-alias",
+      "pageIndex": 10,
+      "prompt": "`byte` と `rune` の説明として正しいものはどれですか？",
+      "choices": [
+        "`byte` は `int8`、`rune` は `uint32` の別名です",
+        "`byte` は `uint8`、`rune` は `int32` の別名です",
+        "`byte` は `uint16`、`rune` は `int64` の別名です",
+        "`byte` も `rune` も `string` の別名です"
+      ],
+      "answer": 1,
+      "explanation": "`byte` は `uint8` の別名、`rune` は `int32` の別名です。`rune` は Unicode のコードポイントを表します。"
+    }
+  ]
+}

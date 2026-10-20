@@ -1,0 +1,80 @@
+{
+  "id": "concurrency",
+  "questions": [
+    {
+      "id": "goroutine-evaluation",
+      "pageIndex": 0,
+      "prompt": "`go f(x, y, z)` を実行したとき、`f`、`x`、`y`、`z` の評価と `f` の実行はどこで行われますか？",
+      "choices": [
+        "評価も実行も現在のゴルーチンで行われます。",
+        "評価は現在のゴルーチンで、実行は新しいゴルーチンで行われます。",
+        "評価は新しいゴルーチンで、実行は現在のゴルーチンで行われます。",
+        "評価も実行も新しいゴルーチンで行われます。"
+      ],
+      "answer": 1,
+      "explanation": "`f`、`x`、`y`、`z` の評価は現在のゴルーチンで行われ、`f` の実行だけが新しいゴルーチンで行われます。"
+    },
+    {
+      "id": "unbuffered-synchronization",
+      "pageIndex": 1,
+      "prompt": "次のプログラムが出力するのはどれですか？",
+      "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tch := make(chan string)\n\tgo func() {\n\t\tfmt.Println(\"worker\")\n\t\tch <- \"done\"\n\t}()\n\t<-ch\n\tfmt.Println(\"main\")\n}\n",
+      "choices": [
+        "`main`、`worker` の順に出力されます。",
+        "`worker` だけが出力されます。",
+        "何も出力されずにデッドロックします。",
+        "`worker`、`main` の順に出力されます。"
+      ],
+      "answer": 3,
+      "explanation": "バッファなしチャネルでは、送信は受信側が準備できるまでブロックされます。ゴルーチンが `worker` を出力してから送信し、`main` が受信してから `main` を出力するため、順序は決まります。"
+    },
+    {
+      "id": "buffered-channel-len-cap",
+      "pageIndex": 2,
+      "prompt": "次のプログラムが出力するのはどれですか？",
+      "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tch := make(chan int, 3)\n\tch <- 10\n\tch <- 20\n\tfmt.Println(len(ch), cap(ch))\n\tfmt.Println(<-ch)\n}\n",
+      "choices": ["`3 2` と `10`", "`2 3` と `20`", "`2 3` と `10`", "`3 3` と `20`"],
+      "answer": 2,
+      "explanation": "`len` はバッファにたまっている値の数、`cap` はバッファの容量です。2 つ送信したので `2 3` になり、最初に受信する値は `10` です。"
+    },
+    {
+      "id": "range-close-termination",
+      "pageIndex": 3,
+      "prompt": "`for v := range ch` はどのようなときに終了しますか？",
+      "choices": [
+        "`ch` が閉じられ、残りの値を受け取ったとき",
+        "`ch` が閉じられた直後",
+        "`ch` に値が送られなくなってから一定時間が経過したとき",
+        "受信側が `close(ch)` を呼び出したとき"
+      ],
+      "answer": 0,
+      "explanation": "`range` はチャネルが閉じられるまで値を受信し、閉じられたあと残りの値を受け取り終えると終了します。チャネルを閉じるのは送信側だけです。"
+    },
+    {
+      "id": "select-default",
+      "pageIndex": 5,
+      "prompt": "`select` に `default` を書くと、どのようなときにその case が実行されますか？",
+      "choices": [
+        "ほかの case がすべて準備できているとき",
+        "ほかのどの case も準備できていないとき",
+        "`select` が 1 回目の実行のとき",
+        "チャネルが閉じられているとき"
+      ],
+      "answer": 1,
+      "explanation": "`default` はほかのどの case も準備できていないときに実行されます。これを使うと、ブロックせずに送信や受信を試せます。"
+    },
+    {
+      "id": "mutex-defer-unlock",
+      "pageIndex": 8,
+      "prompt": "`sync.Mutex` の `Value` メソッドのように `defer c.mu.Unlock()` を使う目的は何ですか？",
+      "choices": [
+        "`Lock` を複数回呼び出せるようにするためです。",
+        "`Unlock` を別のゴルーチンに任せるためです。",
+        "早期リターンでも確実にロックを解除するためです。",
+        "ロックを取得せずに値を読むためです。"
+      ],
+      "answer": 2,
+      "explanation": "`defer` を使うと、メソッドがどこで return しても `Unlock` が実行されます。`Lock` と `Unlock` で囲んだ範囲だけが排他制御の対象になります。"
+    }
+  ]
+}

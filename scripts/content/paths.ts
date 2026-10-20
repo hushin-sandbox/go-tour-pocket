@@ -14,5 +14,7 @@ export const CONTENT_EN_DIR = path.join(ROOT_DIR, 'content', 'en');
 export const CONTENT_JA_DIR = path.join(ROOT_DIR, 'content', 'ja');
 /** エディタで切り替えるコードパターン。パターンのあるレッスンだけファイルがある。 */
 export const CONTENT_VARIANTS_DIR = path.join(ROOT_DIR, 'content', 'variants');
+/** 理解確認のための確認問題。問題のあるレッスンだけファイルがある。 */
+export const CONTENT_QUIZ_DIR = path.join(ROOT_DIR, 'content', 'quiz');
 export const PUBLIC_DIR = path.join(ROOT_DIR, 'public');
 export const TOUR_IMAGES_DIR = path.join(PUBLIC_DIR, 'tour', 'images');

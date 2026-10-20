@@ -1,6 +1,7 @@
 import fs from 'node:fs';
-import { CONTENT_VARIANTS_DIR } from './paths.ts';
+import { CONTENT_QUIZ_DIR, CONTENT_VARIANTS_DIR } from './paths.ts';
 import { validateContent } from './validate-content.ts';
+import { formatQuizIssue, validateQuiz } from './validate-quiz.ts';
 import { formatVariantIssue, validateVariants } from './validate-variants.ts';
 
 const result = validateContent();
@@ -35,6 +36,22 @@ if (fs.existsSync(CONTENT_VARIANTS_DIR)) {
   process.stdout.write('validate-variants: no patterns (content/variants is absent)\n');
 }
 
-if (result.errorCount > 0 || variantsErrorCount > 0) {
+let quizErrorCount = 0;
+if (fs.existsSync(CONTENT_QUIZ_DIR)) {
+  const quiz = validateQuiz();
+  for (const issue of quiz.issues) {
+    process.stdout.write(`validate-quiz: ${formatQuizIssue(issue)}\n`);
+  }
+  process.stdout.write(
+    `validate-quiz: ${quiz.errorCount} errors, ${quiz.warningCount} warnings, ` +
+      `${quiz.quizQuestions} questions in ${quiz.quizLessons} lessons\n`,
+  );
+  quizErrorCount = quiz.errorCount;
+} else {
+  // 確認問題は任意。執筆途中でディレクトリごと無いことをエラーにはしない。
+  process.stdout.write('validate-quiz: no quiz (content/quiz is absent)\n');
+}
+
+if (result.errorCount > 0 || variantsErrorCount > 0 || quizErrorCount > 0) {
   process.exitCode = 1;
 }

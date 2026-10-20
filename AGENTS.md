@@ -44,7 +44,7 @@ src/
 │   ├── pages/         # 画面本体（URL セグメント単位のスライス）
 │   └── shared/        # ui（shadcn/ui）/ lib（Go runner 含む）
 └── shared/            # アプリとビルドスクリプトの共通コード（zod スキーマなど）
-content/               # Tour 本文（en）・日本語訳（ja）・コードパターン（variants）。scripts/content が生成・検証する
+content/               # Tour 本文（en）・日本語訳（ja）・コードパターン（variants）・確認問題（quiz）。scripts/content が生成・検証する
 scripts/               # content / licenses / e2e の Node スクリプト
 wasm/                  # ブラウザ内 Go インタプリタ（Yaegi）。main.go と抽出済みシンボル
 public/wasm/           # build:wasm の生成物（gitignore）。wasm_exec.js もここにコピーされる

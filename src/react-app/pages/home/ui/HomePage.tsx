@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
-import { Check, ChevronRight } from 'lucide-react';
+import { Check, ChevronRight, ListChecks } from 'lucide-react';
 import {
   findCatalogLesson,
   LESSON_MODULES,
@@ -9,6 +9,7 @@ import {
   type CatalogLesson,
   type LessonCatalog,
 } from '@/react-app/entities/lesson';
+import { hasLessonQuiz } from '@/react-app/entities/quiz';
 import {
   countReadPages,
   isPageRead,
@@ -18,10 +19,19 @@ import {
 import { InstallPrompt } from '@/react-app/features/install-prompt';
 import { cn } from '@/react-app/shared/lib';
 import { Button } from '@/react-app/shared/ui';
+import { LESSON_IDS, type ContentLessonId } from '@/shared/content';
+
+/** 確認問題のあるレッスン。ビルド時に決まるのでモジュールの読み込み時に 1 回だけ調べる。 */
+const QUIZ_LESSON_IDS = LESSON_IDS.filter((lessonId) => hasLessonQuiz(lessonId));
 
 type HomePageViewProps = {
   catalog: LessonCatalog;
   progress: Progress;
+  /**
+   * 確認問題のあるレッスン。コンテンツの有無に依存せず story を書けるよう、
+   * 画面は glob を直接見ずにこの props で受け取る。
+   */
+  quizLessonIds?: readonly ContentLessonId[];
 };
 
 export function HomePage() {
@@ -59,10 +69,10 @@ export function HomePage() {
     );
   }
 
-  return <HomePageView catalog={catalog} progress={progress} />;
+  return <HomePageView catalog={catalog} progress={progress} quizLessonIds={QUIZ_LESSON_IDS} />;
 }
 
-export function HomePageView({ catalog, progress }: HomePageViewProps) {
+export function HomePageView({ catalog, progress, quizLessonIds = [] }: HomePageViewProps) {
   const lastLesson = progress.lastPage
     ? findCatalogLesson(catalog, progress.lastPage.lessonId)
     : undefined;
@@ -161,7 +171,12 @@ export function HomePageView({ catalog, progress }: HomePageViewProps) {
             </h2>
             <ul className="flex flex-col gap-2">
               {lessons.map((lesson) => (
-                <LessonCard key={lesson.id} lesson={lesson} progress={progress} />
+                <LessonCard
+                  key={lesson.id}
+                  lesson={lesson}
+                  progress={progress}
+                  hasQuiz={quizLessonIds.includes(lesson.id)}
+                />
               ))}
             </ul>
           </section>
@@ -194,9 +209,10 @@ export function HomePageView({ catalog, progress }: HomePageViewProps) {
 type LessonCardProps = {
   lesson: CatalogLesson;
   progress: Progress;
+  hasQuiz: boolean;
 };
 
-function LessonCard({ lesson, progress }: LessonCardProps) {
+function LessonCard({ lesson, progress, hasQuiz }: LessonCardProps) {
   const total = lesson.pageTitles.length;
   const read = countReadPages(progress, lesson.id, total);
   const complete = total > 0 && read === total;
@@ -288,6 +304,17 @@ function LessonCard({ lesson, progress }: LessonCardProps) {
               );
             })}
           </ol>
+
+          {hasQuiz && (
+            <Link
+              to="/quiz/$lesson"
+              params={{ lesson: lesson.id }}
+              className="flex min-h-11 items-center gap-2 rounded-md px-1 text-sm font-medium text-link underline-offset-4 hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+            >
+              <ListChecks aria-hidden="true" className="size-4" />
+              確認問題に挑戦
+            </Link>
+          )}
         </div>
       </details>
     </li>

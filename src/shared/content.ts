@@ -131,3 +131,28 @@ export type LessonVariants = {
   id: string;
   pages: Record<string, PageCodeVariants>;
 };
+
+/** レッスンを読んだあとの理解確認問題。 */
+export type QuizQuestion = {
+  /** レッスン内で一意な kebab-case。 */
+  id: string;
+  /** 根拠になる Tour のページ。0 始まり（block id や content/variants のキーと同じ数え方）。 */
+  pageIndex: number;
+  /** 問題文。`` ` `` で囲んだ部分がコード（空白可。present 記法ではない。src/shared/quiz-text.ts）。 */
+  prompt: string;
+  /** 問題に添える Go コード。末尾は改行で終える。無ければ省略。 */
+  code?: string;
+  /** 選択肢。3〜4 個。`` ` `` で囲んだ部分がコード（空白可。強調・リンクなし）。 */
+  choices: string[];
+  /** 正解の choices の index（0 始まり）。 */
+  answer: number;
+  /** 正誤どちらでも回答後に出す解説。1〜3 文。`` ` `` で囲んだ部分がコード（空白可。強調・リンクなし）。 */
+  explanation: string;
+};
+
+/** `content/quiz/<lesson>.json`。問題のあるレッスンだけファイルがある。 */
+export type LessonQuiz = {
+  /** ファイル名と一致するレッスン id。 */
+  id: string;
+  questions: QuizQuestion[];
+};

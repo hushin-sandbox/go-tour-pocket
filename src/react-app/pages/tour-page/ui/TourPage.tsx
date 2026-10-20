@@ -12,8 +12,10 @@ import {
   type PageRef,
 } from '@/react-app/entities/lesson';
 import { recordPageOpened } from '@/react-app/entities/progress';
+import { hasLessonQuiz } from '@/react-app/entities/quiz';
 import { FONT_SIZE_PX, useDisplaySettings } from '@/react-app/features/display-mode';
 import { cn } from '@/react-app/shared/lib';
+import { Button } from '@/react-app/shared/ui';
 import { CodeRunner } from '@/react-app/widgets/code-runner';
 import { usePageShortcuts } from '../model/use-page-shortcuts';
 import { PageBlocks } from './PageBlocks';
@@ -93,7 +95,14 @@ export function TourPage() {
     );
   }
 
-  return <TourPageView lesson={state.lesson} pageIndex={pageNumber - 1} catalog={state.catalog} />;
+  return (
+    <TourPageView
+      lesson={state.lesson}
+      pageIndex={pageNumber - 1}
+      catalog={state.catalog}
+      quizAvailable={hasLessonQuiz(state.lesson.id)}
+    />
+  );
 }
 
 type LoadState =
@@ -107,9 +116,19 @@ type TourPageViewProps = {
   /** 0 始まり。 */
   pageIndex: number;
   catalog: LessonCatalog;
+  /**
+   * このレッスンに確認問題があるか。コンテンツの有無に依存せず story を書けるよう、
+   * 画面は glob を直接見ずに props で受け取る（既定は出さない）。
+   */
+  quizAvailable?: boolean;
 };
 
-export function TourPageView({ lesson, pageIndex, catalog }: TourPageViewProps) {
+export function TourPageView({
+  lesson,
+  pageIndex,
+  catalog,
+  quizAvailable = false,
+}: TourPageViewProps) {
   const { settings } = useDisplaySettings();
   const page = lesson.pages[pageIndex];
   const { prev, next } = adjacentPages(catalog, lesson.id, pageIndex);
@@ -185,6 +204,28 @@ export function TourPageView({ lesson, pageIndex, catalog }: TourPageViewProps) 
           </aside>
         )}
       </div>
+
+      {pageIndex === lesson.pages.length - 1 && quizAvailable && (
+        <section
+          aria-labelledby="lesson-quiz"
+          className="mt-10 flex flex-col gap-2 rounded-xl border border-border bg-card px-5 py-4 shadow-sm"
+        >
+          <h2 id="lesson-quiz" className="text-sm font-medium">
+            このレッスンの確認問題
+          </h2>
+          <p className="text-sm leading-6 text-muted-foreground">
+            読み終えた内容を、思い出しながら確かめられます。
+          </p>
+          <div className="flex justify-end">
+            <Button
+              className="h-11 px-4"
+              render={<Link to="/quiz/$lesson" params={{ lesson: lesson.id }} />}
+            >
+              確認問題をはじめる
+            </Button>
+          </div>
+        </section>
+      )}
 
       <BottomNavigation prev={prev} next={next} />
     </div>

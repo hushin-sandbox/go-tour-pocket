@@ -125,6 +125,18 @@ export const ContinueAndReadPages: Story = {
   },
 };
 
+/** 確認問題のあるレッスンにだけ「確認問題に挑戦」を出す。 */
+export const QuizAvailable: Story = {
+  args: { quizLessonIds: ['basics'] },
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByText('パッケージ、変数、関数'));
+
+    const links = await canvas.findAllByRole('link', { name: '確認問題に挑戦' });
+    await expect(links).toHaveLength(1);
+    await expect(links[0]).toHaveAttribute('href', '/quiz/basics');
+  },
+};
+
 export const JapaneseMissing: Story = {
   args: { catalog: catalogWithoutJapanese },
   play: async ({ canvas, userEvent }) => {

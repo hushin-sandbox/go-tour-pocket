@@ -1,0 +1,26 @@
+{
+  "id": "welcome",
+  "questions": [
+    {
+      "id": "run-shortcut",
+      "pageIndex": 0,
+      "prompt": "ツアーのエディタでプログラムをコンパイルして実行する操作はどれですか？",
+      "choices": [
+        "`Ctrl` + `Enter` を押す",
+        "`Shift` + `Enter` を押す",
+        "`Alt` + `Enter` を押す",
+        "`Shift` + `Space` を押す"
+      ],
+      "answer": 1,
+      "explanation": "「実行」ボタンと同じ動作が `Shift` + `Enter` です。`Ctrl` + `Enter` は「フォーマット」ボタンのショートカットです。"
+    },
+    {
+      "id": "format-tool",
+      "pageIndex": 0,
+      "prompt": "ツアーの「フォーマット」ボタンは、エディタのテキストを何で整形しますか？",
+      "choices": ["`go build`", "`go vet`", "`gofmt`", "`go test`"],
+      "answer": 2,
+      "explanation": "「フォーマット」をクリックすると、エディタのテキストが `gofmt` ツールでフォーマットされます。"
+    }
+  ]
+}

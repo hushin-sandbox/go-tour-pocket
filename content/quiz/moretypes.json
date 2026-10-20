@@ -1,0 +1,82 @@
+{
+  "id": "moretypes",
+  "questions": [
+    {
+      "id": "pointer-basics",
+      "pageIndex": 0,
+      "prompt": "Go のポインタについて、Tour の説明に合うものはどれですか？",
+      "choices": [
+        "`&` でポインタを取得し、`+` でアドレスを進められます。",
+        "ポインタのゼロ値は `0` で、`nil` ではありません。",
+        "`*T` は `T` 型の値そのものを表します。",
+        "`&` でポインタを取得し、`*` で値を読み書きできます。"
+      ],
+      "answer": 3,
+      "explanation": "`&` はオペランドへのポインタを生成し、`*` はポインタの基底の値を読み書きします。Go にはポインタ演算がないため、`+` でアドレスを進めることはできません。ポインタのゼロ値は `nil` です。"
+    },
+    {
+      "id": "slice-bounds",
+      "pageIndex": 6,
+      "prompt": "次のプログラムの出力はどれですか？",
+      "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tprimes := [6]int{2, 3, 5, 7, 11, 13}\n\tvar s []int = primes[1:4]\n\tfmt.Println(s)\n}\n",
+      "choices": ["`[2 3 5]`", "`[3 5 7 11]`", "`[3 5 7]`", "`[2 3 5 7]`"],
+      "answer": 2,
+      "explanation": "`a[low:high]` は `low` 以上 `high` 未満の要素を選ぶため、`primes[1:4]` は `[3 5 7]` になります。スライスは配列の一部を指すビューで、配列の長さは型の一部です。"
+    },
+    {
+      "id": "slice-shares-array",
+      "pageIndex": 7,
+      "prompt": "次のプログラムの出力はどれですか？",
+      "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tnames := [4]string{\"John\", \"Paul\", \"George\", \"Ringo\"}\n\ta := names[0:2]\n\tb := names[1:3]\n\tb[0] = \"XXX\"\n\tfmt.Println(a, names)\n}\n",
+      "choices": [
+        "`[John XXX] [John XXX George Ringo]`",
+        "`[John Paul] [John Paul George Ringo]`",
+        "`[John XXX] [John Paul George Ringo]`",
+        "`[John Paul] [John XXX George Ringo]`"
+      ],
+      "answer": 0,
+      "explanation": "`b[0]` は `names[1]` を指しているため、スライス `b` の変更は基になる配列 `names` に反映されます。同じ配列を共有する `a` にも変更が見えます。"
+    },
+    {
+      "id": "slice-len-cap",
+      "pageIndex": 10,
+      "prompt": "次のプログラムの出力はどれですか？",
+      "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\ts := []int{2, 3, 5, 7, 11, 13}\n\ts = s[2:5]\n\tfmt.Println(len(s), cap(s))\n}\n",
+      "choices": ["`3 6`", "`3 4`", "`5 6`", "`4 4`"],
+      "answer": 1,
+      "explanation": "長さは要素数で 3、容量は基になる配列の先頭から数えた要素数で 4 です。`s[2:5]` は 3 個の要素を持ち、基になる配列の末尾まで 4 個分の容量があります。"
+    },
+    {
+      "id": "nil-slice-append",
+      "pageIndex": 14,
+      "prompt": "次のプログラムの出力はどれですか？",
+      "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar s []int\n\tfmt.Println(s == nil, len(s), cap(s))\n\ts = append(s, 1, 2)\n\tfmt.Println(len(s), s)\n}\n",
+      "choices": [
+        "1 行目が `false 0 0`、2 行目が `2 [1 2]`",
+        "1 行目が `true 0 0`、2 行目が `2 [0 0]`",
+        "1 行目が `true 0 0`、2 行目が `2 [1 2]`",
+        "1 行目が `false 2 2`、2 行目が `2 [1 2]`"
+      ],
+      "answer": 2,
+      "explanation": "`var s []int` の `s` は `nil` で、長さと容量は 0 です。`append` は `nil` スライスにも使え、要素を収める配列がなければ新しく割り当てます。"
+    },
+    {
+      "id": "map-missing-key",
+      "pageIndex": 21,
+      "prompt": "次のプログラムの出力はどれですか？",
+      "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar m map[string]int\n\tv, ok := m[\"Go\"]\n\tfmt.Println(v, ok)\n}\n",
+      "choices": ["`0 true`", "`nil false`", "`nil true`", "`0 false`"],
+      "answer": 3,
+      "explanation": "マップのゼロ値は `nil` で、キーを持ちません。キーが見つからないとき、値は要素型 `int` のゼロ値 `0`、`ok` は `false` になります。"
+    },
+    {
+      "id": "closure-independent-state",
+      "pageIndex": 24,
+      "prompt": "次のプログラムの出力はどれですか？",
+      "code": "package main\n\nimport \"fmt\"\n\nfunc adder() func(int) int {\n\tsum := 0\n\treturn func(x int) int {\n\t\tsum += x\n\t\treturn sum\n\t}\n}\n\nfunc main() {\n\tpos, neg := adder(), adder()\n\tfmt.Println(pos(1), neg(2), pos(3))\n}\n",
+      "choices": ["`1 2 4`", "`1 2 3`", "`4 2 1`", "`3 3 4`"],
+      "answer": 0,
+      "explanation": "`pos` と `neg` は別々の `sum` に束縛されたクロージャです。`pos(1)` のあと `pos(3)` で `sum` は 4 になり、`neg` の `sum` は 2 のままです。"
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "id": "methods",
+  "questions": [
+    {
+      "id": "value-vs-pointer-receiver",
+      "pageIndex": 3,
+      "prompt": "次のプログラムが出力するのはどれですか？",
+      "code": "package main\n\nimport \"fmt\"\n\ntype Counter struct {\n\tN int\n}\n\nfunc (c Counter) AddValue(n int) {\n\tc.N += n\n}\n\nfunc (c *Counter) AddPointer(n int) {\n\tc.N += n\n}\n\nfunc main() {\n\tc := Counter{N: 1}\n\tc.AddValue(2)\n\tc.AddPointer(3)\n\tfmt.Println(c.N)\n}\n",
+      "choices": ["`1`", "`3`", "`4`", "`6`"],
+      "answer": 2,
+      "explanation": "値レシーバの `AddValue` は `c` のコピーを変更するため、元の `c.N` は変わりません。ポインタレシーバの `AddPointer` だけが元の値を変更するので、`1 + 3` で `4` になります。"
+    },
+    {
+      "id": "pointer-receiver-auto-address",
+      "pageIndex": 5,
+      "prompt": "ポインタレシーバ `Scale` を持つ型 `Vertex` の値 `v` に対して `v.Scale(2)` と書きました。Go はこの呼び出しをどのように解釈しますか？",
+      "choices": ["`(&v).Scale(2)`", "`(*v).Scale(2)`", "`Scale(v, 2)`", "`v.Scale(&2)`"],
+      "answer": 0,
+      "explanation": "ポインタレシーバを持つメソッドは値でも呼び出せます。Go は便宜上、`v.Scale(2)` を `(&v).Scale(2)` と解釈して `v` のアドレスを渡します。"
+    },
+    {
+      "id": "pointer-receiver-copy-cost",
+      "pageIndex": 7,
+      "prompt": "レシーバが大きな構造体である場合に、ポインタレシーバを選ぶ利点は何ですか？",
+      "choices": [
+        "レシーバの型をインターフェースとして扱えるようになります。",
+        "メソッドをほかのパッケージから呼び出せるようになります。",
+        "レシーバが nil かどうかの検査が不要になります。",
+        "メソッドを呼び出すたびに値全体をコピーせずに済みます。"
+      ],
+      "answer": 3,
+      "explanation": "ポインタレシーバなら、メソッドを呼び出すたびに値全体をコピーせずに済みます。ほかに、レシーバが指す値をメソッドから変更できるという利点もあります。"
+    },
+    {
+      "id": "pointer-receiver-interface-satisfaction",
+      "pageIndex": 8,
+      "prompt": "次の型 `Vertex` のうち、`Abser` インターフェースを満たすのはどれですか？",
+      "code": "package main\n\nimport \"math\"\n\ntype Abser interface {\n\tAbs() float64\n}\n\ntype Vertex struct {\n\tX, Y float64\n}\n\nfunc (v *Vertex) Abs() float64 {\n\treturn math.Sqrt(v.X*v.X + v.Y*v.Y)\n}\n",
+      "choices": [
+        "`Vertex` の値",
+        "`*Vertex`",
+        "`Vertex` と `*Vertex` の両方",
+        "どちらも `Abser` を満たしません"
+      ],
+      "answer": 1,
+      "explanation": "`Abs` メソッドは `*Vertex` に定義されているため、`*Vertex` だけが `Abser` を満たします。Go では `implements` キーワードを書かず、メソッドを定義することで暗黙に実装します。"
+    },
+    {
+      "id": "nil-underlying-interface",
+      "pageIndex": 11,
+      "prompt": "次のプログラムが出力するのはどれですか？",
+      "code": "package main\n\nimport \"fmt\"\n\ntype I interface {\n\tM()\n}\n\ntype T struct {\n\tS string\n}\n\nfunc (t *T) M() {\n\tfmt.Println(t.S)\n}\n\nfunc main() {\n\tvar t *T\n\tvar i I = t\n\tfmt.Println(i == nil)\n}\n",
+      "choices": ["`true`", "`false`", "コンパイルエラーになる", "実行時エラーになる"],
+      "answer": 1,
+      "explanation": "`i` は nil の `*T` を具象値として保持しており、型情報も残っています。そのため、インターフェースの値自体は nil ではなく、`i == nil` は `false` になります。"
+    },
+    {
+      "id": "type-assertion-two-values",
+      "pageIndex": 14,
+      "prompt": "次のプログラムが出力するのはどれですか？",
+      "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar i interface{} = 42\n\tf, ok := i.(float64)\n\tfmt.Println(f, ok)\n}\n",
+      "choices": ["`0 false`", "`42 false`", "`0 true`", "パニックが発生する"],
+      "answer": 0,
+      "explanation": "2 値形式の型アサーションでは、失敗すると `ok` が `false` になり、`f` は `float64` のゼロ値 `0` になります。1 値形式と違い、パニックは起こりません。"
+    },
+    {
+      "id": "stringer-print",
+      "pageIndex": 16,
+      "prompt": "次のプログラムが出力するのはどれですか？",
+      "code": "package main\n\nimport \"fmt\"\n\ntype Person struct {\n\tName string\n\tAge  int\n}\n\nfunc (p Person) String() string {\n\treturn fmt.Sprintf(\"%v (%v years)\", p.Name, p.Age)\n}\n\nfunc main() {\n\tfmt.Println(Person{\"Arthur Dent\", 42})\n}\n",
+      "choices": [
+        "`{Arthur Dent 42}`",
+        "`Person{Arthur Dent 42}`",
+        "`Arthur Dent (42 years)`",
+        "`Arthur Dent 42`"
+      ],
+      "answer": 2,
+      "explanation": "`Person` は `String() string` を定義しているため `fmt.Stringer` を満たします。`fmt.Println` はこの `String` メソッドの結果を出力します。"
+    }
+  ]
+}

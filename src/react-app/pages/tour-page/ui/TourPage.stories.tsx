@@ -323,6 +323,32 @@ export const LastPage: Story = {
     const next = canvas.getByRole('link', { name: /次へ/ });
     await expect(next).toHaveAttribute('href', '/tour/flowcontrol/1');
     await expect(next).toHaveTextContent('for');
+    // 確認問題の無いレッスン（quizAvailable の既定）では導線を出さない
+    await expect(
+      canvas.queryByRole('link', { name: '確認問題をはじめる' }),
+    ).not.toBeInTheDocument();
+  },
+};
+
+/** レッスンの最後のページでは、本文の後ろに確認問題への導線を出す。 */
+export const LastPageWithQuiz: Story = {
+  args: { pageIndex: 2, quizAvailable: true },
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole('heading', { name: 'このレッスンの確認問題' })).toBeVisible();
+    await expect(canvas.getByRole('link', { name: '確認問題をはじめる' })).toHaveAttribute(
+      'href',
+      '/quiz/basics',
+    );
+  },
+};
+
+/** 確認問題があっても、最後のページより前には導線を出さない。 */
+export const QuizOnlyOnLastPage: Story = {
+  args: { quizAvailable: true },
+  play: async ({ canvas }) => {
+    await expect(
+      canvas.queryByRole('link', { name: '確認問題をはじめる' }),
+    ).not.toBeInTheDocument();
   },
 };
 

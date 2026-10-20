@@ -1,0 +1,74 @@
+{
+  "id": "flowcontrol",
+  "questions": [
+    {
+      "id": "for-scope",
+      "pageIndex": 0,
+      "prompt": "このプログラムをビルドするとどうなりますか？",
+      "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfor i := 0; i < 3; i++ {\n\t\tfmt.Println(i)\n\t}\n\tfmt.Println(i)\n}\n",
+      "choices": [
+        "コンパイルが通り、`0`、`1`、`2`、`3` の順に表示される",
+        "コンパイルが通り、`0`、`1`、`2` の順に表示される",
+        "`i` が `for` のスコープ外なのでコンパイルエラーになる",
+        "`0`、`1`、`2` が表示されたあと、実行時に panic する"
+      ],
+      "answer": 2,
+      "explanation": "`for` の初期化ステートメントで宣言した変数は、`for` ステートメントのスコープ内でしか参照できません。ループの外で `i` を使うとコンパイルエラーになります。"
+    },
+    {
+      "id": "while-is-for",
+      "pageIndex": 2,
+      "prompt": "C の `while (i < 10) { ... }` に相当する Go の書き方はどれですか？",
+      "choices": [
+        "`while i < 10 { ... }`",
+        "`loop i < 10 { ... }`",
+        "`for i < 10; { ... }`",
+        "`for i < 10 { ... }`"
+      ],
+      "answer": 3,
+      "explanation": "Go には `while` がなく、条件だけを書いた `for` が C の `while` に相当します。条件を囲む括弧とセミコロンは不要です。"
+    },
+    {
+      "id": "if-short-statement-scope",
+      "pageIndex": 5,
+      "prompt": "このプログラムをビルドするとどうなりますか？",
+      "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tif v := 10; v > 5 {\n\t\tfmt.Println(\"big\")\n\t} else {\n\t\tfmt.Println(v)\n\t}\n\tfmt.Println(v)\n}\n",
+      "choices": [
+        "コンパイルが通り、`big` と `10` が表示される",
+        "最後の `fmt.Println(v)` でコンパイルエラーになる",
+        "`v` を `else` の中で参照できないためコンパイルエラーになる",
+        "コンパイルが通り、`big` だけが表示される"
+      ],
+      "answer": 1,
+      "explanation": "`if` の短いステートメントで宣言した変数は、`if` と `else` のスコープ内でのみ有効です。`if` を抜けた後の `v` は未定義なのでコンパイルエラーになります。"
+    },
+    {
+      "id": "switch-no-fallthrough",
+      "pageIndex": 8,
+      "prompt": "このプログラムの実行結果はどれですか？",
+      "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tx := 1\n\tswitch x {\n\tcase 0:\n\t\tfmt.Println(\"zero\")\n\tcase 1:\n\t\tfmt.Println(\"one\")\n\tcase 2:\n\t\tfmt.Println(\"two\")\n\t}\n}\n",
+      "choices": [
+        "`one` だけが表示される",
+        "`one` と `two` が表示される",
+        "`zero` と `one` が表示される",
+        "何も表示されない"
+      ],
+      "answer": 0,
+      "explanation": "Go の `switch` は選択された case だけを実行し、次の case には進みません。C などで必要になる `break` は不要です。"
+    },
+    {
+      "id": "defer-lifo",
+      "pageIndex": 12,
+      "prompt": "このプログラムの実行結果はどれですか？",
+      "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfor i := 0; i < 3; i++ {\n\t\tdefer fmt.Println(i)\n\t}\n\tfmt.Println(\"done\")\n}\n",
+      "choices": [
+        "`done`、`0`、`1`、`2` の順に表示される",
+        "`0`、`1`、`2`、`done` の順に表示される",
+        "`done`、`2`、`1`、`0` の順に表示される",
+        "`2`、`1`、`0`、`done` の順に表示される"
+      ],
+      "answer": 2,
+      "explanation": "`defer` された呼び出しは関数が戻る直前に実行され、後入れ先出し（LIFO）の順序になります。引数 `i` は `defer` の時点で評価されるため、`2`、`1`、`0` の順に表示されます。"
+    }
+  ]
+}

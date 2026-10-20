@@ -113,6 +113,41 @@ type CodeVariant = {
   kebab-case でない、`label` が空、`code` が原文や他の variant と同一、末尾が改行でない
 - `content/variants` ディレクトリが無い場合は「パターンなし」として扱い、エラーにしない
 
+### 確認問題 `content/quiz/<lesson>.json`
+
+レッスンを読み終えたあとに解く 4 択の問題。思い出して答える（retrieval practice）ことで
+理解を定着させる。問題のあるレッスンだけファイルを置く。
+
+```ts
+type LessonQuiz = {
+  id: string; // ファイル名と一致するレッスン id
+  questions: QuizQuestion[];
+};
+type QuizQuestion = {
+  id: string; // レッスン内で一意な kebab-case
+  pageIndex: number; // 根拠になるページ。0 始まり（block id や content/variants のキーと同じ数え方）
+  prompt: string; // 問題文。`` ` `` で囲んだ部分がコード（下記）
+  code?: string; // 問題に添える Go コード。末尾は改行で終える
+  choices: string[]; // 3〜4 個。`` ` `` でコードを書ける
+  answer: number; // 正解の choices の index（0 始まり）
+  explanation: string; // 正誤どちらでも回答後に出す解説。1〜3 文
+};
+```
+
+- `prompt` / `choices` / `explanation` は present 記法ではなく、`` ` `` で囲んだ部分をコードにするだけの
+  記法で描画する（`src/shared/quiz-text.ts`）。present は単語単位でしか記法が効かず `` `0 false` `` のような
+  空白を含むコードを書けないため。強調・リンクは使えない
+- 出題順と各問の選択肢の順は表示時にシャッフルする。データでも正解の位置（`answer`）を偏らせない
+- 選択肢は長さ・書式をそろえ、正解だけが長い・詳しい・断定的という手がかりを作らない
+- 根拠は必ず Tour 本文（`content/en` と `content/ja` の該当ページ）に置き、本文に無い知識を問わない
+- `scripts/content/validate.ts` が次を検査する（`scripts/content/validate-quiz.ts`）:
+  ファイル名と id の一致、未知のレッスン、`questions` が空、id の重複・kebab-case でない、
+  `pageIndex` がページ範囲外、`prompt` / `explanation` が空、`choices` が 3〜4 個でない、
+  空の choice、choice の重複、`answer` が範囲外、`code` の末尾が改行でない、
+  `` ` `` の数が奇数・空のコードスパン
+- 正解の選択肢が他のすべてより長い（文字数で唯一の最長）ときは warning。長さが手がかりになるため
+- `content/quiz` ディレクトリが無い場合は「問題なし」として扱い、エラーにしない
+
 ### 翻訳の方針
 
 - です・ます調。読者は Go 初学者のエンジニア
@@ -208,6 +243,7 @@ type CodeVariant = {
 | --------------------- | ------------------------------------------------------------------------------ |
 | `/`                   | レッスン一覧。モジュールごとにレッスンとページを並べ、既読と「続きから」を出す |
 | `/tour/:lesson/:page` | ページ（`:page` は 1 始まり）                                                  |
+| `/quiz/:lesson`       | 確認問題。1 問ずつ答えて、最後にスコアと間違えた問題を出す                     |
 | `/about`              | アプリの説明、既知の差異、インストール手順、`/licenses` へのリンク             |
 | `/licenses`           | ライセンス表記（「ライセンス」節を参照）                                       |
 | `/spike`              | 実行エンジンの診断ページ（残す。リンクは `/about` からだけ）                   |

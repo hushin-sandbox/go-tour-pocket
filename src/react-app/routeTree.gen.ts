@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as LicensesRouteImport } from './routes/licenses'
 import { Route as SpikeRouteImport } from './routes/spike'
+import { Route as QuizLessonRouteImport } from './routes/quiz.$lesson'
 import { Route as TourLessonPageRouteImport } from './routes/tour.$lesson.$page'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +36,11 @@ const SpikeRoute = SpikeRouteImport.update({
   path: '/spike',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QuizLessonRoute = QuizLessonRouteImport.update({
+  id: '/quiz/$lesson',
+  path: '/quiz/$lesson',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TourLessonPageRoute = TourLessonPageRouteImport.update({
   id: '/tour/$lesson/$page',
   path: '/tour/$lesson/$page',
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/licenses': typeof LicensesRoute
   '/spike': typeof SpikeRoute
+  '/quiz/$lesson': typeof QuizLessonRoute
   '/tour/$lesson/$page': typeof TourLessonPageRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/licenses': typeof LicensesRoute
   '/spike': typeof SpikeRoute
+  '/quiz/$lesson': typeof QuizLessonRoute
   '/tour/$lesson/$page': typeof TourLessonPageRoute
 }
 export interface FileRoutesById {
@@ -61,15 +69,34 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/licenses': typeof LicensesRoute
   '/spike': typeof SpikeRoute
+  '/quiz/$lesson': typeof QuizLessonRoute
   '/tour/$lesson/$page': typeof TourLessonPageRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/licenses' | '/spike' | '/tour/$lesson/$page'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/licenses'
+    | '/spike'
+    | '/quiz/$lesson'
+    | '/tour/$lesson/$page'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/licenses' | '/spike' | '/tour/$lesson/$page'
+  to:
+    | '/'
+    | '/about'
+    | '/licenses'
+    | '/spike'
+    | '/quiz/$lesson'
+    | '/tour/$lesson/$page'
   id:
-    '__root__' | '/' | '/about' | '/licenses' | '/spike' | '/tour/$lesson/$page'
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/licenses'
+    | '/spike'
+    | '/quiz/$lesson'
+    | '/tour/$lesson/$page'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +104,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   LicensesRoute: typeof LicensesRoute
   SpikeRoute: typeof SpikeRoute
+  QuizLessonRoute: typeof QuizLessonRoute
   TourLessonPageRoute: typeof TourLessonPageRoute
 }
 
@@ -110,6 +138,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SpikeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/quiz/$lesson': {
+      id: '/quiz/$lesson'
+      path: '/quiz/$lesson'
+      fullPath: '/quiz/$lesson'
+      preLoaderRoute: typeof QuizLessonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tour/$lesson/$page': {
       id: '/tour/$lesson/$page'
       path: '/tour/$lesson/$page'
@@ -125,6 +160,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   LicensesRoute: LicensesRoute,
   SpikeRoute: SpikeRoute,
+  QuizLessonRoute: QuizLessonRoute,
   TourLessonPageRoute: TourLessonPageRoute,
 }
 export const routeTree = rootRouteImport

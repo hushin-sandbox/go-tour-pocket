@@ -1,0 +1,36 @@
+{
+  "id": "generics",
+  "questions": [
+    {
+      "id": "comparable-constraint",
+      "pageIndex": 0,
+      "prompt": "`func Index[T comparable](s []T, x T) int` の `comparable` 制約が表すものはどれですか？",
+      "choices": [
+        "値を `<` や `>` で大小比較できる型であること",
+        "値を `==` と `!=` で比較できる型であること",
+        "任意の型を `int` に変換できること",
+        "値を `nil` と比較できる型であること"
+      ],
+      "answer": 1,
+      "explanation": "`comparable` は `==` と `!=` を使える型の制約です。この例では、スライスの各要素と `x` を `==` で比較するために使っています。"
+    },
+    {
+      "id": "generic-index-result",
+      "pageIndex": 0,
+      "prompt": "次のプログラムの出力はどれですか？",
+      "code": "package main\n\nimport \"fmt\"\n\nfunc Index[T comparable](s []T, x T) int {\n\tfor i, v := range s {\n\t\tif v == x {\n\t\t\treturn i\n\t\t}\n\t}\n\treturn -1\n}\n\nfunc main() {\n\tss := []string{\"foo\", \"bar\", \"baz\"}\n\tfmt.Println(Index(ss, \"hello\"))\n}\n",
+      "choices": ["`0`", "`3`", "`nil`", "`-1`"],
+      "answer": 3,
+      "explanation": "`Index` は一致する要素が見つからなければ `-1` を返します。`ss` に `\"hello\"` は含まれないため、出力は `-1` です。"
+    },
+    {
+      "id": "generic-list-field",
+      "pageIndex": 1,
+      "prompt": "`List[int]` として使うとき、`val` フィールドの型は何ですか？",
+      "code": "type List[T any] struct {\n\tnext *List[T]\n\tval  T\n}\n",
+      "choices": ["`any`", "`T`", "`int`", "`*List[int]`"],
+      "answer": 2,
+      "explanation": "`List[int]` では型パラメータ `T` が `int` に置き換わるため、`val` は `int` 型になります。`next` は `*List[int]` 型です。"
+    }
+  ]
+}
