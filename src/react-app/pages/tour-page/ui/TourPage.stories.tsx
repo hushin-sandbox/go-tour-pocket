@@ -374,8 +374,9 @@ export const RecordsProgress: Story = {
 };
 
 /**
- * 幅の広い画面では、左に本文、右にコードを置く。右カラムは Header の下に
- * sticky で貼り付き、ビューポートの高さいっぱいを使う（ページ自体は普通にスクロールする）。
+ * 幅の広い画面では、左に本文、右にコードを置く。右カラムは Header の下に、
+ * 前へ・次へはビューポートの下端に sticky で貼り付き、本文が長くてもスクロールせずに
+ * ページ送りできる（ページ自体は普通にスクロールする）。
  */
 export const WideLayout: Story = {
   globals: { viewport: { value: 'wide' } },
@@ -389,9 +390,11 @@ export const WideLayout: Story = {
 
     // 左に本文、右にコードが並ぶ
     await expect(articleBox.right).toBeLessThanOrEqual(codeBox.left + 1);
-    // 右カラムは Header の直下からビューポートの下端まで
+    // 右カラムは Header の直下から前へ・次への上まで
+    const nav = canvas.getByRole('navigation', { name: 'ページ移動' });
+    const navBox = nav.getBoundingClientRect();
     await expect(codeBox.top).toBeGreaterThanOrEqual(headerBox.bottom);
-    await expect(codeBox.bottom).toBeLessThanOrEqual(window.innerHeight);
+    await expect(codeBox.bottom).toBeLessThanOrEqual(navBox.top);
     // 貼り付き（sticky）で、スクロールしても Header の下に残る
     await expect(getComputedStyle(codeRegion.parentElement!).position).toBe('sticky');
 
@@ -399,12 +402,9 @@ export const WideLayout: Story = {
     const editor = canvas.getByRole('textbox', { name: 'main.go のコード' });
     await expect(editor.getBoundingClientRect().bottom).toBeLessThanOrEqual(codeBox.bottom + 1);
 
-    // レッスンのヘッダと前へ・次へは固定しない（本文と一緒に流れる）
-    const navBox = canvas.getByRole('navigation', { name: 'ページ移動' }).getBoundingClientRect();
-    await expect(
-      getComputedStyle(canvas.getByRole('navigation', { name: 'ページ移動' })).position,
-    ).toBe('static');
-    await expect(navBox.top).toBeGreaterThan(codeBox.top);
+    // 前へ・次へはスクロールしなくても見える（ビューポートの下端に貼り付く）
+    await expect(getComputedStyle(nav).position).toBe('sticky');
+    await expect(navBox.bottom).toBeLessThanOrEqual(window.innerHeight + 1);
   },
 };
 

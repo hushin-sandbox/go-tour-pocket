@@ -1,15 +1,40 @@
 /*
  * 幅の広い画面（1024px 以上）の 2 カラム用。
  *
- * 右のコードはアプリ Header の下に sticky で貼り付き、ビューポートの高さを
- * 使い切る。固定するのは Header だけなので、高さは
- * 「100dvh - Header（safe-area + 3rem + border 1px）」から上下の余白を引く。
- * レッスンのヘッダや前へ・次へのナビは固定しない（スクロールで流れる）。
+ * 前へ・次へのナビは画面の下端に、右のコードはアプリ Header の下に sticky で
+ * 貼り付け、本文が長くてもスクロールせずにページ送りできるようにする。
+ * レッスンのヘッダは固定しない（本文と一緒に流れる）。
+ *
+ * コードの高さは「100dvh - Header（safe-area + 3rem + border 1px）- ナビ」から
+ * 上下の余白（--tour-gap 2 つぶん）を引く。ナビの高さはここで固定して、コードの高さの
+ * 計算に使う。ページ上端とナビ上の余白も --tour-gap に揃え、本文が短いページでは
+ * ページ全体がちょうど 1 画面に収まる（スクロールが出ない）ようにする。
  */
 @media (min-width: 64rem) {
+  .tour-page {
+    --tour-nav-height: 5.5rem;
+    --tour-gap: 1rem;
+
+    padding-top: var(--tour-gap);
+  }
+
   .tour-code-pane {
     position: sticky;
-    top: calc(env(safe-area-inset-top) + 3rem + 1px + 1rem);
-    height: calc(100dvh - env(safe-area-inset-top) - 3rem - 1px - 2rem);
+    top: calc(env(safe-area-inset-top) + 3rem + 1px + var(--tour-gap));
+    height: calc(
+      100dvh - env(safe-area-inset-top) - 3rem - 1px - var(--tour-gap) * 2 - var(--tour-nav-height)
+    );
+  }
+
+  .tour-bottom-nav {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: var(--tour-nav-height);
+    margin-top: var(--tour-gap);
+    padding-block: 0;
+    background-color: var(--background);
   }
 }

@@ -125,9 +125,9 @@ export function TourPageView({ lesson, pageIndex, catalog }: TourPageViewProps) 
   return (
     <div
       className={cn(
-        'mx-auto flex w-full max-w-xl flex-col px-4 pt-4',
+        'tour-page mx-auto flex w-full max-w-xl flex-col px-4 pt-4',
         // コードのあるページだけ、幅の広い画面で 2 カラムぶんの幅を使う
-        hasCode && 'lg:max-w-6xl lg:px-6 lg:pt-6',
+        hasCode && 'lg:max-w-6xl lg:px-6',
       )}
     >
       <div
@@ -187,8 +187,9 @@ function BottomNavigation({ prev, next }: { prev?: PageRef; next?: PageRef }) {
   return (
     <nav
       aria-label="ページ移動"
-      // 固定せず、本文とコードの後ろに普通に置く。スマホの下部は safe-area を空ける。
-      className="mt-10 border-t border-border pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+      // スマホでは固定せず、本文とコードの後ろに普通に置く（下部は safe-area を空ける）。
+      // 幅の広い画面では画面の下端に貼り付ける（tour-page.css）。
+      className="tour-bottom-nav mt-10 border-t border-border pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
     >
       <div className="mx-auto grid w-full max-w-xl grid-cols-2 gap-2">
         {prev ? <PageLink direction="prev" page={prev} /> : <span aria-hidden="true" />}

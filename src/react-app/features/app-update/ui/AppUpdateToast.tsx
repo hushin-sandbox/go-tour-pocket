@@ -5,7 +5,8 @@ type AppUpdateToastProps = {
 };
 
 /**
- * 画面下部のトースト。ナビは固定しないので、位置は safe-area + 1rem で足りる。
+ * 画面下部のトースト。位置は safe-area + 1rem で足りる（幅の広い画面では下端の
+ * 前へ・次へに数秒重なるが、すぐ消えるので避けない）。
  */
 export function AppUpdateToast({ open, title, description }: AppUpdateToastProps) {
   if (!open) return null;
