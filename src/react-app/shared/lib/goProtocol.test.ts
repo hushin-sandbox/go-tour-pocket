@@ -38,4 +38,23 @@ describe('isGoWorkerEvent', () => {
   it('code の型が違う formatted は拒否する', () => {
     expect(isGoWorkerEvent({ type: 'formatted', reqId: 'r1', ok: true, code: 1 })).toBe(false);
   });
+
+  it('fatal 付きの exit イベントを受け付ける', () => {
+    expect(
+      isGoWorkerEvent({
+        type: 'exit',
+        runId: 'r1',
+        ok: false,
+        error: 'Go ランタイムが停止しました',
+        ms: 1,
+        fatal: true,
+      }),
+    ).toBe(true);
+  });
+
+  it('fatal の型が違う exit は拒否する', () => {
+    expect(isGoWorkerEvent({ type: 'exit', runId: 'r1', ok: false, ms: 1, fatal: 'yes' })).toBe(
+      false,
+    );
+  });
 });

@@ -6,7 +6,7 @@
  * - `formatGo(code)` — gofmt で整形する。実行中は Worker が塞がっているので `busy` を返す
  * - タイムアウト・AbortSignal・Worker クラッシュでは Worker を terminate して作り直す
  */
-import { isGoWorkerEvent, type GoWorkerRequest } from './goProtocol';
+import { GO_FATAL_RUNTIME_MESSAGE, isGoWorkerEvent, type GoWorkerRequest } from './goProtocol';
 
 export const DEFAULT_GO_TIMEOUT_MS = 10_000;
 export const DEFAULT_GO_FORMAT_TIMEOUT_MS = 5_000;
@@ -258,6 +258,9 @@ class GoRunner {
         if (active === null || active.runId !== value.runId) return;
         if (value.ok) {
           this.finish(active, 'ok');
+        } else if (value.fatal === true) {
+          // デッドロックなどで Go ランタイム自体が終了している。Worker ごと作り直す。
+          this.finish(active, 'crashed', value.error ?? GO_FATAL_RUNTIME_MESSAGE);
         } else {
           this.finish(active, 'error', value.error ?? '実行時にエラーが発生しました');
         }

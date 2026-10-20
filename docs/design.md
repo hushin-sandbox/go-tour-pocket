@@ -144,12 +144,18 @@ type CodeVariant = {
 { type: "ready" }
 { type: "stdout" | "stderr"; runId: string; data: string }
 { type: "image"; runId: string; dataUrl: string }   // pic の "IMAGE:" 行を変換したもの
-{ type: "exit"; runId: string; ok: boolean; error?: string; ms: number }
+{ type: "exit"; runId: string; ok: boolean; error?: string; ms: number; fatal?: boolean }
 { type: "formatted"; reqId: string; ok: boolean; code?: string; error?: string }
 ```
 
 - 1 回の実行ごとに出力を順に流す。`IMAGE:` は行単位でバッファしてから画像に変換する
 - タイムアウト（既定 10 秒）か停止ボタンで `worker.terminate()` を呼び、Worker を作り直す
+- Go の deadlock などでランタイム自体が `fatal error` で終了すると、`runGo` は文字列を返さない
+  （または `Go program has already exited` を投げる）。Worker は残りの stdout / stderr を
+  flush してから `fatal: true` 付きの exit を送り、main は `crashed` として Worker を
+  terminate して作り直す。次の実行は普通に動く
+- そのときのゴルーチンダンプは `GOTRACEBACK=none` で抑える。
+  `fatal error: all goroutines are asleep - deadlock!` の 1 行は残る
 - 事前ビルド済みのパッケージ（x/tour）が書く os.Stdout は、同期的に回収する
   （PoC で Node.js の非同期 fs が deadlock することを確認済み）
 - 整形は実行と同じ Worker で行う。Worker は実行中ブロックされるため、実行中の整形リクエストは

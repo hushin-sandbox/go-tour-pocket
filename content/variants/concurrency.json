@@ -1,0 +1,16 @@
+{
+  "id": "concurrency",
+  "pages": {
+    "2": {
+      "hash": "1cda6ee206cd",
+      "variants": [
+        {
+          "id": "overfill",
+          "label": "3 つ目も送る",
+          "note": "バッファが満杯のまま送信を待ち続けるため、デッドロックのエラーになります。",
+          "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tch := make(chan int, 2)\n\tch <- 1\n\tch <- 2\n\tch <- 3 // バッファを超えて送る\n\tfmt.Println(<-ch)\n\tfmt.Println(<-ch)\n}\n"
+        }
+      ]
+    }
+  }
+}

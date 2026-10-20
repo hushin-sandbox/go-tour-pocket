@@ -2,6 +2,13 @@
  * main スレッドと Go 実行 Worker の間のメッセージ定義（docs/design.md の通信プロトコル）。
  */
 
+/**
+ * Go ランタイム自体が fatal error で終了したときの既定メッセージ（Worker と main で共有）。
+ * 実際の原因（デッドロックなど）は stderr の `fatal error: ...` 行で分かる。
+ */
+export const GO_FATAL_RUNTIME_MESSAGE =
+  'Go ランタイムが停止しました（デッドロックなど）。次の実行で作り直します';
+
 export interface GoWorkerReadyMessage {
   type: 'ready';
   /** wasm の読み込みに失敗したときだけ入る */
@@ -26,6 +33,11 @@ export interface GoWorkerExitMessage {
   ok: boolean;
   error?: string;
   ms: number;
+  /**
+   * Go ランタイム自体が終了した（デッドロックや os.Exit など）。
+   * true なら main 側は Worker を作り直す。
+   */
+  fatal?: boolean;
 }
 
 export interface GoWorkerFormattedMessage {
@@ -85,7 +97,8 @@ export function isGoWorkerEvent(value: unknown): value is GoWorkerEvent {
       'ok' in value &&
       typeof value.ok === 'boolean' &&
       'ms' in value &&
-      typeof value.ms === 'number'
+      typeof value.ms === 'number' &&
+      (!('fatal' in value) || typeof value.fatal === 'boolean')
     );
   }
   return false;

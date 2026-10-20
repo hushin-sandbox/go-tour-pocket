@@ -3,6 +3,8 @@
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
     "types": ["vite/client", "vitest/globals"],
+    // goRunner は Worker / DOM API を使うため、テストから型解決するときに DOM が要る。
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
 
     /* Path aliases */
     "paths": {

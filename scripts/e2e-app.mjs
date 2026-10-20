@@ -405,6 +405,80 @@ const main = async () => {
 
     await context.setOffline(false);
 
+    // 2d. deadlock: バッファを超えて送ると Go ランタイム自体が終了する。
+    //     エラー表示が壊れず（undefined / JSON エラーを出さず）、原文に戻せば
+    //     次の実行が普通に成功すること（Worker が作り直されること）を確かめる。
+    await page.goto(`${BASE_URL}/tour/concurrency/3`, { waitUntil: 'load' });
+    await page.getByRole('heading', { level: 1, name: 'バッファ付きチャネル' }).waitFor();
+
+    const deadlockPatterns = page.getByRole('group', { name: 'コードのパターン' });
+    await deadlockPatterns.waitFor();
+    const overfillChip = deadlockPatterns.getByRole('button', { name: '3 つ目も送る' });
+    const originalChipAfterDeadlock = deadlockPatterns.getByRole('button', { name: '原文' });
+    const deadlockEditor = page.getByRole('textbox', { name: /buffered-channels.go のコード/ });
+
+    await clickCentered(page, overfillChip);
+    await page.waitForFunction(
+      (element) => element?.getAttribute('aria-pressed') === 'true',
+      await overfillChip.elementHandle(),
+      { timeout: 10_000 },
+    );
+    await page.waitForFunction(
+      (element) => element?.textContent?.includes('ch <- 3'),
+      await deadlockEditor.elementHandle(),
+      { timeout: 10_000 },
+    );
+    log('deadlock-pattern', '「3 つ目も送る」に切り替えた');
+
+    const deadlockRunButton = page.getByRole('button', { name: '実行', exact: true });
+    await waitForEnabled(deadlockRunButton, 60_000);
+    await clickCentered(page, deadlockRunButton);
+    const deadlockOutput = page.getByRole('log');
+    await deadlockOutput
+      .getByText(/deadlock/)
+      .first()
+      .waitFor({ timeout: RUN_TIMEOUT_MS });
+    await deadlockOutput
+      .getByText(/エラー:/)
+      .first()
+      .waitFor({ timeout: RUN_TIMEOUT_MS });
+    await waitForEnabled(deadlockRunButton, 30_000);
+
+    const deadlockText = await deadlockOutput.innerText();
+    assert.match(deadlockText, /deadlock/, 'deadlock の fatal error が出力されていない');
+    assert.match(deadlockText, /Go ランタイムが停止しました/, 'fatal の説明が出力されていない');
+    assert.doesNotMatch(deadlockText, /undefined/, 'fatal の出力に undefined が含まれている');
+    assert.doesNotMatch(
+      deadlockText,
+      /is not valid JSON/,
+      'fatal の出力が JSON パースエラーになっている',
+    );
+    log('deadlock', 'deadlock でエラーになり、壊れた出力が出なかった');
+
+    // 原文に戻すときはパターン選択中なので確認ダイアログを出さない。
+    const dialogs = [];
+    const onDialog = async (dialog) => {
+      dialogs.push(dialog.message());
+      await dialog.dismiss();
+    };
+    page.on('dialog', onDialog);
+    await clickCentered(page, originalChipAfterDeadlock);
+    await page.waitForFunction(
+      (element) => element?.getAttribute('aria-pressed') === 'true',
+      await originalChipAfterDeadlock.elementHandle(),
+      { timeout: 10_000 },
+    );
+    page.off('dialog', onDialog);
+    assert.deepEqual(dialogs, [], '「原文」への切り替えで確認ダイアログが出た');
+    log('deadlock-original', '確認ダイアログなしで「原文」に戻せた');
+
+    const recoveredOutput = await runCode(page);
+    const recoveredText = await recoveredOutput.innerText();
+    assert.match(recoveredText, /\b1\b/, '原文の 1 が出力されていない');
+    assert.match(recoveredText, /\b2\b/, '原文の 2 が出力されていない');
+    assert.doesNotMatch(recoveredText, /deadlock/, '原文に戻しても deadlock が残っている');
+    log('deadlock-recovered', '次の実行は Worker が作り直されて成功した');
+
     assert.deepEqual(pageErrors, [], `pageerror が発生した: ${pageErrors.join(' / ')}`);
 
     // 6. デスクトップ幅（1280x800）では、本文とコードの 2 カラムになり、

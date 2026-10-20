@@ -7,16 +7,21 @@
  */
 import { GoOutputSplitter } from './goOutput';
 import {
+  GO_FATAL_RUNTIME_MESSAGE,
   isGoWorkerFormatMessage,
   isGoWorkerRunMessage,
   type GoWorkerEvent,
   type GoWorkerFormatMessage,
+  type GoWorkerRunMessage,
 } from './goProtocol';
 
 const splitter = new GoOutputSplitter();
 const decoder = new TextDecoder();
 
 let activeRunId: string | null = null;
+
+/** wasm_exec.js の Go インスタンス。ランタイム自体が終了したかの判定に使う。 */
+let goRuntime: GoWasmInstance | null = null;
 
 function post(message: GoWorkerEvent): void {
   // Dedicated Worker の postMessage は第 2 引数が transfer list なので origin は渡さない
@@ -92,6 +97,10 @@ async function start(): Promise<void> {
     throw new Error('wasm_exec.js から Go が定義されませんでした');
   }
   const go = new Go();
+  // fatal error でランタイムが終了するとき、全ゴルーチンのスタックダンプを出さない。
+  // `fatal error: all goroutines are asleep - deadlock!` の 1 行目は残る。
+  go.env.GOTRACEBACK = 'none';
+  goRuntime = go;
   const response = await fetch('/wasm/yaegi.wasm');
   if (!response.ok) {
     throw new Error(`yaegi.wasm の取得に失敗しました (${response.status})`);
@@ -107,6 +116,80 @@ async function start(): Promise<void> {
 function describeError(error: unknown): string {
   if (error instanceof Error) return error.message;
   return String(error);
+}
+
+function flushOutput(runId: string): void {
+  for (const kind of ['stdout', 'stderr'] as const) {
+    const remaining = splitter.flush(kind);
+    if (remaining !== undefined) post({ ...remaining, runId });
+  }
+}
+
+/** fatal error（デッドロックなど）で Go ランタイムごと終了したときの結果。 */
+function fatalResult(startedAt: number): {
+  ok: false;
+  error: string;
+  ms: number;
+  fatal: true;
+} {
+  return {
+    ok: false,
+    fatal: true,
+    error: GO_FATAL_RUNTIME_MESSAGE,
+    ms: Math.max(0, Math.round(performance.now() - startedAt)),
+  };
+}
+
+/**
+ * run リクエストを 1 回処理する。Go の deadlock などでランタイムが終了すると
+ * `runGo` は文字列を返さない（または `Go program has already exited` を投げる）。
+ * その場合は fatal を付けて、main 側に Worker の作り直しを促す。
+ */
+function handleRun(message: GoWorkerRunMessage): void {
+  if (runGo === undefined) {
+    post({
+      type: 'exit',
+      runId: message.runId,
+      ok: false,
+      error: 'Go ランタイムが初期化されていません',
+      ms: 0,
+    });
+    return;
+  }
+
+  activeRunId = message.runId;
+  const startedAt = performance.now();
+  let result: { ok: boolean; error?: string; ms: number; fatal?: boolean };
+
+  try {
+    if (goRuntime === null) {
+      result = { ok: false, error: 'Go ランタイムが初期化されていません', ms: 0 };
+    } else if (goRuntime.exited) {
+      result = fatalResult(startedAt);
+    } else {
+      const raw: unknown = runGo(message.code, emit);
+      if (typeof raw !== 'string' || goRuntime.exited) {
+        result = fatalResult(startedAt);
+      } else {
+        const parsed = parseRunResult(JSON.parse(raw));
+        result = {
+          ok: parsed.error === undefined,
+          error: parsed.error,
+          ms: parsed.ms,
+        };
+      }
+    }
+  } catch (error) {
+    const errorMessage = describeError(error);
+    result =
+      goRuntime?.exited === true || errorMessage.includes('Go program has already exited')
+        ? fatalResult(startedAt)
+        : { ok: false, error: errorMessage, ms: Math.round(performance.now() - startedAt) };
+  }
+
+  flushOutput(message.runId);
+  post({ type: 'exit', runId: message.runId, ...result });
+  activeRunId = null;
 }
 
 function parseRunResult(value: unknown): { error?: string; ms: number } {
@@ -162,43 +245,7 @@ self.addEventListener('message', (event: MessageEvent<unknown>) => {
     return;
   }
   if (!isGoWorkerRunMessage(message) || activeRunId !== null) return;
-  if (runGo === undefined) {
-    post({
-      type: 'exit',
-      runId: message.runId,
-      ok: false,
-      error: 'Go ランタイムが初期化されていません',
-      ms: 0,
-    });
-    return;
-  }
-
-  activeRunId = message.runId;
-  try {
-    const raw: unknown = JSON.parse(runGo(message.code, emit));
-    const result = parseRunResult(raw);
-    for (const kind of ['stdout', 'stderr'] as const) {
-      const remaining = splitter.flush(kind);
-      if (remaining !== undefined) post({ ...remaining, runId: message.runId });
-    }
-    post({
-      type: 'exit',
-      runId: message.runId,
-      ok: result.error === undefined,
-      error: result.error,
-      ms: result.ms,
-    });
-  } catch (error) {
-    post({
-      type: 'exit',
-      runId: message.runId,
-      ok: false,
-      error: describeError(error),
-      ms: 0,
-    });
-  } finally {
-    activeRunId = null;
-  }
+  handleRun(message);
 });
 
 void start().catch((error: unknown) => {

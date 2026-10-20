@@ -72,6 +72,7 @@ public/wasm/           # build:wasm の生成物（gitignore）。wasm_exec.js �
 
 - `routeTree.gen.ts` は自動生成だがコミット対象。手で編集しない
 - Go の実行は Dedicated Worker（`src/react-app/shared/lib/goRunner.worker.ts`）。無限ループは Yaegi 側で止められないため、タイムアウト・停止は `worker.terminate()` で行い Worker を作り直す
+- deadlock などで wasm の Go ランタイム自体が終了することがある。`go.exited` を検出して `fatal: true` 付きの exit を送り、main 側で Worker を作り直す（`fatal` が無い通常のエラーと混同しない）
 - wasm は約 13MB あり Service Worker の precache 対象。`maximumFileSizeToCacheInBytes` を超えるファイルを増やすときは `vite.config.ts` も見る
 - `wasm_exec.js` は Go のバージョンと一致必須。`mise run build:wasm` が `go env GOROOT` からコピーする
 - 本番は Cloudflare Workers Builds が `pnpm run build` でビルドする。ビルド環境に mise は無いので、`build:wasm` は mise を経由せず `wasm/build.sh` を直接呼ぶ。ビルド環境の Go は古い（1.24 系）が、`wasm/go.mod` の `toolchain` 行を見て Go が指定の版を自動で取得する。Go を上げるときは `mise.toml` と `toolchain` 行を両方更新する

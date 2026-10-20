@@ -17,6 +17,10 @@ interface GoWasmFs {
 
 interface GoWasmInstance {
   importObject: WebAssembly.Imports;
+  /** Go に渡す環境変数。wasm の起動前に設定する。 */
+  env: Record<string, string>;
+  /** Go のランタイムが終了したら true。以降は resume できない。 */
+  exited: boolean;
   run(instance: WebAssembly.Instance): Promise<void>;
 }
 
