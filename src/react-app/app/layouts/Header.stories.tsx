@@ -1,7 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/tanstack-react';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { createRootRoute, createRoute } from '@tanstack/react-router';
-import { DisplaySettingsProvider } from '@/react-app/features/display-mode';
+import {
+  DISPLAY_SETTINGS_STORAGE_KEY,
+  DisplaySettingsProvider,
+} from '@/react-app/features/display-mode';
 import { Header } from './Header';
 
 const storyRootRoute = createRootRoute();
@@ -20,6 +23,9 @@ const meta = {
       </DisplaySettingsProvider>
     ),
   ],
+  beforeEach: () => {
+    window.localStorage.removeItem(DISPLAY_SETTINGS_STORAGE_KEY);
+  },
 } satisfies Meta<typeof Header>;
 
 export default meta;
@@ -39,7 +45,7 @@ export const Default: Story = {
   },
 };
 
-/** レッスン画面では、右端のメニューから表示モードと文字サイズを切り替える。 */
+/** レッスン画面では、右端のメニューから表示モードと本文・コードの文字サイズを切り替える。 */
 export const LessonPageDisplaySettings: Story = {
   parameters: {
     tanstack: {
@@ -57,11 +63,23 @@ export const LessonPageDisplaySettings: Story = {
       'aria-pressed',
       'true',
     );
-    await userEvent.click(within(dialog).getByRole('button', { name: '大' }));
-    await expect(within(dialog).getByRole('button', { name: '大' })).toHaveAttribute(
+
+    const bodyFontSize = within(dialog).getByRole('group', { name: '本文の文字サイズ' });
+    await userEvent.click(within(bodyFontSize).getByRole('button', { name: '大' }));
+    await expect(within(bodyFontSize).getByRole('button', { name: '大' })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
+
+    const codeFontSize = within(dialog).getByRole('group', { name: 'コードの文字サイズ' });
+    await userEvent.click(within(codeFontSize).getByRole('button', { name: '大' }));
+    await expect(within(codeFontSize).getByRole('button', { name: '大' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    const saved = JSON.parse(window.localStorage.getItem(DISPLAY_SETTINGS_STORAGE_KEY) ?? '{}');
+    await expect(saved).toMatchObject({ mode: 'en', fontSize: 'large', codeFontSize: 'large' });
 
     await userEvent.click(within(dialog).getByRole('button', { name: '表示設定を閉じる' }));
     await waitFor(() =>

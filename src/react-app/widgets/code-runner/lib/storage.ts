@@ -1,5 +1,5 @@
 /**
- * CodeRunner が localStorage に保存するもの（編集中のコード・文字サイズ・折り返し）。
+ * CodeRunner が localStorage に保存するもの（編集中のコード・折り返し）。
  *
  * DOM に依存しないので Workers runtime のテストからも使える。localStorage は
  * プライベートモードや容量超過で例外を投げることがあるため、読み書きはすべて
@@ -17,18 +17,7 @@ export interface CodeDraft {
   code: string;
 }
 
-export type CodeFontSize = 'sm' | 'md' | 'lg';
-
-export const DEFAULT_CODE_FONT_SIZE: CodeFontSize = 'md';
-
-export const CODE_FONT_SIZE_OPTIONS: readonly { value: CodeFontSize; label: string }[] = [
-  { value: 'sm', label: '小' },
-  { value: 'md', label: '中' },
-  { value: 'lg', label: '大' },
-];
-
 const DRAFT_KEY_PREFIX = 'go-tour-pocket:draft:';
-const FONT_SIZE_KEY = 'go-tour-pocket:code-font-size';
 const WRAP_KEY = 'go-tour-pocket:code-wrap';
 
 export function draftStorageKey(storageKey: string): string {
@@ -74,29 +63,6 @@ export function clearDraft(storage: KeyValueStorage, storageKey: string): void {
   } catch {
     // 何もできることはない
   }
-}
-
-export function loadCodeFontSize(storage: KeyValueStorage | null): CodeFontSize {
-  if (storage === null) return DEFAULT_CODE_FONT_SIZE;
-  try {
-    const value = storage.getItem(FONT_SIZE_KEY);
-    return isCodeFontSize(value) ? value : DEFAULT_CODE_FONT_SIZE;
-  } catch {
-    return DEFAULT_CODE_FONT_SIZE;
-  }
-}
-
-export function saveCodeFontSize(storage: KeyValueStorage | null, size: CodeFontSize): void {
-  if (storage === null) return;
-  try {
-    storage.setItem(FONT_SIZE_KEY, size);
-  } catch {
-    // 保存できなくても文字サイズの変更自体は反映する
-  }
-}
-
-function isCodeFontSize(value: unknown): value is CodeFontSize {
-  return value === 'sm' || value === 'md' || value === 'lg';
 }
 
 /**

@@ -28,15 +28,15 @@
   --code-runner-syntax-invalid: var(--destructive);
 }
 
-.code-runner[data-font-size='sm'] {
+.code-runner[data-font-size='small'] {
   --code-runner-font-size: 14px;
 }
 
-.code-runner[data-font-size='md'] {
+.code-runner[data-font-size='medium'] {
   --code-runner-font-size: 16px;
 }
 
-.code-runner[data-font-size='lg'] {
+.code-runner[data-font-size='large'] {
   --code-runner-font-size: 18px;
 }
 

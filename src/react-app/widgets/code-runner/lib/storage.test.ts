@@ -1,11 +1,8 @@
 import {
-  DEFAULT_CODE_FONT_SIZE,
   clearDraft,
   draftStorageKey,
-  loadCodeFontSize,
   loadCodeWrap,
   loadDraft,
-  saveCodeFontSize,
   saveCodeWrap,
   saveDraft,
   type KeyValueStorage,
@@ -101,33 +98,6 @@ describe('saveDraft / clearDraft', () => {
       saveDraft(throwingStorage, 'basics/1', { codeHash: 'a', code: 'one' }),
     ).not.toThrow();
     expect(() => clearDraft(throwingStorage, 'basics/1')).not.toThrow();
-  });
-});
-
-describe('文字サイズ', () => {
-  it('保存した値を返す', () => {
-    const storage = new MemoryStorage();
-    saveCodeFontSize(storage, 'lg');
-
-    expect(loadCodeFontSize(storage)).toBe('lg');
-  });
-
-  it('未保存・不正な値は既定値にする', () => {
-    const storage = new MemoryStorage();
-    expect(loadCodeFontSize(storage)).toBe(DEFAULT_CODE_FONT_SIZE);
-
-    storage.setItem('go-tour-pocket:code-font-size', 'huge');
-    expect(loadCodeFontSize(storage)).toBe(DEFAULT_CODE_FONT_SIZE);
-  });
-
-  it('storage がなくても既定値で動く', () => {
-    expect(loadCodeFontSize(null)).toBe(DEFAULT_CODE_FONT_SIZE);
-    expect(() => saveCodeFontSize(null, 'sm')).not.toThrow();
-  });
-
-  it('読み書きに失敗しても例外を投げない', () => {
-    expect(loadCodeFontSize(throwingStorage)).toBe(DEFAULT_CODE_FONT_SIZE);
-    expect(() => saveCodeFontSize(throwingStorage, 'sm')).not.toThrow();
   });
 });
 

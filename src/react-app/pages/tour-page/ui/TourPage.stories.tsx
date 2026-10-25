@@ -288,16 +288,46 @@ export const JapaneseOnly: Story = {
 };
 
 export const FontSize: Story = {
+  name: '本文の文字サイズを変える',
   play: async ({ canvas, userEvent }) => {
     const article = canvas.getByRole('article');
     await expect(article).toHaveStyle({ fontSize: '18px' });
 
     const dialog = await openDisplaySettings(canvas, userEvent);
-    await userEvent.click(within(dialog).getByRole('button', { name: '大' }));
+    const group = within(dialog).getByRole('group', { name: '本文の文字サイズ' });
+    await userEvent.click(within(group).getByRole('button', { name: '大' }));
     await expect(article).toHaveStyle({ fontSize: '20px' });
 
-    await userEvent.click(within(dialog).getByRole('button', { name: '小' }));
+    await userEvent.click(within(group).getByRole('button', { name: '小' }));
     await expect(article).toHaveStyle({ fontSize: '16px' });
+
+    await closeDisplaySettings(canvas, userEvent);
+  },
+};
+
+export const CodeFontSize: Story = {
+  name: 'コードの文字サイズを本文と別に変える',
+  play: async ({ canvas, userEvent }) => {
+    const article = canvas.getByRole('article');
+    const code = canvas.getByRole('region', { name: /のコード例$/ });
+    await expect(code).toHaveAttribute('data-font-size', 'medium');
+
+    const dialog = await openDisplaySettings(canvas, userEvent);
+    const group = within(dialog).getByRole('group', { name: 'コードの文字サイズ' });
+    await userEvent.click(within(group).getByRole('button', { name: '大' }));
+
+    await expect(code).toHaveAttribute('data-font-size', 'large');
+    // 本文の文字サイズ（中 = 18px）はそのまま
+    await expect(article).toHaveStyle({ fontSize: '18px' });
+
+    const scroller = code.querySelector<HTMLElement>('.cm-scroller');
+    if (scroller === null) throw new Error('.cm-scroller が見つからない');
+    await expect(scroller).toHaveStyle({ fontSize: '18px' });
+
+    await userEvent.click(within(group).getByRole('button', { name: '小' }));
+    await expect(code).toHaveAttribute('data-font-size', 'small');
+    await expect(scroller).toHaveStyle({ fontSize: '14px' });
+    await expect(article).toHaveStyle({ fontSize: '18px' });
 
     await closeDisplaySettings(canvas, userEvent);
   },

@@ -10,7 +10,7 @@ import {
 import { Compartment, EditorState, Text } from '@codemirror/state';
 import { EditorView, keymap, lineNumbers } from '@codemirror/view';
 import { tags } from '@lezer/highlight';
-import type { CodeFontSize } from '../lib/storage';
+import type { FontSize } from '@/react-app/features/display-mode';
 
 const highlightStyle = HighlightStyle.define([
   {
@@ -77,7 +77,7 @@ export interface CodeEditorHandle {
 export interface CodeEditorProps {
   value: string;
   fileName: string;
-  fontSize: CodeFontSize;
+  fontSize: FontSize;
   /** 長い行をエディタの幅で折り返すか */
   lineWrapping: boolean;
   onChange: (value: string) => void;

@@ -1,6 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/tanstack-react';
 import { useEffect, useRef, useState, type ComponentProps } from 'react';
 import { expect, waitFor, within } from 'storybook/test';
+import {
+  DISPLAY_SETTINGS_STORAGE_KEY,
+  DisplaySettingsProvider,
+} from '@/react-app/features/display-mode';
 import { draftStorageKey, saveDraft } from '../lib/storage';
 import { CodeRunner } from './CodeRunner';
 import {
@@ -28,6 +32,13 @@ let confirmResult = true;
 
 const meta = {
   component: CodeRunner,
+  decorators: [
+    (Story) => (
+      <DisplaySettingsProvider>
+        <Story />
+      </DisplaySettingsProvider>
+    ),
+  ],
   args: {
     code: SAMPLE_CODE,
     fileName: 'packages.go',
@@ -378,16 +389,21 @@ export const DarkMode: Story = {
   },
 };
 
-export const ChangeFontSize: Story = {
-  name: '文字サイズを保存',
-  play: async ({ canvas, userEvent }) => {
-    await userEvent.click(await canvas.findByRole('button', { name: '文字サイズ 大' }));
-
-    await expect(canvas.getByRole('button', { name: '文字サイズ 大' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
+export const CodeFontSizeFromSettings: Story = {
+  name: '表示設定のコード文字サイズを使う',
+  beforeEach: () => {
+    window.localStorage.setItem(
+      DISPLAY_SETTINGS_STORAGE_KEY,
+      JSON.stringify({ mode: 'bilingual', fontSize: 'medium', codeFontSize: 'large' }),
     );
-    await expect(window.localStorage.getItem('go-tour-pocket:code-font-size')).toBe('lg');
+  },
+  play: async ({ canvas }) => {
+    const region = await canvas.findByRole('region', { name: /のコード例$/ });
+    await expect(region).toHaveAttribute('data-font-size', 'large');
+
+    const scroller = region.querySelector<HTMLElement>('.cm-scroller');
+    if (scroller === null) throw new Error('.cm-scroller が見つからない');
+    await expect(scroller).toHaveStyle({ fontSize: '18px' });
   },
 };
 

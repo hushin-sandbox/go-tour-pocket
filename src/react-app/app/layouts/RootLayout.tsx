@@ -7,7 +7,7 @@ import { Header } from './Header';
  * アプリの枠。余白は各ページが持つので、ここでは Header と Outlet を
  * 縦に並べるだけにして、ページ側のレイアウトを邪魔しない。
  *
- * 固定するのは Header だけ。表示設定は Header のメニューとレッスン本文の
+ * 固定するのは Header だけ。表示設定は Header のメニューとレッスン本文・コードの
  * 両方から読むので、ここで context を配る。
  */
 export function RootLayout() {

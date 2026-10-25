@@ -6,6 +6,7 @@ import {
   DISPLAY_MODE_LABELS,
   FONT_SIZES,
   FONT_SIZE_LABELS,
+  type FontSize,
 } from '../model/display-settings';
 import { useDisplaySettings } from '../model/display-settings-context';
 
@@ -18,13 +19,44 @@ const segmentClass = (selected: boolean) =>
       : 'text-muted-foreground hover:text-foreground',
   );
 
+/** 文字サイズの 小 / 中 / 大 を選ぶセグメント。本文用とコード用で同じ見た目を使う。 */
+function FontSizeSelector({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: FontSize;
+  onChange: (value: FontSize) => void;
+}) {
+  return (
+    <div
+      role="group"
+      aria-label={label}
+      className="flex items-center gap-0.5 rounded-lg border border-border bg-muted/40 p-0.5"
+    >
+      {FONT_SIZES.map((size) => (
+        <button
+          key={size}
+          type="button"
+          aria-pressed={value === size}
+          onClick={() => onChange(size)}
+          className={cn(segmentClass(value === size), 'min-w-0 flex-1')}
+        >
+          {FONT_SIZE_LABELS[size]}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /**
- * Header に置く表示設定の入口。レッスン画面の本文に効く設定（対訳の組み合わせと
- * 文字サイズ）を 1 か所にまとめる。開いた先は、スマホではボトムシート、
- * 幅の広い画面では中央のダイアログになる。
+ * Header に置く表示設定の入口。レッスン画面に効く設定（対訳の組み合わせ、
+ * 本文とコードエディタの文字サイズ）を 1 か所にまとめる。開いた先は、
+ * スマホではボトムシート、幅の広い画面では中央のダイアログになる。
  */
 export function DisplaySettingsMenu() {
-  const { settings, setMode, setFontSize } = useDisplaySettings();
+  const { settings, setMode, setFontSize, setCodeFontSize } = useDisplaySettings();
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -96,26 +128,26 @@ export function DisplaySettingsMenu() {
           </section>
 
           <section className="flex flex-col gap-2">
-            <h3 className="text-xs font-medium text-muted-foreground">文字サイズ</h3>
-            <div
-              role="group"
-              aria-label="文字サイズ"
-              className="flex items-center gap-0.5 rounded-lg border border-border bg-muted/40 p-0.5"
-            >
-              {FONT_SIZES.map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  aria-pressed={settings.fontSize === value}
-                  onClick={() => setFontSize(value)}
-                  className={cn(segmentClass(settings.fontSize === value), 'min-w-0 flex-1')}
-                >
-                  {FONT_SIZE_LABELS[value]}
-                </button>
-              ))}
-            </div>
+            <h3 className="text-xs font-medium text-muted-foreground">本文の文字サイズ</h3>
+            <FontSizeSelector
+              label="本文の文字サイズ"
+              value={settings.fontSize}
+              onChange={setFontSize}
+            />
             <p className="text-xs leading-5 text-muted-foreground">
               レッスン本文の文字サイズです。
+            </p>
+          </section>
+
+          <section className="flex flex-col gap-2">
+            <h3 className="text-xs font-medium text-muted-foreground">コードの文字サイズ</h3>
+            <FontSizeSelector
+              label="コードの文字サイズ"
+              value={settings.codeFontSize}
+              onChange={setCodeFontSize}
+            />
+            <p className="text-xs leading-5 text-muted-foreground">
+              コードエディタの文字サイズです。
             </p>
           </section>
         </div>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlignLeft, ChevronDown, FileCode2, Play, RotateCcw, Square, WrapText } from 'lucide-react';
+import { useDisplaySettings } from '@/react-app/features/display-mode';
 import {
   DEFAULT_GO_TIMEOUT_MS,
   cn,
@@ -13,15 +14,11 @@ import {
 import { Button } from '@/react-app/shared/ui';
 import { appendRunEvent } from '../lib/runOutput';
 import {
-  CODE_FONT_SIZE_OPTIONS,
   clearDraft,
-  loadCodeFontSize,
   loadCodeWrap,
   loadDraft,
-  saveCodeFontSize,
   saveCodeWrap,
   saveDraft,
-  type CodeFontSize,
   type KeyValueStorage,
 } from '../lib/storage';
 import { CodeEditor, type CodeEditorHandle } from './CodeEditor';
@@ -124,12 +121,13 @@ function CodeRunnerContent({
   const isFilled = layout === 'fill';
   const storage = useMemo(() => getBrowserStorage(), []);
   const engineRef = useRef<GoRunnerEngine>(engineProp ?? defaultEngine);
+  const { settings } = useDisplaySettings();
+  const fontSize = settings.codeFontSize;
 
   const [code, setCode] = useState(() => {
     if (storage === null) return originalCode;
     return loadDraft(storage, storageKey, codeHash) ?? originalCode;
   });
-  const [fontSize, setFontSize] = useState<CodeFontSize>(() => loadCodeFontSize(storage));
   const [wrap, setWrap] = useState(() => loadCodeWrap(storage) ?? prefersWrapByDefault());
   const [items, setItems] = useState<GoRunEvent[]>([]);
   const [isRunning, setIsRunning] = useState(false);
@@ -389,11 +387,6 @@ function CodeRunnerContent({
     setFormatError(null);
   };
 
-  const handleFontSize = (size: CodeFontSize) => {
-    setFontSize(size);
-    saveCodeFontSize(storage, size);
-  };
-
   const handleWrap = () => {
     const next = !wrap;
     setWrap(next);
@@ -415,22 +408,6 @@ function CodeRunnerContent({
           </span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="flex items-center gap-1" role="group" aria-label="文字サイズ">
-            {CODE_FONT_SIZE_OPTIONS.map((option) => (
-              <Button
-                key={option.value}
-                type="button"
-                size="sm"
-                variant={fontSize === option.value ? 'secondary' : 'ghost'}
-                aria-pressed={fontSize === option.value}
-                aria-label={`文字サイズ ${option.label}`}
-                className="min-h-11 min-w-11"
-                onClick={() => handleFontSize(option.value)}
-              >
-                {option.label}
-              </Button>
-            ))}
-          </div>
           <Button
             type="button"
             size="sm"

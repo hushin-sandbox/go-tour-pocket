@@ -7,8 +7,8 @@ import { NetworkStatus } from '@/react-app/features/network-status';
  * スマホ向けのコンパクトなヘッダ。ノッチ・ホームインジケータを避けるため
  * safe-area を padding で確保する。各ページはこの下で自分のレイアウトを持つ。
  *
- * レッスン画面では、本文の表示モードと文字サイズの切り替えを右端の
- * 「表示設定」メニューにまとめる（レッスン画面以外では出さない）。
+ * レッスン画面では、本文の表示モード・本文の文字サイズ・コードの文字サイズの
+ * 切り替えを右端の「表示設定」メニューにまとめる（レッスン画面以外では出さない）。
  */
 export function Header() {
   const isLessonPage = useRouterState({
