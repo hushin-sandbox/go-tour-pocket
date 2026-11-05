@@ -1,7 +1,11 @@
+[settings]
+# Cloudflare Workers Builds は mise.toml を読まず .node-version を読む。Node の版は
+# .node-version に置き、ローカル / CI の mise にも同じファイルを読ませる
+idiomatic_version_file_enable_tools = ["node"]
+
 [tools]
 go = "1.25"
 lefthook = "2"
-node = "26.13.0"
 pnpm = "12"
 
 [tasks.setup]
