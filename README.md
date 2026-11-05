@@ -86,7 +86,8 @@ JS チャンクに埋め込み、Service Worker の precache に載せる。点�
 ├── steiger.config.ts      # FSD の構造 lint
 ├── .dependency-cruiser.mjs # レイヤー間の import 方向の lint
 ├── tsconfig.*.json
-└── mise.toml              # ツールバージョン管理（Node / pnpm / Go）
+├── .node-version          # Node の版（mise と Workers Builds が読む）
+└── mise.toml              # ツールバージョン管理（pnpm / Go）
 ```
 
 story（`*.stories.tsx`）とモックデータ（`*.mock.ts`）は対象ファイルの隣に置く。

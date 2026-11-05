@@ -9,7 +9,7 @@ shadcn/ui（base UI）+ Tailwind v4 / zod / Vitest + Storybook 10 / oxlint + oxf
 
 ## 作業のルール
 
-- パッケージマネージャは pnpm（mise で Node 26 / pnpm 12 / Go 1.25 を固定）
+- パッケージマネージャは pnpm（Node 26 は `.node-version`、pnpm 12 / Go 1.25 は mise.toml で固定。mise も `.node-version` を読む）
 - 変更が一区切りしたら `pnpm check` と `pnpm test` を通す。型チェックは oxlint が兼ねるので `pnpm check` で型エラーまで見える
 - コミットメッセージは Conventional Commits
 - 整形は oxfmt、lint の自動修正は `pnpm lint:fix` が行う（pre-commit の lefthook も同じものを走らせる）
